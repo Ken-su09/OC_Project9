@@ -1,3 +1,48 @@
 <resources>
     <string name="app_name">OC_Project9</string>
+
+    <string name="number_rooms">%1$d Rooms • %2$d Bedrooms • %3$d Bathrooms</string>
+    <string name="square_foot">%1$f sqft</string>
+    <string name="real_estate_price">%1$s$</string>
+
+    <string name="map">Map</string>
+    <string name="real_estate">Real Estates</string>
+
+    <string name="drawer_opened">Open</string>
+    <string name="drawer_closed">Close</string>
+
+    <string name="toolbar_search">Search</string>
+
+    <string name="a11y_add_real_estate">Add new Real Estate</string>
+
+    <string name="no_images_title">You need to had images</string>
+
+    <string name="number_of_rooms">Number of rooms :</string>
+    <string name="number_of_bedrooms">Number of bedrooms :</string>
+    <string name="number_of_bathrooms">Number of bathrooms :</string>
+
+    <string name="price">Price</string>
+    <string name="living_space_square_foot">Living Space (Square Foot)</string>
+    <string name="description">Description</string>
+    <string name="type">Type : </string>
+
+    // %1$s : 55 West %2$s : 25th Street, %3$s : New York, %4$s : NY, 10010
+    <string name="full_address">%1$s %2$s, %3$s, %4$s, %5$s</string>
+    <string name="grid_zone">Grid Zone</string>
+    <string name="street_name">Street Name</string>
+    <string name="city_borough">City / Borough</string>
+    <string name="state">State</string>
+    <string name="zip_code">Zip Code</string>
+
+    <string-array name="types_array">
+        <item>House</item>
+        <item>Penthouse</item>
+        <item>Duplex</item>
+        <item>Flat</item>
+        <item>Loft</item>
+    </string-array>
+
+    <string name="toolbar_add_image">Add an image</string>
+    <string name="toolbar_save_real_estate">Save</string>
+    <string name="toolbar_change_map">Change map</string>
 </resources>

@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">OC_Project9</string>
+
+    <string name="number_rooms">%1$d Pièces • %2$d Chambres • %3$d Salles de bain</string>
+    <string name="square_foot">%1$f m²</string>
+    <string name="real_estate_price">%1$s€</string>
+
+    <string name="map">Map</string>
+    <string name="real_estate">Immobiliers</string>
+
+    <string name="drawer_opened">Ouvrir</string>
+    <string name="drawer_closed">Fermer</string>
+
+    <string name="toolbar_search">Rechercher</string>
+
+    <string name="a11y_add_real_estate">Ajout immobilier</string>
+
+    <string name="no_images_title">Vous devez ajouter des images</string>
+
+    <string name="number_of_rooms">Nombres de pièces :</string>
+    <string name="number_of_bedrooms">Nombres de chambres :</string>
+    <string name="number_of_bathrooms">Nombres de salles de bain :</string>
+
+    <string name="price">Prix</string>
+    <string name="living_space_square_foot">Surface d\'habitation (m²)</string>
+    <string name="description">Description</string>
+    <string name="type">Type :</string>
+
+    <string name="full_address">%1$s %2$s, %3$s, %4$s, %5$s</string>
+    <string name="grid_zone">Grid Zone</string>
+    <string name="street_name">Nom de la rue</string>
+    <string name="city_borough">Ville / Arrondissement</string>
+    <string name="state">État</string>
+    <string name="zip_code">Code postal</string>
+
+    <string-array name="types_array">
+        <item>Maison</item>
+        <item>Penthouse</item>
+        <item>Duplex</item>
+        <item>Appartement</item>
+        <item>Loft</item>
+    </string-array>
+
+    <string name="toolbar_add_image">Ajouter une image</string>
+    <string name="toolbar_save_real_estate">Enregistrer</string>
+    <string name="toolbar_change_map">Changer carte</string>
+</resources>
