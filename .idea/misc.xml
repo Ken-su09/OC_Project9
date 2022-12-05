@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_add_image.xml" value="0.219" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_area.xml" value="0.2845" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_bedroom.xml" value="0.351" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_building.xml" value="0.2845" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_dollar.xml" value="0.312" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_map.xml" value="0.302" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_no_images.xml" value="0.1545" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_plus.xml" value="0.2115" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_real_estate_icon.xml" value="0.351" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_room.xml" value="0.2845" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_save.xml" value="0.219" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/drawable/ic_search.xml" value="0.219" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/activity_main.xml" value="0.25271739130434784" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/fragment_create_real_estate.xml" value="0.35052083333333334" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/fragment_map.xml" value="0.22447916666666667" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/fragment_real_estate_details.xml" value="0.25" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/fragment_real_estates_list.xml" value="0.16" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/item_real_estates_list.xml" value="0.33" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/nav_header_main.xml" value="0.36614583333333334" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/layout/slider_item_container_layout.xml" value="0.21041666666666667" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/menu/bottom_navigation_menu.xml" value="0.35208333333333336" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/menu/details_toolbar_menu.xml" value="0.35208333333333336" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/menu/main_drawer_layout.xml" value="0.36614583333333334" />
+        <entry key="..\:/Users/CompteDev/AndroidStudioProjects/OC_Project9/app/src/main/res/menu/toolbar_menu.xml" value="0.24739583333333334" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
