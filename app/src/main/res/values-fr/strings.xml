@@ -41,7 +41,32 @@
         <item>Loft</item>
     </string-array>
 
-    <string name="toolbar_add_image">Ajouter une image</string>
+    // List
+    <string name="sort_by">Trier par :</string>
+    <string name="sort_by_date_asc">Du + récent au + ancien</string>
+    <string name="sort_by_date_desc">Du + ancien au + récent</string>
+    <string name="sort_by_price_asc">Prix croissant</string>
+    <string name="sort_by_price_desc">Prix décroissant</string>
+    <string name="sort_by_living_space_asc">Surface croissante</string>
+    <string name="sort_by_living_space_desc">Surface décroissante</string>
+    <string name="sort_by_rooms_number_asc">Nombre de pièces croissante</string>
+    <string name="sort_by_rooms_number_desc">Nombre de pièces décroissante</string>
+
+    <string name="filter_by">Filtrer par :</string>
+    <string name="remove_filter">Enlever le filtre</string>
+    <string name="house_filter">Maison</string>
+    <string name="penthouse_filter">Penthouse</string>
+    <string name="duplex_filter">Duplex</string>
+    <string name="flat_filter">Appartement</string>
+    <string name="loft_filter">Loft</string>
+
+    // Details + Create
     <string name="toolbar_save_real_estate">Enregistrer</string>
+    <string name="toolbar_add_image">Ajouter une image</string>
     <string name="toolbar_change_map">Changer carte</string>
+
+    <string name="field_empty_toast_msg">Les champs ne peuvent être vides</string>
+    <string name="gallery">Galerie</string>
+    <string name="camera">Camera</string>
+    <string name="add_image_from_url">Add image from URL</string>
 </resources>

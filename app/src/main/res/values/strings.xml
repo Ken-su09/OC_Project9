@@ -42,7 +42,33 @@
         <item>Loft</item>
     </string-array>
 
-    <string name="toolbar_add_image">Add an image</string>
+
+    // List
+    <string name="sort_by">Sort by :</string>
+    <string name="sort_by_date_asc">From most recent to oldest</string>
+    <string name="sort_by_date_desc">From oldest to most recent</string>
+    <string name="sort_by_price_asc">Ascending price</string>
+    <string name="sort_by_price_desc">Descending price</string>
+    <string name="sort_by_living_space_asc">Ascending living space</string>
+    <string name="sort_by_living_space_desc">Descending living space</string>
+    <string name="sort_by_rooms_number_asc">Ascending rooms number</string>
+    <string name="sort_by_rooms_number_desc">Descending rooms number</string>
+
+    <string name="filter_by">Filter by :</string>
+    <string name="remove_filter">Remove filter</string>
+    <string name="house_filter">House</string>
+    <string name="penthouse_filter">Penthouse</string>
+    <string name="duplex_filter">Duplex</string>
+    <string name="flat_filter">Flat</string>
+    <string name="loft_filter">Loft</string>
+
+    // Details + Create
     <string name="toolbar_save_real_estate">Save</string>
+    <string name="toolbar_add_image">Add a picture</string>
     <string name="toolbar_change_map">Change map</string>
+
+    <string name="field_empty_toast_msg">Fields can not be empty</string>
+    <string name="gallery">Gallery</string>
+    <string name="camera">Camera</string>
+    <string name="add_image_from_url">Add image from URL</string>
 </resources>
