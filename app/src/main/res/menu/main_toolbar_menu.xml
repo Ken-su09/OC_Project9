@@ -8,8 +8,93 @@
             android:id="@+id/action_search"
             android:icon="@drawable/ic_search"
             android:title="@string/toolbar_search"
-            android:visible="false"
             app:actionViewClass="androidx.appcompat.widget.SearchView"
             app:showAsAction="always|collapseActionView" />
+
+        <item
+            android:id="@+id/sort_by"
+            android:icon="@drawable/ic_sort"
+            android:title="@string/sort_by"
+            app:showAsAction="ifRoom">
+            <menu>
+                <item
+                    android:title="@string/sort_by"
+                    app:showAsAction="collapseActionView" />
+                <group android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/sort_by_date_asc"
+                        android:checked="true"
+                        android:title="@string/sort_by_date_asc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_date_desc"
+                        android:title="@string/sort_by_date_desc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_price_asc"
+                        android:title="@string/sort_by_price_asc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_price_desc"
+                        android:title="@string/sort_by_price_desc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_living_space_asc"
+                        android:title="@string/sort_by_living_space_asc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_living_space_desc"
+                        android:title="@string/sort_by_living_space_desc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_rooms_number_asc"
+                        android:title="@string/sort_by_rooms_number_asc"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/sort_by_rooms_number_desc"
+                        android:title="@string/sort_by_rooms_number_desc"
+                        app:showAsAction="collapseActionView" />
+                </group>
+            </menu>
+        </item>
+
+        <item
+            android:id="@+id/filter_by"
+            android:icon="@drawable/ic_filter"
+            android:title="@string/filter_by"
+            app:showAsAction="always">
+            <menu>
+                <item
+                    android:title="@string/filter_by"
+                    app:showAsAction="collapseActionView" />
+                <group android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/remove_filter"
+                        android:checked="true"
+                        android:title="@string/remove_filter"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/house_filter"
+                        android:title="@string/house_filter"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/penthouse_filter"
+                        android:title="@string/penthouse_filter"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/duplex_filter"
+                        android:title="@string/duplex_filter"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/flat_filter"
+                        android:title="@string/flat_filter"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/loft_filter"
+                        android:title="@string/loft_filter"
+                        app:showAsAction="collapseActionView" />
+                </group>
+            </menu>
+        </item>
     </group>
 </menu>
