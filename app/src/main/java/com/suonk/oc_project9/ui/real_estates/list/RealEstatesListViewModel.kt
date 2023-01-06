@@ -1,17 +1,18 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.*
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
-import androidx.navigation.fragment.findNavController
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.SingleLiveEvent
+import com.suonk.oc_project9.utils.sort.Sorting
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.*
+import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -24,27 +25,100 @@ class RealEstatesListViewModel @Inject constructor(
 
     val realEstatesViewAction = SingleLiveEvent<RealEstatesViewAction>()
 
+    private val sortingMutableStateFlow = MutableStateFlow(Sorting.DATE_ASC)
+    private val filteringMutableStateFlow = MutableStateFlow(R.id.remove_filter)
+
     sealed class RealEstatesViewAction {
         sealed class Navigate : RealEstatesViewAction() {
-            data class Detail(
-                val realEstateId: Long
-            ) : Navigate()
+            data class Detail(val realEstateId: Long) : Navigate()
         }
     }
 
     val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
-        getAllRealEstatesUseCase.invoke().collect { entities ->
-            emit(
-                entities.map {
-                    transformEntityToViewState(it)
+        combine(
+            getAllRealEstatesUseCase.invoke(), sortingMutableStateFlow, filteringMutableStateFlow
+        ) { entities: List<RealEstateEntityWithPhotos>, sorting, filterId ->
+            emit(entities.sortedWith(sorting.comparator).map {
+                transformEntityToViewState(it)
+            }.filter {
+                when (filterId) {
+                    R.id.remove_filter -> {
+                        it.id != 0L
+                    }
+                    R.id.house_filter -> {
+                        it.type.contains("House")
+                    }
+                    R.id.penthouse_filter -> {
+                        it.type.contains("Penthouse")
+                    }
+                    R.id.duplex_filter -> {
+                        it.type.contains("Duplex")
+                    }
+                    R.id.flat_filter -> {
+                        it.type.contains("Flat")
+                    }
+                    R.id.loft_filter -> {
+                        it.type.contains("Loft")
+                    }
+                    else -> {
+                        it.id != 0L
+                    }
                 }
-            )
+            })
+        }.collect()
+    }
+
+    fun setMutableState(itemId: Int) {
+        when (itemId) {
+            R.id.sort_by_date_asc -> {
+                sortingMutableStateFlow.value = Sorting.DATE_ASC
+            }
+            R.id.sort_by_price_asc -> {
+                sortingMutableStateFlow.value = Sorting.PRICE_ASC
+            }
+            R.id.sort_by_living_space_asc -> {
+                sortingMutableStateFlow.value = Sorting.LIVING_SPACE_ASC
+            }
+            R.id.sort_by_rooms_number_asc -> {
+                sortingMutableStateFlow.value = Sorting.ROOMS_NUMBER_ASC
+            }
+            R.id.sort_by_date_desc -> {
+                sortingMutableStateFlow.value = Sorting.DATE_DESC
+            }
+            R.id.sort_by_price_desc -> {
+                sortingMutableStateFlow.value = Sorting.PRICE_DESC
+            }
+            R.id.sort_by_living_space_desc -> {
+                sortingMutableStateFlow.value = Sorting.LIVING_SPACE_DESC
+            }
+            R.id.sort_by_rooms_number_desc -> {
+                sortingMutableStateFlow.value = Sorting.ROOMS_NUMBER_DESC
+            }
+            R.id.remove_filter -> {
+                filteringMutableStateFlow.value = R.id.remove_filter
+            }
+            R.id.house_filter -> {
+                filteringMutableStateFlow.value = R.id.house_filter
+            }
+            R.id.penthouse_filter -> {
+                filteringMutableStateFlow.value = R.id.penthouse_filter
+            }
+            R.id.duplex_filter -> {
+                filteringMutableStateFlow.value = R.id.duplex_filter
+            }
+            R.id.flat_filter -> {
+                filteringMutableStateFlow.value = R.id.flat_filter
+            }
+            R.id.loft_filter -> {
+                filteringMutableStateFlow.value = R.id.loft_filter
+            }
+            else -> {
+            }
         }
     }
 
     private fun transformEntityToViewState(entity: RealEstateEntityWithPhotos) =
-        RealEstatesListViewState(
-            id = entity.realEstateEntity.id,
+        RealEstatesListViewState(id = entity.realEstateEntity.id,
             type = entity.realEstateEntity.type,
             price = context.getString(
                 R.string.real_estate_price,
@@ -52,8 +126,7 @@ class RealEstatesListViewModel @Inject constructor(
                     .format(entity.realEstateEntity.price.toInt())
             ),
             livingSpace = context.getString(
-                R.string.square_foot,
-                entity.realEstateEntity.livingSpace
+                R.string.square_foot, entity.realEstateEntity.livingSpace
             ),
             numberRooms = context.getString(
                 R.string.number_rooms,
@@ -62,21 +135,36 @@ class RealEstatesListViewModel @Inject constructor(
                 entity.realEstateEntity.numberBathroom
             ),
             description = entity.realEstateEntity.description,
-            photos = entity.photos.map { it.url },
+            photos = entity.photos.map {
+                PhotoViewState(false, it.photo)
+            },
             address = entity.realEstateEntity.fullAddress,
+            date = SimpleDateFormat("dd/MM/yyyy HH:mm").format(Date(entity.realEstateEntity.entryDate)),
             onClickedCallback = { id ->
+                realEstatesViewAction.value = RealEstatesViewAction.Navigate.Detail(id)
+            })
 
-            }
-        )
+//    val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
+//        sortingMutableStateFlow.flatMapLatest { sortField ->
+//            getAllRealEstatesUseCase.invoke(sortField)
+//        }.collect { entities ->
+//            emit(
+//                entities.map {
+//                    transformEntityToViewState(it)
+//                }
+//            )
+//        }
+//    }
 
-
-    fun convertSquareMetreToSquareFoot(value: Double): Double {
-        return value * 10.763867361111
-    }
-
-    fun convertSquareFootToSquareMetre(value: Double): Double {
-        return value / 10.763867361111
-    }
+//    val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
+//        sortingMutableStateFlow.collectLatest { sortField ->
+//            getAllRealEstatesUseCase.invoke(sortField).collect { entities ->
+//                emit(entities.map {
+//                    transformEntityToViewState(it)
+//                })
+//            }
+//        }
+//    }
 
 //    private val searchMutableStateFlow = MutableStateFlow<String?>(null)
 //
