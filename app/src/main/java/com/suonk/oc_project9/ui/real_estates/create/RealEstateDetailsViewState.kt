@@ -1,4 +1,6 @@
-package com.suonk.oc_project9.ui.real_estates.details
+package com.suonk.oc_project9.ui.real_estates.create
+
+import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 
 data class RealEstateDetailsViewState(
     val id: Long = 0,
@@ -10,7 +12,7 @@ data class RealEstateDetailsViewState(
     val numberBedroom: String,
     val numberBathroom: String,
     val description: String,
-    val photos: List<String>,
+    val photos: List<PhotoViewState>,
     val city: String,
     val postalCode: String,
     val state: String,

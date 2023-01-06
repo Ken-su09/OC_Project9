@@ -17,13 +17,10 @@
                 android:name="id"
                 app:argType="long" />
         </action>
-        <action
-            android:id="@+id/action_realEstatesListFragment_to_createRealEstateFragment"
-            app:destination="@id/createRealEstateFragment" />
     </fragment>
     <fragment
         android:id="@+id/realEstateDetailsFragment"
-        android:name="com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsFragment"
+        android:name="com.suonk.oc_project9.ui.real_estates.create.RealEstateDetailsFragment"
         android:label="fragment_real_estate_details"
         tools:layout="@layout/fragment_real_estate_details">
         <argument
@@ -32,17 +29,6 @@
             app:argType="long" />
         <action
             android:id="@+id/action_details_to_list"
-            app:destination="@id/realEstatesListFragment"
-            app:popUpTo="@id/realEstatesListFragment"
-            app:popUpToInclusive="true" />
-    </fragment>
-    <fragment
-        android:id="@+id/createRealEstateFragment"
-        android:name="com.suonk.oc_project9.ui.real_estates.create.CreateRealEstateFragment"
-        android:label="fragment_create_real_estate"
-        tools:layout="@layout/fragment_create_real_estate">
-        <action
-            android:id="@+id/action_create_to_list"
             app:destination="@id/realEstatesListFragment"
             app:popUpTo="@id/realEstatesListFragment"
             app:popUpToInclusive="true" />

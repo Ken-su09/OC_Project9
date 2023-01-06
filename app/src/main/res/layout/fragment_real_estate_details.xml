@@ -8,7 +8,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context=".ui.real_estates.details.RealEstateDetailsFragment">
+        tools:context=".ui.real_estates.create.RealEstateDetailsFragment">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -22,89 +22,133 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/delete_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="@+id/images"
+                app:layout_constraintTop_toTopOf="@+id/images"
+                app:srcCompat="@drawable/ic_delete_photo" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/no_images_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="@+id/images"
+                app:layout_constraintEnd_toEndOf="@+id/images"
+                app:layout_constraintStart_toStartOf="@+id/images"
+                app:layout_constraintTop_toTopOf="@+id/images"
+                app:srcCompat="@drawable/ic_no_images" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/no_images_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/no_images_title"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/no_images_icon" />
+
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/grid_zone"
+                android:id="@+id/grid_zone_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="@string/grid_zone"
-                app:layout_constraintEnd_toStartOf="@+id/street_name"
+                app:layout_constraintEnd_toStartOf="@+id/street_name_layout"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/images"
                 app:startIconDrawable="@drawable/ic_compass">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/grid_zone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
+                    android:inputType="textPersonName"
                     tools:text="55 West" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/street_name"
+                android:id="@+id/street_name_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="@string/street_name"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/grid_zone"
+                app:layout_constraintStart_toEndOf="@+id/grid_zone_layout"
                 app:layout_constraintTop_toBottomOf="@+id/images"
                 app:startIconDrawable="@drawable/ic_street">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/street_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
+                    android:inputType="textPersonName"
                     tools:text="25th Street" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/city_borough"
+                android:id="@+id/city_borough_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="@string/city_borough"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/street_name"
+                app:layout_constraintTop_toBottomOf="@+id/street_name_layout"
                 app:startIconDrawable="@drawable/ic_city">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/city_borough"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
+                    android:inputType="textPersonName"
                     tools:text="New York" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/state"
+                android:id="@+id/state_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="@string/state"
-                app:layout_constraintEnd_toStartOf="@+id/postal_code"
+                app:layout_constraintEnd_toStartOf="@+id/postal_code_layout"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/city_borough"
+                app:layout_constraintTop_toBottomOf="@+id/city_borough_layout"
                 app:startIconDrawable="@drawable/ic_state">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/state"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
+                    android:inputType="textPersonName"
                     tools:text="NY" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/postal_code"
+                android:id="@+id/postal_code_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="@string/zip_code"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/state"
-                app:layout_constraintTop_toBottomOf="@+id/city_borough"
+                app:layout_constraintStart_toEndOf="@+id/state_layout"
+                app:layout_constraintTop_toBottomOf="@+id/city_borough_layout"
                 app:startIconDrawable="@drawable/ic_zip_code">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/postal_code"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
@@ -113,15 +157,16 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/price"
+                android:id="@+id/price_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="@string/price"
-                app:layout_constraintTop_toBottomOf="@+id/state"
+                app:layout_constraintTop_toBottomOf="@+id/state_layout"
                 app:startIconDrawable="@drawable/ic_dollar">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/price"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
@@ -130,14 +175,15 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/living_space"
+                android:id="@+id/living_space_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/living_space_square_foot"
-                app:layout_constraintTop_toBottomOf="@+id/price"
+                app:layout_constraintTop_toBottomOf="@+id/price_layout"
                 app:startIconDrawable="@drawable/ic_area">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/living_space"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
@@ -146,49 +192,55 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/nb_rooms"
+                android:id="@+id/nb_rooms_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/number_of_rooms"
-                app:layout_constraintTop_toBottomOf="@+id/living_space"
+                app:layout_constraintTop_toBottomOf="@+id/living_space_layout"
                 app:startIconDrawable="@drawable/ic_area">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/nb_rooms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
+                    android:lines="1"
                     tools:text="8" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/nb_bedrooms"
+                android:id="@+id/nb_bedrooms_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/number_of_bedrooms"
-                app:layout_constraintTop_toBottomOf="@+id/nb_rooms"
+                app:layout_constraintTop_toBottomOf="@+id/nb_rooms_layout"
                 app:startIconDrawable="@drawable/ic_dollar">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/nb_bedrooms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textLongMessage"
+                    android:inputType="number"
+                    android:lines="1"
                     tools:text="4" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/nb_bathrooms"
+                android:id="@+id/nb_bathrooms_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/number_of_bathrooms"
-                app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms"
+                app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms_layout"
                 app:startIconDrawable="@drawable/ic_area">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/nb_bathrooms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textLongMessage"
+                    android:inputType="number"
+                    android:lines="1"
                     tools:text="2" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -204,7 +256,7 @@
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@+id/type_content"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/nb_bathrooms" />
+                app:layout_constraintTop_toBottomOf="@+id/nb_bathrooms_layout" />
 
             <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/type_content"
@@ -218,7 +270,7 @@
                 app:layout_constraintTop_toTopOf="@+id/type_title" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/description"
+                android:id="@+id/description_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -230,6 +282,7 @@
                 app:startIconDrawable="@drawable/ic_building">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
@@ -247,7 +300,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
-
     </FrameLayout>
 
 </ScrollView>
