@@ -62,6 +62,8 @@ class DataModule {
                                 "Available",
                                 System.currentTimeMillis(),
                                 null,
+                                40.744080,
+                                -73.991302,
                                 1L,
                             )
                         )
@@ -85,6 +87,8 @@ class DataModule {
                                 "Available",
                                 System.currentTimeMillis(),
                                 null,
+                                40.743050,
+                                -73.990578,
                                 2L
                             )
                         )
@@ -108,6 +112,8 @@ class DataModule {
                                 "Available",
                                 System.currentTimeMillis(),
                                 null,
+                                40.775070,
+                                -73.806640,
                                 2L
                             )
                         )
@@ -116,56 +122,64 @@ class DataModule {
                             PhotoEntity(
                                 0,
                                 1L,
-                                "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"
+                                "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 1L,
-                                "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"
+                                "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 1L,
-                                "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
+                                "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 2L,
-                                "https://photos.zillowstatic.com/fp/cfef7cd3d01074fe7ac38e6fdfd0c657-se_extra_large_1500_800.webp"
+                                "https://photos.zillowstatic.com/fp/cfef7cd3d01074fe7ac38e6fdfd0c657-se_extra_large_1500_800.webp",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 2L,
-                                "https://photos.zillowstatic.com/fp/f6def35d74b83ffa18e93d5bd56c6390-se_extra_large_1500_800.webp"
+                                "https://photos.zillowstatic.com/fp/f6def35d74b83ffa18e93d5bd56c6390-se_extra_large_1500_800.webp",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 3L,
-                                "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg"
+                                "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 3L,
-                                "https://www.trulia.com/pictures/thumbs_6/zillowstatic/fp/77ff7feecc004404d198666792ae7add-full.jpg"
+                                "https://www.trulia.com/pictures/thumbs_6/zillowstatic/fp/77ff7feecc004404d198666792ae7add-full.jpg",
+                                false
                             )
                         )
                         photoDao.insertPhoto(
                             PhotoEntity(
                                 0,
                                 3L,
-                                "https://www.trulia.com/pictures/thumbs_5/zillowstatic/fp/c5839d5d7fee68c638c64cf34b6f033d-full.jpg"
+                                "https://www.trulia.com/pictures/thumbs_5/zillowstatic/fp/c5839d5d7fee68c638c64cf34b6f033d-full.jpg",
+                                false
                             )
                         )
                     }

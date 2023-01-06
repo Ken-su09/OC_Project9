@@ -1,5 +1,6 @@
-package com.suonk.oc_project9.ui.real_estates.list
+package com.suonk.oc_project9.ui.real_estates.carousel
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -7,15 +8,15 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.suonk.oc_project9.databinding.SliderItemContainerLayoutBinding
+import java.io.File
 
-class SliderAdapter : ListAdapter<String, SliderAdapter.SliderViewHolder>(PhotosComparator) {
+class SliderAdapter2 :
+    ListAdapter<Uri, SliderAdapter2.SliderViewHolder>(PhotosComparator) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SliderViewHolder {
         return (SliderViewHolder(
             SliderItemContainerLayoutBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
+                LayoutInflater.from(parent.context), parent, false
             )
         ))
     }
@@ -27,22 +28,18 @@ class SliderAdapter : ListAdapter<String, SliderAdapter.SliderViewHolder>(Photos
     class SliderViewHolder(private val binding: SliderItemContainerLayoutBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun onBind(photo: String) {
-            Glide.with(binding.realEstateImage)
-                .load(photo)
-                .into(binding.realEstateImage)
+        fun onBind(uri: Uri) {
+            Glide.with(binding.realEstateImage).load(uri).into(binding.realEstateImage)
         }
     }
 
-    object PhotosComparator : DiffUtil.ItemCallback<String>() {
+    object PhotosComparator : DiffUtil.ItemCallback<Uri>() {
         override fun areItemsTheSame(
-            oldItem: String,
-            newItem: String
+            oldItem: Uri, newItem: Uri
         ): Boolean = oldItem == newItem
 
         override fun areContentsTheSame(
-            oldItem: String,
-            newItem: String
+            oldItem: Uri, newItem: Uri
         ): Boolean = oldItem == newItem
     }
 }

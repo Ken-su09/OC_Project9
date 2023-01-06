@@ -2,8 +2,6 @@ package com.suonk.oc_project9.ui.real_estates.list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,6 +9,7 @@ import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.suonk.oc_project9.databinding.ItemRealEstatesListBinding
+import com.suonk.oc_project9.ui.real_estates.carousel.SliderAdapter
 import kotlin.math.abs
 
 class RealEstatesListAdapter() :
@@ -39,6 +38,7 @@ class RealEstatesListAdapter() :
             binding.nbRooms.text = estate.numberRooms
             binding.squareFoot.text = estate.livingSpace
             binding.price.text = estate.price
+            binding.date.text = estate.date
 
             val sliderAdapter = SliderAdapter()
             sliderAdapter.submitList(estate.photos)
@@ -54,11 +54,8 @@ class RealEstatesListAdapter() :
             }
 
             binding.images.setPageTransformer(compositePageTransformer)
-            binding.images.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    super.onPageSelected(position)
-                }
-            })
+            binding.images.registerOnPageChangeCallback(object :
+                ViewPager2.OnPageChangeCallback() {})
 
             itemView.setOnClickListener {
                 estate.onClickedCallback(estate.id)

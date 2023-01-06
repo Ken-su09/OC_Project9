@@ -24,5 +24,7 @@ data class RealEstateEntity(
     @ColumnInfo(name = "status") val status: String,
     @ColumnInfo(name = "entry_date") val entryDate: Long,
     @ColumnInfo(name = "sale_date") val saleDate: Long?,
+    @ColumnInfo(name = "latitude") val latitude: Double,
+    @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "agent_in_charge_id") val agentInChargeId: Long?,
 )
