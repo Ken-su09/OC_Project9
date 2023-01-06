@@ -27,4 +27,12 @@ object Utils {
         val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
         return wifi.isWifiEnabled
     }
+
+    fun convertSquareMetreToSquareFoot(value: Double): Double {
+        return value * 10.763867361111
+    }
+
+    fun convertSquareFootToSquareMetre(value: Double): Double {
+        return value / 10.763867361111
+    }
 }

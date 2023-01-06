@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class PhotoEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val realEstateId: Long,
-    val url: String,
+    val photo: String,
+    val isUri: Boolean,
 )
