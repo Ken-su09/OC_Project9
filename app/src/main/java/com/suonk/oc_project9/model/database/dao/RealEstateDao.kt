@@ -28,7 +28,7 @@ interface RealEstateDao {
     //region ============================================ INSERT ============================================
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRealEstate(realEstate: RealEstateEntity): Long
+    suspend fun upsertRealEstate(realEstate: RealEstateEntity): Long
 
     //endregion
 
@@ -36,15 +36,6 @@ interface RealEstateDao {
 
     @Update
     suspend fun updateRealEstate(realEstate: RealEstateEntity)
-
-    @Query("UPDATE real_estate SET type = :type WHERE id = :id")
-    suspend fun updateTypeRealEstate(id: Long, type: String)
-
-    @Query("UPDATE real_estate SET price = :price WHERE id = :id")
-    suspend fun updatePriceRealEstate(id: Long, price: Double)
-
-    @Query("UPDATE real_estate SET living_space = :livingSpace WHERE id = :id")
-    suspend fun updateLivingSpaceRealEstate(id: Long, livingSpace: Double)
 
     //endregion
 

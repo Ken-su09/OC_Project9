@@ -18,23 +18,11 @@ class RealEstateRepositoryImpl @Inject constructor(private val dao: RealEstateDa
     override fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos> =
         dao.getRealEstateById(id)
 
-    override suspend fun insertRealEstate(estate: RealEstateEntity) = dao.insertRealEstate(estate)
+    override suspend fun upsertRealEstate(estate: RealEstateEntity) = dao.upsertRealEstate(estate)
 
     //region ============================================ UPDATE ============================================
 
     override suspend fun updateRealEstate(estate: RealEstateEntity) = dao.updateRealEstate(estate)
-
-    override suspend fun updateTypeRealEstate(id: Long, type: String) {
-        dao.updateTypeRealEstate(id, type)
-    }
-
-    override suspend fun updatePriceRealEstate(id: Long, price: Double) {
-        dao.updatePriceRealEstate(id, price)
-    }
-
-    override suspend fun updateLivingSpaceRealEstate(id: Long, livingSpace: Double) {
-        dao.updateLivingSpaceRealEstate(id, livingSpace)
-    }
 
     //endregion
 

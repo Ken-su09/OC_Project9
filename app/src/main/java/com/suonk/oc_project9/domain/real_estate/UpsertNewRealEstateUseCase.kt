@@ -9,7 +9,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UpdateRealEstateUseCase @Inject constructor(
+class UpsertNewRealEstateUseCase @Inject constructor(
     private val realEstateRepository: RealEstateRepository,
     private val photoRepository: PhotoRepository,
 ) {
