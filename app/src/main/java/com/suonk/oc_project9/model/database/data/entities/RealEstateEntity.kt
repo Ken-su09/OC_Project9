@@ -14,7 +14,6 @@ data class RealEstateEntity(
     @ColumnInfo(name = "number_bedroom") val numberBedroom: Int,
     @ColumnInfo(name = "number_bathroom") val numberBathroom: Int,
     @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "full_address") val fullAddress: String,
     @ColumnInfo(name = "postal_code") val postalCode: String,
     @ColumnInfo(name = "state") val state: String,
     @ColumnInfo(name = "city") val city: String,
