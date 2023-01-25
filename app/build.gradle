@@ -10,12 +10,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.suonk.oc_project9"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -34,7 +34,8 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_11.toString()
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
     }
     buildFeatures {
         viewBinding true
@@ -117,6 +118,24 @@ dependencies {
     testImplementation 'androidx.test:rules:1.5.0'
     androidTestImplementation 'androidx.test:rules:1.5.0'
 
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.5.1")
+
+    testImplementation("io.mockk:mockk:1.13.3")
+    testImplementation "io.mockk:mockk-android:1.13.3"
+    testImplementation "io.mockk:mockk-agent:1.13.3"
+    testImplementation 'com.willowtreeapps.assertk:assertk-jvm:0.25'
+
+    // Unit tests
+
+//    testImplementation(Libs.ARCH_CORE_TESTING) {
+//        exclude("org.mockito", "mockito-core")
+//    }
+//    testImplementation(Libs.ASSERTK)
+//    testImplementation(Libs.COROUTINES_TEST)
+//    testImplementation(Libs.JUNIT)
+//    testImplementation(Libs.MOCKK)
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
     androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.0'
@@ -126,59 +145,4 @@ dependencies {
     androidTestUtil 'androidx.test:orchestrator:1.4.2'
 
     debugImplementation "androidx.fragment:fragment-testing:1.5.4"
-}
-
-// open JaCoCo report after generation
-def openReport(htmlOutDir) {
-    final reportPath = "$htmlOutDir\\index.html"
-
-    println "HTML Report: $reportPath"
-
-    def os = org.gradle.internal.os.OperatingSystem.current()
-    if (os.isWindows()) {
-        exec { commandLine 'cmd', '/c', "start $reportPath" }
-    } else if (os.isMacOsX()) {
-        exec { commandLine 'open', "$reportPath" }
-    } else if (os.isLinux()) {
-        try {
-            exec { commandLine 'xdg-open', "$reportPath" }
-        } catch (Exception ignored) {
-            if (localProperties.containsKey("linux-html-cmd")) {
-                exec { commandLine properties.get("linux-html-cmd"), "$reportPath" }
-            } else {
-                println "'linux-html-cmd' property could not be found in 'local.properties'"
-            }
-        }
-    }
-}
-
-// JaCoCo stuff
-android.applicationVariants.all { variant ->
-    def variantName = variant.name.capitalize()
-    def filesToAnalyze = ['**/*ViewModel.class',
-                          '**/*RepositoryImpl.class',
-                          '**/*UseCase.class',
-                          '**/*ApiHolder.class']
-
-    task("jacoco${variantName}Report", type: JacocoReport, dependsOn: "test${variantName}UnitTest") {
-        group 'Reporting'
-        description "Generate ${variantName} Jacoco coverage reports."
-
-        def htmlOutDir = layout.buildDirectory.dir("reports/jacoco/$name/html").get().asFile
-
-        doLast {
-            openReport htmlOutDir
-        }
-
-        reports {
-            xml.enabled(true)
-            html {
-                destination htmlOutDir
-            }
-        }
-
-        getSourceDirectories().setFrom(files(android.sourceSets.main.java.srcDirs))
-        getExecutionData().setFrom(files("${buildDir}/jacoco/test${variantName}UnitTest.exec"))
-        getClassDirectories().setFrom(fileTree(dir: variant.javaCompiler.destinationDir, includes: filesToAnalyze))
-    }
 }
