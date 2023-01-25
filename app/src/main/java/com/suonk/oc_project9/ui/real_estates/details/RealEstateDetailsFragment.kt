@@ -1,9 +1,11 @@
-package com.suonk.oc_project9.ui.real_estates.create
+package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
@@ -51,65 +53,30 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     private val sliderAdapter = SliderAdapter()
     private val currentList = arrayListOf<PhotoViewState>()
 
-    private var latitude = 0.0
-    private var longitude = 0.0
-
+    private var isUpdatingFromViewState = false
     private var map: GoogleMap? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.map.onCreate(savedInstanceState)
+
         setupToolbar()
         setupSpinners()
         setupViewPager()
+        setupRealEstateDetails()
+        setupDoAfterDataChanged()
 
-        binding.price.doAfterTextChanged {
-            viewModel.onPriceChanged(it?.toString())
-        }
-        binding.typeContent.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                viewModel.onTypeChanged(position)
-            }
-
-            override fun onNothingSelected(p0: AdapterView<*>?) {
-            }
-        }
-        binding.livingSpace.doAfterTextChanged {
-            viewModel.onLivingSpaceChanged(it?.toString())
-        }
-        binding.nbRooms.doAfterTextChanged {
-            viewModel.onNumberRoomsChanged(it?.toString())
-        }
-        binding.nbBedrooms.doAfterTextChanged {
-            viewModel.onNumberBedroomsChanged(it?.toString())
-        }
-        binding.nbBathrooms.doAfterTextChanged {
-            viewModel.onNumberBathroomsChanged(it?.toString())
-        }
-        binding.description.doAfterTextChanged {
-            viewModel.onDescriptionChanged(it?.toString())
-        }
-        binding.cityBorough.doAfterTextChanged {
-            viewModel.onCityChanged(it?.toString())
-        }
-        binding.postalCode.doAfterTextChanged {
-            viewModel.onPostalCodeChanged(it?.toString())
-        }
-        binding.state.doAfterTextChanged {
-            viewModel.onStateChanged(it?.toString())
-        }
-        binding.streetName.doAfterTextChanged {
-            viewModel.onStreetNameChanged(it?.toString())
-        }
-        binding.gridZone.doAfterTextChanged {
-            viewModel.onGridZoneChanged(it?.toString())
+        viewModel.finishSavingSingleLiveEvent.observe(viewLifecycleOwner) {
+            findNavController().navigate(RealEstateDetailsFragmentDirections.actionDetailsToList())
         }
 
-        viewModel.photosLiveData.observe(viewLifecycleOwner) {
-            currentList.clear()
-            currentList.addAll(it)
-            sliderAdapter.submitList(it)
-        }
+//        viewModel.photosLiveData.observe(viewLifecycleOwner) {
+//            currentList.clear()
+//            currentList.addAll(it)
+//            sliderAdapter.submitList(it)
+//        }
+
         viewModel.isListEmptySingleLiveEvent.observe(viewLifecycleOwner) { isEmpty ->
             isEmpty?.let {
                 binding.noImagesIcon.isVisible = it
@@ -122,13 +89,16 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 if (!isError) {
                 } else {
                     Toast.makeText(
-                        requireContext(),
-                        requireContext().getString(R.string.field_empty_toast_msg),
-                        Toast.LENGTH_SHORT
+                        requireContext(), requireContext().getString(R.string.field_empty_toast_msg), Toast.LENGTH_SHORT
                     ).show()
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        binding.map.onStart()
     }
 
     override fun onResume() {
@@ -141,12 +111,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         binding.map.onPause()
     }
 
-    override fun onStart() {
-        super.onStart()
-        binding.map.onStart()
-    }
-
-    //region =========================================== TOOLBAR ============================================
+    //region ================================================================ TOOLBAR ===============================================================
 
     private fun setupToolbar() {
         val menuHost: MenuHost = requireActivity()
@@ -162,7 +127,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                         true
                     }
                     R.id.action_save_real_estate -> {
-                        addNewRealEstate()
+                        viewModel.onSaveRealEstateButtonClicked()
 
                         viewModel.isFieldEmptySingleLiveEvent.observe(viewLifecycleOwner) {
                             it?.let { isError ->
@@ -170,9 +135,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                                     findNavController().navigate(RealEstateDetailsFragmentDirections.actionDetailsToList())
                                 } else {
                                     Toast.makeText(
-                                        requireContext(),
-                                        requireContext().getString(R.string.field_empty_toast_msg),
-                                        Toast.LENGTH_SHORT
+                                        requireContext(), requireContext().getString(R.string.field_empty_toast_msg), Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             }
@@ -193,10 +156,12 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 
     //endregion
 
-    //region =========================================== SETUP UI ===========================================
+    //region =============================================================== SETUP UI ===============================================================
 
     private fun setupRealEstateDetails() {
         viewModel.realEstateDetailsViewStateLiveData.observe(viewLifecycleOwner) { realEstate ->
+            isUpdatingFromViewState = true
+
             binding.gridZone.setText(realEstate.gridZone)
             binding.streetName.setText(realEstate.streetName)
             binding.cityBorough.setText(realEstate.city)
@@ -220,6 +185,8 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 //            latitude = realEstate.latitude
 //            longitude = realEstate.longitude
             setupMap(realEstate.city, realEstate.latitude, realEstate.longitude)
+
+            isUpdatingFromViewState = false
         }
     }
 
@@ -245,18 +212,13 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 binding.deletePhoto.setOnClickListener {
 
                 }
-
-                Log.i("DeletePhoto", "binding.images.currentItem : ${binding.images.currentItem}")
-                Log.i("DeletePhoto", "position : ${position}")
             }
         })
     }
 
     private fun setupSpinners() {
         val typeArrayAdapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            resources.getStringArray(R.array.types_array)
+            requireContext(), android.R.layout.simple_spinner_item, resources.getStringArray(R.array.types_array)
         )
         binding.typeContent.adapter = typeArrayAdapter
         binding.typeContent.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -270,7 +232,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 
     //endregion
 
-    //region ============================================ IMAGE =============================================
+    //region ================================================================ IMAGE =================================================================
 
     private fun addNewImage() {
         val builderBottom = BottomSheetDialog(requireContext())
@@ -284,8 +246,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         }
 
         val addImageButton = builderBottom.findViewById<AppCompatImageButton>(R.id.add_image_button)
-        val addImageEditText =
-            builderBottom.findViewById<AppCompatEditText>(R.id.add_image_edit_text)
+        val addImageEditText = builderBottom.findViewById<AppCompatEditText>(R.id.add_image_edit_text)
 
         addImageButton?.let {
             addImageEditText?.let {
@@ -311,19 +272,18 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         resultLauncher.launch(intent)
     }
 
-    private val resultLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                data?.data?.let {
-                    viewModel.setPhotosLiveData(it.toString(), photos = currentList, true)
-                }
+    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            data?.data?.let {
+                viewModel.setPhotosLiveData(it.toString(), photos = currentList, true)
             }
         }
+    }
 
     //endregion
 
-    //region ============================================= MAP ==============================================
+    //region ================================================================= MAP ==================================================================
 
     private fun setupMap(city: String, latitude: Double, longitude: Double) {
         MapsInitializer.initialize(requireActivity())
@@ -341,8 +301,77 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 
     //endregion
 
+    //region ============================================================= DATA CHANGED =============================================================
+
+    private fun setupDoAfterDataChanged() {
+        binding.typeContent.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                if (!isUpdatingFromViewState) {
+                    viewModel.onTypeChanged(position)
+                }
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+            }
+        }
+        binding.price.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onPriceChanged(it?.toString())
+            }
+        }
+        binding.livingSpace.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onLivingSpaceChanged(it?.toString())
+            }
+        }
+        binding.nbRooms.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onNumberRoomsChanged(it?.toString())
+            }
+        }
+        binding.nbBedrooms.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onNumberBedroomsChanged(it?.toString())
+            }
+        }
+        binding.nbBathrooms.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onNumberBathroomsChanged(it?.toString())
+            }
+        }
+        binding.description.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onDescriptionChanged(it?.toString())
+            }
+        }
+        binding.cityBorough.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onCityChanged(it?.toString())
+            }
+        }
+        binding.postalCode.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onPostalCodeChanged(it?.toString())
+            }
+        }
+        binding.state.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onStateChanged(it?.toString())
+            }
+        }
+        binding.streetName.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onStreetNameChanged(it?.toString())
+            }
+        }
+        binding.gridZone.doAfterTextChanged {
+            if (!isUpdatingFromViewState) {
+                viewModel.onGridZoneChanged(it?.toString())
+            }
+        }
+    }
+
     private fun addNewRealEstate() {
-        viewModel.onAddRealButtonClicked()
 //            estate = RealEstateDetailsViewState(
 //                id = 0,
 //                type = binding.typeContent.selectedItem.toString(),
@@ -385,4 +414,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 //            )
 //        )
     }
+
+    //endregion
 }

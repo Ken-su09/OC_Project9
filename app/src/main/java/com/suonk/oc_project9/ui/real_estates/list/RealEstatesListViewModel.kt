@@ -118,12 +118,11 @@ class RealEstatesListViewModel @Inject constructor(
     }
 
     private fun transformEntityToViewState(entity: RealEstateEntityWithPhotos) =
-        RealEstatesListViewState(id = entity.realEstateEntity.id,
+        RealEstatesListViewState(
+            id = entity.realEstateEntity.id,
             type = entity.realEstateEntity.type,
             price = context.getString(
-                R.string.real_estate_price,
-                java.text.NumberFormat.getIntegerInstance()
-                    .format(entity.realEstateEntity.price.toInt())
+                R.string.real_estate_price, java.text.NumberFormat.getIntegerInstance().format(entity.realEstateEntity.price.toInt())
             ),
             livingSpace = context.getString(
                 R.string.square_foot, entity.realEstateEntity.livingSpace
@@ -135,15 +134,19 @@ class RealEstatesListViewModel @Inject constructor(
                 entity.realEstateEntity.numberBathroom
             ),
             description = entity.realEstateEntity.description,
-            photos = entity.photos.map {
-                PhotoViewState(false, it.photo)
-            },
-            address = entity.realEstateEntity.fullAddress,
+            photos = entity.photos.map { PhotoViewState(false, it.photo) },
+            address = context.getString(
+                R.string.full_address,
+                entity.realEstateEntity.gridZone,
+                entity.realEstateEntity.streetName,
+                entity.realEstateEntity.city,
+                entity.realEstateEntity.state,
+                entity.realEstateEntity.postalCode
+            ),
             date = SimpleDateFormat("dd/MM/yyyy HH:mm").format(Date(entity.realEstateEntity.entryDate)),
             onClickedCallback = { id ->
                 realEstatesViewAction.value = RealEstatesViewAction.Navigate.Detail(id)
             })
-
 //    val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
 //        sortingMutableStateFlow.flatMapLatest { sortField ->
 //            getAllRealEstatesUseCase.invoke(sortField)

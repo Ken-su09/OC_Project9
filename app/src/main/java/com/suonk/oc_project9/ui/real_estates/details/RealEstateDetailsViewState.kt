@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.ui.real_estates.create
+package com.suonk.oc_project9.ui.real_estates.details
 
 import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 
@@ -19,5 +19,6 @@ data class RealEstateDetailsViewState(
     val streetName: String,
     val gridZone: String,
     val latitude: Double = 0.0,
-    val longitude: Double = 0.0
+    val longitude: Double = 0.0,
+    val noPhoto: Boolean
 )

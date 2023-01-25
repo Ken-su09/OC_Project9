@@ -20,7 +20,7 @@
     </fragment>
     <fragment
         android:id="@+id/realEstateDetailsFragment"
-        android:name="com.suonk.oc_project9.ui.real_estates.create.RealEstateDetailsFragment"
+        android:name="com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsFragment"
         android:label="fragment_real_estate_details"
         tools:layout="@layout/fragment_real_estate_details">
         <argument

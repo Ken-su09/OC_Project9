@@ -9,7 +9,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.ActivityMainBinding
-import com.suonk.oc_project9.ui.real_estates.create.RealEstateDetailsViewModel
+import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

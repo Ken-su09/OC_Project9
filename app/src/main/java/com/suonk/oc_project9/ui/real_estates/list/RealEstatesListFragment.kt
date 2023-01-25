@@ -47,7 +47,9 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
 
         binding.realEstatesList.adapter = listAdapter
         binding.addRealEstate.setOnClickListener {
-            findNavController().navigate(R.id.createRealEstateFragment)
+            findNavController().navigate(
+                RealEstatesListFragmentDirections.navigateToDetails(0L)
+            )
         }
     }
 
