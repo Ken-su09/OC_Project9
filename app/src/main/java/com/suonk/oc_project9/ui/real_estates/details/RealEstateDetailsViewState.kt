@@ -3,7 +3,7 @@ package com.suonk.oc_project9.ui.real_estates.details
 import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 
 data class RealEstateDetailsViewState(
-    val id: Long = 0,
+    val id: Long = 0L,
     val type: String,
     val typePosition: Int,
     val price: String,

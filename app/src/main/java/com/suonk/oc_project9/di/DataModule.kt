@@ -62,104 +62,74 @@ class DataModule {
                             agentInChargeId = 1L,
                         )
                     )
+
+                    photoDao.insertPhoto(PhotoEntity(0, 1L, "content://media/external/images/media/68287"))
+                    photoDao.insertPhoto(PhotoEntity(0, 1L, "content://media/external/images/media/68288"))
+                    photoDao.insertPhoto(PhotoEntity(0, 1L, "content://media/external/images/media/68289"))
+
+
                     estateDao.upsertRealEstate(
                         RealEstateEntity(
                             id = 2L,
                             type = "Apartment",
-                            price = 10995000.0,
-                            livingSpace = 12916.640,
-                            numberRooms = 9,
-                            numberBedroom = 3,
-                            numberBathroom = 3,
-                            description = "",
-                            postalCode = "10010",
+                            price = 10495.0,
+                            livingSpace = 1410.0,
+                            numberRooms = 4,
+                            numberBedroom = 2,
+                            numberBathroom = 1,
+                            description = "Welcome to this two bedroom Park Avenue residence on the luxurious Upper East Side. The apartment features arched windows, stainless steel appliances and custom white hardwood floors",
+                            postalCode = "10028",
                             state = "NY",
                             city = "New York",
-                            streetName = "24th Street",
-                            gridZone = "23 W",
+                            streetName = "920 Park Avenue",
+                            gridZone = "920 Park",
                             pointOfInterest = "",
                             status = "Available",
                             entryDate = System.currentTimeMillis(),
                             saleDate = null,
-                            latitude = 40.743050,
-                            longitude = -73.990578,
-                            agentInChargeId = 2L
-                        )
-                    )
-                    estateDao.upsertRealEstate(
-                        RealEstateEntity(
-                            id = 3L,
-                            type = "Duplex",
-                            price = 15995000.0,
-                            livingSpace = 11756.9652,
-                            numberRooms = 11,
-                            numberBedroom = 3,
-                            numberBathroom = 3,
-                            description = "",
-                            postalCode = "11357",
-                            state = "NY",
-                            city = "Whitestone",
-                            streetName = "25th Ave",
-                            gridZone = "156-0-156-34",
-                            pointOfInterest = "",
-                            status = "Available",
-                            entryDate = System.currentTimeMillis(),
-                            saleDate = null,
-                            latitude = 40.775070,
-                            longitude = -73.806640,
+                            latitude = 40.776670,
+                            longitude = -73.960240,
                             agentInChargeId = 2L
                         )
                     )
 
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0, 1L, "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp", false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0, 1L, "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp", false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0, 1L, "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp", false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0, 2L, "https://photos.zillowstatic.com/fp/cfef7cd3d01074fe7ac38e6fdfd0c657-se_extra_large_1500_800.webp", false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0, 2L, "https://photos.zillowstatic.com/fp/f6def35d74b83ffa18e93d5bd56c6390-se_extra_large_1500_800.webp", false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0,
-                            3L,
-                            "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
-                            false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0,
-                            3L,
-                            "https://www.trulia.com/pictures/thumbs_6/zillowstatic/fp/77ff7feecc004404d198666792ae7add-full.jpg",
-                            false
-                        )
-                    )
-                    photoDao.insertPhoto(
-                        PhotoEntity(
-                            0,
-                            3L,
-                            "https://www.trulia.com/pictures/thumbs_5/zillowstatic/fp/c5839d5d7fee68c638c64cf34b6f033d-full.jpg",
-                            false
-                        )
-                    )
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68282"))
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68281"))
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68280"))
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68279"))
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68278"))
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68277"))
+                    photoDao.insertPhoto(PhotoEntity(0, 2L, "content://media/external/images/media/68276"))
+
+
+//                    estateDao.upsertRealEstate(
+//                        RealEstateEntity(
+//                            id = 3L,
+//                            type = "House",
+//                            price = 15995000.0,
+//                            livingSpace = 11756.9652,
+//                            numberRooms = 11,
+//                            numberBedroom = 3,
+//                            numberBathroom = 3,
+//                            description = "",
+//                            postalCode = "11357",
+//                            state = "NY",
+//                            city = "Whitestone",
+//                            streetName = "25th Ave",
+//                            gridZone = "156-0-156-34",
+//                            pointOfInterest = "",
+//                            status = "Available",
+//                            entryDate = System.currentTimeMillis(),
+//                            saleDate = null,
+//                            latitude = 40.775070,
+//                            longitude = -73.806640,
+//                            agentInChargeId = 2L
+//                        )
+//                    )
+//                    photoDao.insertPhoto(PhotoEntity(0, 3L, "content://media/external/images/media/68278"))
+//                    photoDao.insertPhoto(PhotoEntity(0, 3L, "content://media/external/images/media/68277"))
+//                    photoDao.insertPhoto(PhotoEntity(0, 3L, "content://media/external/images/media/68276"))
+
                 }
             }
         }).addMigrations().build()
