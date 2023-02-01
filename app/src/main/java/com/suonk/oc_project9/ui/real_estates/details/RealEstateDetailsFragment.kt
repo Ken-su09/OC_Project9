@@ -2,10 +2,9 @@ package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
@@ -13,17 +12,17 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.CompositePageTransformer
@@ -36,6 +35,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.suonk.oc_project9.R
+import com.suonk.oc_project9.databinding.BuilderBottomLayoutBinding
 import com.suonk.oc_project9.databinding.FragmentRealEstateDetailsBinding
 import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 import com.suonk.oc_project9.ui.real_estates.carousel.SliderAdapter
@@ -48,10 +48,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 
     private val binding by viewBinding(FragmentRealEstateDetailsBinding::bind)
 
-    private val viewModel: RealEstateDetailsViewModel by activityViewModels()
-
-    private val sliderAdapter = SliderAdapter()
-    private val currentList = arrayListOf<PhotoViewState>()
+    private val viewModel by viewModels<RealEstateDetailsViewModel>()
 
     private var isUpdatingFromViewState = false
     private var map: GoogleMap? = null
@@ -63,35 +60,22 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 
         setupToolbar()
         setupSpinners()
-        setupViewPager()
         setupRealEstateDetails()
         setupDoAfterDataChanged()
 
         viewModel.finishSavingSingleLiveEvent.observe(viewLifecycleOwner) {
             findNavController().navigate(RealEstateDetailsFragmentDirections.actionDetailsToList())
         }
-
-//        viewModel.photosLiveData.observe(viewLifecycleOwner) {
-//            currentList.clear()
-//            currentList.addAll(it)
-//            sliderAdapter.submitList(it)
-//        }
-
-        viewModel.isListEmptySingleLiveEvent.observe(viewLifecycleOwner) { isEmpty ->
-            isEmpty?.let {
-                binding.noImagesIcon.isVisible = it
-                binding.noImagesTitle.isVisible = it
-                binding.deletePhoto.isVisible = !it
-            }
-        }
         viewModel.isFieldEmptySingleLiveEvent.observe(viewLifecycleOwner) {
             it?.let { isError ->
-                if (!isError) {
-                } else {
-                    Toast.makeText(
-                        requireContext(), requireContext().getString(R.string.field_empty_toast_msg), Toast.LENGTH_SHORT
-                    ).show()
+                if (isError) {
+                    Toast.makeText(requireContext(), requireContext().getString(R.string.field_empty_toast_msg), Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+        viewModel.toastMessageSingleLiveEvent.observe(viewLifecycleOwner) {
+            it?.let { toastMessage ->
+                Toast.makeText(requireContext(), toastMessage, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -117,6 +101,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+//                viewModel.isFieldEmptySingleLiveEvent
                 menuInflater.inflate(R.menu.details_toolbar_menu, menu)
             }
 
@@ -159,7 +144,10 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region =============================================================== SETUP UI ===============================================================
 
     private fun setupRealEstateDetails() {
+//        var cpt = 0
         viewModel.realEstateDetailsViewStateLiveData.observe(viewLifecycleOwner) { realEstate ->
+//            Log.i("RealEstateFlow", "Passe par là : ${cpt++}")
+
             isUpdatingFromViewState = true
 
             binding.gridZone.setText(realEstate.gridZone)
@@ -179,18 +167,20 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
 
             binding.typeContent.setSelection(realEstate.typePosition, true)
 
-//            setupViewPager(realEstate.photos)
-//            listOfPhotos.addAll(realEstate.photos)
+            setupViewPager(realEstate.photos)
+            binding.noImagesIcon.isVisible = realEstate.noPhoto
+            binding.noImagesTitle.isVisible = realEstate.noPhoto
+            binding.deletePhoto.isVisible = !realEstate.noPhoto
 
-//            latitude = realEstate.latitude
-//            longitude = realEstate.longitude
             setupMap(realEstate.city, realEstate.latitude, realEstate.longitude)
 
             isUpdatingFromViewState = false
         }
     }
 
-    private fun setupViewPager() {
+    private fun setupViewPager(photos: List<PhotoViewState>) {
+        val sliderAdapter = SliderAdapter()
+        sliderAdapter.submitList(photos)
         binding.images.adapter = sliderAdapter
         binding.images.clipToPadding = false
         binding.images.clipChildren = false
@@ -235,36 +225,21 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region ================================================================ IMAGE =================================================================
 
     private fun addNewImage() {
+        val bottomSheetBinding = BuilderBottomLayoutBinding.inflate(layoutInflater, null, false)
         val builderBottom = BottomSheetDialog(requireContext())
-        builderBottom.setContentView(R.layout.builder_bottom_layout)
+        builderBottom.setContentView(bottomSheetBinding.root)
 
-        val galleryCameraLayout = builderBottom.findViewById<ConstraintLayout>(R.id.gallery_layout)
-
-        galleryCameraLayout?.setOnClickListener {
+        bottomSheetBinding.galleryLayout.setOnClickListener {
             openGallery()
             builderBottom.dismiss()
         }
 
-        val addImageButton = builderBottom.findViewById<AppCompatImageButton>(R.id.add_image_button)
-        val addImageEditText = builderBottom.findViewById<AppCompatEditText>(R.id.add_image_edit_text)
-
-        addImageButton?.let {
-            addImageEditText?.let {
-                addImageToViewPager(addImageButton, addImageEditText)
-                builderBottom.dismiss()
-            }
+        bottomSheetBinding.cameraLayout.setOnClickListener {
+            openCamera()
+            builderBottom.dismiss()
         }
 
         builderBottom.show()
-    }
-
-    private fun addImageToViewPager(button: AppCompatImageButton, editText: AppCompatEditText) {
-        button.setOnClickListener {
-            editText.text?.toString()?.let {
-                viewModel.setPhotosLiveData(it, photos = currentList, false)
-            }
-            editText.text?.clear()
-        }
     }
 
     private fun openGallery() {
@@ -272,11 +247,30 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         resultLauncher.launch(intent)
     }
 
+    private fun openCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        resultLauncher.launch(intent)
+    }
+
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
+
             data?.data?.let {
-                viewModel.setPhotosLiveData(it.toString(), photos = currentList, true)
+                Log.i("ConvertToBitmap", "it (Uri) : $it")
+                viewModel.onNewPhotoAdded(it)
+            }
+
+            data?.extras?.let {
+//                it.get("data") as Bitmap
+
+//                viewModel.onNewPhotoAdded(it.get("data") as Bitmap)
+
+//            data?.data?.let {
+//                logo.setImageBitmap()
+//                Log.i("RealEstateFlow", "Photo : $it")
+//                viewModel.onNewPhotoAdded(it)
+//            }
             }
         }
     }

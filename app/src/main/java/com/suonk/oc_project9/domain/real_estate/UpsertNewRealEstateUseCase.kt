@@ -17,9 +17,7 @@ class UpsertNewRealEstateUseCase @Inject constructor(
     suspend fun invoke(realEstate: RealEstateEntity, photos: List<PhotoViewState>) {
         val id = realEstateRepository.upsertRealEstate(realEstate)
         photos.map { photo ->
-            photoRepository.insertPhoto(
-                PhotoEntity(0, id, photo.toString(), photo.isUri)
-            )
+            photoRepository.insertPhoto(PhotoEntity(0, id, photo.uri.toString()))
         }
     }
 }

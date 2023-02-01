@@ -18,7 +18,7 @@ class UpdateRealEstateUseCase @Inject constructor(
         val id = realEstateRepository.upsertRealEstate(realEstate)
         photos.map { photo ->
             photoRepository.insertPhoto(
-                PhotoEntity(0, id, photo.toString(), photo.isUri)
+                PhotoEntity(0, id, photo.toString())
             )
         }
     }

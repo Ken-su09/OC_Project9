@@ -31,7 +31,6 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
         val listAdapter = RealEstatesListAdapter()
 
         viewModel.realEstateLiveData.observe(viewLifecycleOwner) { list ->
-            listAdapter.submitList(null)
             listAdapter.submitList(list)
         }
         viewModel.realEstatesViewAction.observe(viewLifecycleOwner) { action ->
@@ -39,6 +38,7 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
                 is RealEstatesListViewModel.RealEstatesViewAction.Navigate.Detail -> findNavController().navigate(
                     RealEstatesListFragmentDirections.navigateToDetails(action.realEstateId)
                 )
+
                 else -> {
 
                 }
@@ -47,13 +47,11 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
 
         binding.realEstatesList.adapter = listAdapter
         binding.addRealEstate.setOnClickListener {
-            findNavController().navigate(
-                RealEstatesListFragmentDirections.navigateToDetails(0L)
-            )
+            findNavController().navigate(RealEstatesListFragmentDirections.navigateToDetails(0L))
         }
     }
 
-    //region =========================================== TOOLBAR ============================================
+    //region ================================================================ TOOLBAR ===============================================================
 
     private fun setupToolbar() {
         val menuHost: MenuHost = requireActivity()

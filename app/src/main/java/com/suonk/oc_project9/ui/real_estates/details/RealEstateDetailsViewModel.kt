@@ -1,10 +1,14 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
+import android.util.Log
 import androidx.lifecycle.*
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.real_estate.*
-import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
 import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
@@ -15,14 +19,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 class RealEstateDetailsViewModel @Inject constructor(
-    private val insertNewRealEstateUseCase: UpsertNewRealEstateUseCase,
+    private val upsertNewRealEstateUseCase: UpsertNewRealEstateUseCase,
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase,
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase,
-    private val updateRealEstateUseCase: UpdateRealEstateUseCase,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     @ApplicationContext private val context: Context,
     private val navArgProducer: NavArgProducer
@@ -34,9 +38,10 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     val isListEmptySingleLiveEvent = SingleLiveEvent<Boolean>()
 
-    private val realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
+    private var realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
+    private var _realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
 
-    private val photosMutableStateFlow = MutableStateFlow<List<PhotoEntity>>(emptyList())
+    private val photosMutableStateFlow = MutableStateFlow<ArrayList<PhotoViewState>>(arrayListOf())
 
     val realEstateDetailsViewStateLiveData: LiveData<RealEstateDetailsViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(
@@ -67,11 +72,31 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val realEstateEntityWithPhotos =
-                getRealEstateFlowByIdUseCase.invoke(navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).id).firstOrNull()
+            val id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+
+            val realEstateEntityWithPhotos = getRealEstateFlowByIdUseCase.invoke(id).firstOrNull()
 
             if (realEstateEntityWithPhotos == null) {
                 // Create mode
+                _realEstateFormMutableSharedFlow.emit(
+                    RealEstateForm(
+                        id = null,
+                        type = "",
+                        typePosition = 0,
+                        price = 0.0,
+                        livingSpace = 0.0,
+                        numberRooms = 0,
+                        numberBedroom = 0,
+                        numberBathroom = 0,
+                        description = "",
+                        photos = arrayListOf(),
+                        city = "",
+                        postalCode = "",
+                        state = "",
+                        streetName = "",
+                        gridZone = "",
+                    )
+                )
                 realEstateFormMutableSharedFlow.emit(
                     RealEstateForm(
                         id = null,
@@ -92,8 +117,30 @@ class RealEstateDetailsViewModel @Inject constructor(
                     )
                 )
             } else {
-                // Update mode
 
+                // Update mode
+                _realEstateFormMutableSharedFlow.emit(
+                    RealEstateForm(
+                        id = realEstateEntityWithPhotos.realEstateEntity.id,
+                        type = realEstateEntityWithPhotos.realEstateEntity.type,
+                        typePosition = realEstateTypeToSpinnerPosition(realEstateEntityWithPhotos.realEstateEntity.type),
+                        price = realEstateEntityWithPhotos.realEstateEntity.price,
+                        livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace,
+                        numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms,
+                        numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom,
+                        numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom,
+                        description = realEstateEntityWithPhotos.realEstateEntity.description,
+                        photos = realEstateEntityWithPhotos.photos.map {
+                            Log.i("GetPhoto", "it.photo : ${it.photo}")
+                            PhotoViewState(Uri.parse(it.photo))
+                        },
+                        city = realEstateEntityWithPhotos.realEstateEntity.city,
+                        postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
+                        state = realEstateEntityWithPhotos.realEstateEntity.state,
+                        streetName = realEstateEntityWithPhotos.realEstateEntity.streetName,
+                        gridZone = realEstateEntityWithPhotos.realEstateEntity.gridZone
+                    )
+                )
                 realEstateFormMutableSharedFlow.emit(
                     RealEstateForm(
                         id = realEstateEntityWithPhotos.realEstateEntity.id,
@@ -105,7 +152,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom,
                         numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom,
                         description = realEstateEntityWithPhotos.realEstateEntity.description,
-                        photos = realEstateEntityWithPhotos.photos.map { PhotoViewState(false, it.photo) },
+                        photos = realEstateEntityWithPhotos.photos.map { PhotoViewState(Uri.parse(it.photo)) },
                         city = realEstateEntityWithPhotos.realEstateEntity.city,
                         postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
                         state = realEstateEntityWithPhotos.realEstateEntity.state,
@@ -114,34 +161,17 @@ class RealEstateDetailsViewModel @Inject constructor(
                     )
                 )
 
-                photosMutableStateFlow.emit(realEstateEntityWithPhotos.photos)
+                val photos = arrayListOf<PhotoViewState>()
+                photos.addAll(realEstateEntityWithPhotos.photos.map { PhotoViewState(Uri.parse(it.photo)) })
+                photosMutableStateFlow.emit(photos)
             }
         }
-    }
-
-    private fun isEmptyOrBlank(value: String): Boolean {
-        return value.isEmpty() || value.isBlank() || value == "" || value == " "
-    }
-
-    fun setPhotosLiveData(photoUrl: String, photos: ArrayList<PhotoViewState>, isUri: Boolean) {
-        val currentList = arrayListOf<PhotoViewState>()
-        currentList.addAll(photos)
-
-        isFieldEmptySingleLiveEvent.value = isEmptyOrBlank(photoUrl)
-        if (isEmptyOrBlank(photoUrl)) {
-            isFieldEmptySingleLiveEvent.value = true
-            toastMessageSingleLiveEvent.value = context.getString(R.string.field_empty_toast_msg)
-        } else {
-            if (!currentList.contains(PhotoViewState(isUri, photoUrl))) {
-                currentList.add(PhotoViewState(isUri, photoUrl))
-            }
-        }
-
-        isListEmptySingleLiveEvent.value = currentList.isEmpty()
     }
 
     fun onSaveRealEstateButtonClicked() {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
+            realEstateFormMutableSharedFlow = _realEstateFormMutableSharedFlow
+
             val form = realEstateFormMutableSharedFlow.replayCache.first()
 
             val position = getPositionFromFullAddressUseCase.invoke(
@@ -155,11 +185,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                 ), context
             )
 
-//            fullAddress = context.getString(
-//                R.string.full_address, form.gridZone, form.streetName, form.city, form.state, form.postalCode
-//            ),
-
-            insertNewRealEstateUseCase.invoke(
+            upsertNewRealEstateUseCase.invoke(
                 realEstate = RealEstateEntity(
                     id = form.id ?: 0L,
                     type = form.type,
@@ -190,20 +216,17 @@ class RealEstateDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun realEstateTypeToSpinnerPosition(type: String): Int {
-        val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
-        return types.indexOf(type)
-    }
-
-    private fun spinnerPositionToType(position: Int): String {
-        val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
-        return types[position]
-    }
-
     //region ===============================================  ===============================================
 
     private fun updateForm(block: (RealEstateForm) -> RealEstateForm) {
+        if (_realEstateFormMutableSharedFlow.replayCache.isNotEmpty()) {
+            _realEstateFormMutableSharedFlow.tryEmit(block(_realEstateFormMutableSharedFlow.replayCache.first()))
+        }
+    }
+
+    private fun updateFormPhoto(block: (RealEstateForm) -> RealEstateForm) {
         realEstateFormMutableSharedFlow.tryEmit(block(realEstateFormMutableSharedFlow.replayCache.first()))
+        _realEstateFormMutableSharedFlow.tryEmit(block(_realEstateFormMutableSharedFlow.replayCache.first()))
     }
 
     fun onTypeChanged(position: Int) {
@@ -296,6 +319,65 @@ class RealEstateDetailsViewModel @Inject constructor(
         newTextInput?.let { casted ->
             updateForm { form ->
                 form.copy(gridZone = casted)
+            }
+        }
+    }
+
+    //endregion
+
+    //    private fun updatePhotosForm(block: (ArrayList<PhotoViewState>) -> ArrayList<PhotoViewState>) {
+//        photosMutableStateFlow.tryEmit(block(photosMutableStateFlow.replayCache.first()))
+//    }
+
+    private fun realEstateTypeToSpinnerPosition(type: String): Int {
+        val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
+        return types.indexOf(type)
+    }
+
+    private fun spinnerPositionToType(position: Int): String {
+        val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
+        return types[position]
+    }
+
+    private fun isEmptyOrBlank(value: String): Boolean {
+        return value.isEmpty() || value.isBlank() || value == "" || value == " "
+    }
+
+    //region ================================================================== PHOTO ==================================================================
+
+    fun onNewPhotoAdded(photo: Uri) {
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+            photosMutableStateFlow.collect {
+                if (it.contains(PhotoViewState(photo))) {
+                    withContext(coroutineDispatcherProvider.main) {
+                        toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
+                    }
+                } else {
+                    it.add(PhotoViewState(photo))
+                    updateFormPhoto { form ->
+                        form.copy(photos = it)
+                    }
+                }
+            }
+        }
+    }
+
+//    fun onNewPhotoAdded(photo: String) {
+//        viewModelScope.launch(coroutineDispatcherProvider.io) {
+//            photosMutableStateFlow.collect {
+//                if (it.contains(PhotoViewState(photo))) {
+//                    toastMessageSingleLiveEvent.value = "This photo is already on the list"
+//                } else {
+//                    it.add(PhotoViewState(photo))
+//                }
+//            }
+//        }
+//    }
+
+    fun onPhotoDeleted(position: Int) {
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+            photosMutableStateFlow.collect {
+                it.removeAt(position)
             }
         }
     }

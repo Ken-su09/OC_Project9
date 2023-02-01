@@ -2,6 +2,7 @@ package com.suonk.oc_project9.ui.real_estates.carousel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContentProviderCompat.requireContext
@@ -34,13 +35,13 @@ class SliderAdapter :
         RecyclerView.ViewHolder(binding.root) {
 
         fun onBind(photoViewState: PhotoViewState) {
-            val photo = if (photoViewState.isUri) {
-                Uri.parse(photoViewState.photo)
-            } else {
-                photoViewState.photo
-            }
+            binding.realEstateImage.setImageURI(photoViewState.uri)
 
-            Glide.with(binding.realEstateImage).load(photo).into(binding.realEstateImage)
+//            binding.realEstateImage.setImageBitmap(photoViewState.photo)
+
+//            Glide.with(binding.realEstateImage)
+//                .load(photoViewState.photo)
+//                .into(binding.realEstateImage)
         }
     }
 
