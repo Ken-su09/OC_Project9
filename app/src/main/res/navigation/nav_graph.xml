@@ -12,11 +12,7 @@
         tools:layout="@layout/fragment_real_estates_list">
         <action
             android:id="@+id/navigate_to_details"
-            app:destination="@id/realEstateDetailsFragment">
-            <argument
-                android:name="id"
-                app:argType="long" />
-        </action>
+            app:destination="@id/realEstateDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/realEstateDetailsFragment"
@@ -24,8 +20,7 @@
         android:label="fragment_real_estate_details"
         tools:layout="@layout/fragment_real_estate_details">
         <argument
-            android:name="id"
-            android:defaultValue="1L"
+            android:name="real_estate_id"
             app:argType="long" />
         <action
             android:id="@+id/action_details_to_list"
