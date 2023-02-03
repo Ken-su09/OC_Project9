@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -90,6 +91,7 @@ class MainActivity : AppCompatActivity() {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 displayUi()
             } else {
+                Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
                 requestPermission()
             }
         }
@@ -100,9 +102,11 @@ class MainActivity : AppCompatActivity() {
             if (Environment.isExternalStorageManager()) {
                 displayUi()
             } else {
+                Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
                 requestPermission()
             }
         } else {
+            Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
             requestPermission()
         }
     }
