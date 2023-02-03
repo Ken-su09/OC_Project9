@@ -13,6 +13,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_real_estate_icon"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@drawable/ic_real_estate_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.OC_Project9">

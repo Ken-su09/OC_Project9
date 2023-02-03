@@ -1,23 +1,18 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Base64
-import android.util.Log
 import androidx.lifecycle.*
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
-import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
+import com.suonk.oc_project9.ui.real_estates.details.DetailsPhotoViewState
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.SingleLiveEvent
 import com.suonk.oc_project9.utils.sort.Sorting
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
-import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -29,10 +24,10 @@ class RealEstatesListViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val realEstatesViewAction = SingleLiveEvent<RealEstatesViewAction>()
-
     private val sortingMutableStateFlow = MutableStateFlow(Sorting.DATE_ASC)
     private val filteringMutableStateFlow = MutableStateFlow(R.id.remove_filter)
+
+    val realEstatesViewAction = SingleLiveEvent<RealEstatesViewAction>()
 
     sealed class RealEstatesViewAction {
         sealed class Navigate : RealEstatesViewAction() {
@@ -138,7 +133,7 @@ class RealEstatesListViewModel @Inject constructor(
             entity.realEstateEntity.numberBathroom
         ),
         description = entity.realEstateEntity.description,
-        photos = entity.photos.map { PhotoViewState(Uri.parse(it.photo)) },
+        photos = entity.photos.map { ListPhotoViewState(Uri.parse(it.photo)) },
         address = context.getString(
             R.string.full_address,
             entity.realEstateEntity.gridZone,

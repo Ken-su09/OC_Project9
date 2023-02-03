@@ -1,7 +1,5 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
-import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
-
 data class RealEstateForm(
     val id: Long? = null,
     val type: String,
@@ -12,7 +10,7 @@ data class RealEstateForm(
     val numberBedroom: Int,
     val numberBathroom: Int,
     val description: String,
-    val photos: List<PhotoViewState>,
+    val photos: List<DetailsPhotoViewState>,
     val city: String,
     val postalCode: String,
     val state: String,

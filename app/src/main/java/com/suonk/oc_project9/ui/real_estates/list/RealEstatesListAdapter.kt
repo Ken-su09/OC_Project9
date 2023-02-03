@@ -9,7 +9,7 @@ import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.suonk.oc_project9.databinding.ItemRealEstatesListBinding
-import com.suonk.oc_project9.ui.real_estates.carousel.SliderAdapter
+import com.suonk.oc_project9.ui.real_estates.details.DetailsSliderAdapter
 import kotlin.math.abs
 
 class RealEstatesListAdapter() :
@@ -40,9 +40,9 @@ class RealEstatesListAdapter() :
             binding.price.text = estate.price
             binding.date.text = estate.date
 
-            val sliderAdapter = SliderAdapter()
-            sliderAdapter.submitList(estate.photos)
-            binding.images.adapter = sliderAdapter
+            val listSliderAdapter = ListSliderAdapter()
+            listSliderAdapter.submitList(estate.photos)
+            binding.images.adapter = listSliderAdapter
             binding.images.clipToPadding = false
             binding.images.clipChildren = false
 

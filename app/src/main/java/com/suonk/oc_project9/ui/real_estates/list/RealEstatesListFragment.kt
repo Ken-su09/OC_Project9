@@ -38,7 +38,6 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
                 is RealEstatesListViewModel.RealEstatesViewAction.Navigate.Detail -> findNavController().navigate(
                     RealEstatesListFragmentDirections.navigateToDetails(action.realEstateId)
                 )
-
                 else -> {
 
                 }

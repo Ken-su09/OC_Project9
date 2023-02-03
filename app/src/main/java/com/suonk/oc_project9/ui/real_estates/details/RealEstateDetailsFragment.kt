@@ -1,8 +1,14 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Activity
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.media.ExifInterface
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -12,11 +18,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.AppCompatEditText
-import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
@@ -37,10 +40,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.BuilderBottomLayoutBinding
 import com.suonk.oc_project9.databinding.FragmentRealEstateDetailsBinding
-import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
-import com.suonk.oc_project9.ui.real_estates.carousel.SliderAdapter
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.ByteArrayOutputStream
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -51,7 +53,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     private val viewModel by viewModels<RealEstateDetailsViewModel>()
 
     private var isUpdatingFromViewState = false
-    private var map: GoogleMap? = null
+    private var imageUri: Uri? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -144,10 +146,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region =============================================================== SETUP UI ===============================================================
 
     private fun setupRealEstateDetails() {
-//        var cpt = 0
         viewModel.realEstateDetailsViewStateLiveData.observe(viewLifecycleOwner) { realEstate ->
-//            Log.i("RealEstateFlow", "Passe par là : ${cpt++}")
-
             isUpdatingFromViewState = true
 
             binding.gridZone.setText(realEstate.gridZone)
@@ -170,7 +169,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
             setupViewPager(realEstate.photos)
             binding.noImagesIcon.isVisible = realEstate.noPhoto
             binding.noImagesTitle.isVisible = realEstate.noPhoto
-            binding.deletePhoto.isVisible = !realEstate.noPhoto
 
             setupMap(realEstate.city, realEstate.latitude, realEstate.longitude)
 
@@ -178,10 +176,10 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         }
     }
 
-    private fun setupViewPager(photos: List<PhotoViewState>) {
-        val sliderAdapter = SliderAdapter()
-        sliderAdapter.submitList(photos)
-        binding.images.adapter = sliderAdapter
+    private fun setupViewPager(photos: List<DetailsPhotoViewState>) {
+        val detailsSliderAdapter = DetailsSliderAdapter()
+        detailsSliderAdapter.submitList(photos)
+        binding.images.adapter = detailsSliderAdapter
         binding.images.clipToPadding = false
         binding.images.clipChildren = false
 
@@ -198,10 +196,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 position: Int, positionOffset: Float, positionOffsetPixels: Int
             ) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-
-                binding.deletePhoto.setOnClickListener {
-
-                }
             }
         })
     }
@@ -248,31 +242,73 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     }
 
     private fun openCamera() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        resultLauncher.launch(intent)
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.TITLE, "")
+        values.put(MediaStore.Images.Media.DESCRIPTION, "")
+        imageUri = requireActivity().contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        resultLauncher.launch(cameraIntent)
+
+        Log.i("GetPhotoFromCamera", "imageUri : $imageUri")
     }
 
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data: Intent? = result.data
 
-            data?.data?.let {
-                Log.i("ConvertToBitmap", "it (Uri) : $it")
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let {
                 viewModel.onNewPhotoAdded(it)
             }
 
-            data?.extras?.let {
-//                it.get("data") as Bitmap
+            Log.i("GetPhotoFromCamera", "imageUri : $imageUri")
 
-//                viewModel.onNewPhotoAdded(it.get("data") as Bitmap)
+            imageUri?.let {
+                Log.i("GetPhotoFromCamera", "it : $it")
 
-//            data?.data?.let {
-//                logo.setImageBitmap()
-//                Log.i("RealEstateFlow", "Photo : $it")
-//                viewModel.onNewPhotoAdded(it)
-//            }
+                val matrix = Matrix()
+                val exif = ExifInterface(getRealPathFromUri(requireContext(), it))
+                val rotation = exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL
+                )
+                val rotationInDegrees = exifToDegrees(rotation)
+                matrix.postRotate(rotationInDegrees.toFloat())
+
+                var bitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, it)
+                bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width / 10, bitmap.height / 10, true)
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+                viewModel.onNewPhotoAdded(getImageUri(requireContext(), bitmap))
             }
         }
+    }
+
+    private fun getRealPathFromUri(context: Context, contentUri: Uri): String {
+        var cursor: Cursor? = null
+        try {
+            val proj = arrayOf(MediaStore.Images.Media.DATA)
+            cursor = context.contentResolver.query(contentUri, proj, null, null, null)
+            val columnIndex = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor?.moveToFirst()
+            return cursor?.getString(columnIndex!!)!!
+        } finally {
+            cursor?.close()
+        }
+    }
+
+    private fun exifToDegrees(exifOrientation: Int): Int {
+        return when (exifOrientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270
+            else -> 0
+        }
+    }
+
+    private fun getImageUri(context: Context, bitmap: Bitmap): Uri {
+        val bytes = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+        return Uri.parse(path)
     }
 
     //endregion
@@ -280,16 +316,13 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region ================================================================= MAP ==================================================================
 
     private fun setupMap(city: String, latitude: Double, longitude: Double) {
-        MapsInitializer.initialize(requireActivity())
         binding.map.getMapAsync { googleMap ->
-            map = googleMap
-
-            map?.let {
-                it.addMarker(
-                    MarkerOptions().position(LatLng(latitude, longitude)).title(city)
-                )
-                it.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), 15f))
-            }
+            googleMap.addMarker(
+                MarkerOptions()
+                    .position(LatLng(latitude, longitude))
+                    .title(city)
+            )
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), 15f))
         }
     }
 
@@ -363,50 +396,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 viewModel.onGridZoneChanged(it?.toString())
             }
         }
-    }
-
-    private fun addNewRealEstate() {
-//            estate = RealEstateDetailsViewState(
-//                id = 0,
-//                type = binding.typeContent.selectedItem.toString(),
-//                typePosition = binding.typeContent.selectedItemPosition,
-//                price = binding.price.editText?.text?.toString().toString(),
-//                livingSpace = binding.livingSpace.editText?.text?.toString().toString(),
-//                numberRooms = binding.nbRooms.editText?.text?.toString().toString(),
-//                numberBedroom = binding.nbBedrooms.editText?.text?.toString().toString(),
-//                numberBathroom = binding.nbBathrooms.editText?.text?.toString().toString(),
-//                description = binding.description.editText?.text?.toString().toString(),
-//                photos = currentList,
-//                city = binding.cityBorough.editText?.text?.toString().toString(),
-//                postalCode = binding.postalCode.editText?.text?.toString().toString(),
-//                state = binding.state.editText?.text?.toString().toString(),
-//                streetName = binding.streetName.editText?.text?.toString().toString(),
-//                gridZone = binding.gridZone.editText?.text?.toString().toString(),
-//            )
-    }
-
-    private fun saveRealEstateDetails() {
-//        viewModel.saveRealEstateDetails(
-//            estate = RealEstateDetailsViewState(
-//                id = args.id,
-//                type = binding.typeContent.selectedItem.toString(),
-//                typePosition = binding.typeContent.selectedItemPosition,
-//                price = binding.price.editText?.text?.toString().toString(),
-//                livingSpace = binding.livingSpace.editText?.text?.toString().toString(),
-//                numberRooms = binding.nbRooms.editText?.text?.toString().toString(),
-//                numberBedroom = binding.nbBedrooms.editText?.text?.toString().toString(),
-//                numberBathroom = binding.nbBathrooms.editText?.text?.toString().toString(),
-//                description = binding.description.editText?.text?.toString().toString(),
-//                photos = listOfPhotos,
-//                city = binding.cityBorough.editText?.text?.toString().toString(),
-//                postalCode = binding.postalCode.editText?.text?.toString().toString(),
-//                state = binding.state.editText?.text?.toString().toString(),
-//                streetName = binding.streetName.editText?.text?.toString().toString(),
-//                gridZone = binding.gridZone.editText?.text?.toString().toString(),
-//                latitude = latitude,
-//                longitude = longitude,
-//            )
-//        )
     }
 
     //endregion

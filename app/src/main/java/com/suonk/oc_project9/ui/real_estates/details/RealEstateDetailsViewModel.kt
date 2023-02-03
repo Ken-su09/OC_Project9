@@ -1,16 +1,15 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.database.Cursor
 import android.net.Uri
-import android.util.Base64
+import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.*
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.real_estate.*
+import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
-import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.NavArgProducer
 import com.suonk.oc_project9.utils.SingleLiveEvent
@@ -19,7 +18,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,13 +39,17 @@ class RealEstateDetailsViewModel @Inject constructor(
     private var realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
     private var _realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
 
-    private val photosMutableStateFlow = MutableStateFlow<ArrayList<PhotoViewState>>(arrayListOf())
+    private val photosMutableStateFlow = MutableStateFlow<List<AggregatedPhoto>>(emptyList())
+
+    data class AggregatedPhoto(
+        val uri: String,
+    )
 
     val realEstateDetailsViewStateLiveData: LiveData<RealEstateDetailsViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(
             realEstateFormMutableSharedFlow,
             photosMutableStateFlow,
-        ) { form, photoEntities ->
+        ) { form, aggregatedPhotos ->
             emit(
                 RealEstateDetailsViewState(
                     type = form.type,
@@ -64,7 +66,17 @@ class RealEstateDetailsViewModel @Inject constructor(
                     state = form.state,
                     streetName = form.streetName,
                     gridZone = form.gridZone,
-                    noPhoto = photoEntities.isEmpty()
+                    noPhoto = photoEntities.isEmpty(),
+                    photos = aggregatedPhotos.map {
+                        DetailsPhotoViewState(
+                            uri = it.uri.toString(),
+                            clickedCallback = {
+                                photosMutableStateFlow.update { list ->
+                                    list - it
+                                }
+                            }
+                        )
+                    }
                 )
             )
         }.collect()
@@ -130,9 +142,15 @@ class RealEstateDetailsViewModel @Inject constructor(
                         numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom,
                         numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom,
                         description = realEstateEntityWithPhotos.realEstateEntity.description,
-                        photos = realEstateEntityWithPhotos.photos.map {
-                            Log.i("GetPhoto", "it.photo : ${it.photo}")
-                            PhotoViewState(Uri.parse(it.photo))
+                        photos = realEstateEntityWithPhotos.photos.map { photoEntity ->
+                            DetailsPhotoViewState(
+                                uri = Uri.parse(photoEntity.photo),
+                                clickedCallback = {
+                                    photosMutableStateFlow.update {
+                                        it - AggregatedPhoto(photoEntity.photo)
+                                    }
+                                }
+                            )
                         },
                         city = realEstateEntityWithPhotos.realEstateEntity.city,
                         postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
@@ -152,7 +170,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom,
                         numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom,
                         description = realEstateEntityWithPhotos.realEstateEntity.description,
-                        photos = realEstateEntityWithPhotos.photos.map { PhotoViewState(Uri.parse(it.photo)) },
+                        photos = realEstateEntityWithPhotos.photos.map { DetailsPhotoViewState(Uri.parse(it.photo)) },
                         city = realEstateEntityWithPhotos.realEstateEntity.city,
                         postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
                         state = realEstateEntityWithPhotos.realEstateEntity.state,
@@ -161,15 +179,23 @@ class RealEstateDetailsViewModel @Inject constructor(
                     )
                 )
 
-                val photos = arrayListOf<PhotoViewState>()
-                photos.addAll(realEstateEntityWithPhotos.photos.map { PhotoViewState(Uri.parse(it.photo)) })
+                val photos = arrayListOf<DetailsPhotoViewState>()
+                photos.addAll(realEstateEntityWithPhotos.photos.map { DetailsPhotoViewState(Uri.parse(it.photo)) })
                 photosMutableStateFlow.emit(photos)
             }
         }
     }
 
-    fun onSaveRealEstateButtonClicked() {
+    fun onSaveRealEstateButtonClicked(
+
+    ) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
+            val photos = arrayListOf<DetailsPhotoViewState>()
+            photos.addAll(realEstateFormMutableSharedFlow.replayCache.first().photos)
+            photosMutableStateFlow.emit(photos)
+
+            Log.i("GetPhotosList", "photos : $photos")
+
             realEstateFormMutableSharedFlow = _realEstateFormMutableSharedFlow
 
             val form = realEstateFormMutableSharedFlow.replayCache.first()
@@ -185,34 +211,34 @@ class RealEstateDetailsViewModel @Inject constructor(
                 ), context
             )
 
-            upsertNewRealEstateUseCase.invoke(
-                realEstate = RealEstateEntity(
-                    id = form.id ?: 0L,
-                    type = form.type,
-                    price = form.price,
-                    livingSpace = form.livingSpace,
-                    numberRooms = form.numberRooms,
-                    numberBedroom = form.numberBedroom,
-                    numberBathroom = form.numberBathroom,
-                    description = form.description,
-                    postalCode = form.postalCode,
-                    state = form.state,
-                    city = form.city,
-                    streetName = form.streetName,
-                    gridZone = form.gridZone,
-                    pointOfInterest = "",
-                    status = "AVAILABLE",
-                    entryDate = System.currentTimeMillis(),
-                    saleDate = null,
-                    latitude = position.lat,
-                    longitude = position.long,
-                    agentInChargeId = 0L
-                ), photos = form.photos
-            )
+//            upsertNewRealEstateUseCase.invoke(
+//                realEstate = RealEstateEntity(
+//                    id = form.id ?: 0L,
+//                    type = form.type,
+//                    price = form.price,
+//                    livingSpace = form.livingSpace,
+//                    numberRooms = form.numberRooms,
+//                    numberBedroom = form.numberBedroom,
+//                    numberBathroom = form.numberBathroom,
+//                    description = form.description,
+//                    postalCode = form.postalCode,
+//                    state = form.state,
+//                    city = form.city,
+//                    streetName = form.streetName,
+//                    gridZone = form.gridZone,
+//                    pointOfInterest = "",
+//                    status = "AVAILABLE",
+//                    entryDate = System.currentTimeMillis(),
+//                    saleDate = null,
+//                    latitude = position.lat,
+//                    longitude = position.long,
+//                    agentInChargeId = 0L
+//                ), photos = photos
+//            )
 
-            withContext(coroutineDispatcherProvider.main) {
-                finishSavingSingleLiveEvent.value = Unit
-            }
+//            withContext(coroutineDispatcherProvider.main) {
+//                finishSavingSingleLiveEvent.value = Unit
+//            }
         }
     }
 
@@ -226,7 +252,7 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     private fun updateFormPhoto(block: (RealEstateForm) -> RealEstateForm) {
         realEstateFormMutableSharedFlow.tryEmit(block(realEstateFormMutableSharedFlow.replayCache.first()))
-        _realEstateFormMutableSharedFlow.tryEmit(block(_realEstateFormMutableSharedFlow.replayCache.first()))
+//        _realEstateFormMutableSharedFlow.tryEmit(block(_realEstateFormMutableSharedFlow.replayCache.first()))
     }
 
     fun onTypeChanged(position: Int) {
@@ -348,12 +374,13 @@ class RealEstateDetailsViewModel @Inject constructor(
     fun onNewPhotoAdded(photo: Uri) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             photosMutableStateFlow.collect {
-                if (it.contains(PhotoViewState(photo))) {
+                if (it.contains(DetailsPhotoViewState(photo))) {
                     withContext(coroutineDispatcherProvider.main) {
                         toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
                     }
                 } else {
-                    it.add(PhotoViewState(photo))
+                    it.add(DetailsPhotoViewState(photo))
+
                     updateFormPhoto { form ->
                         form.copy(photos = it)
                     }
@@ -362,22 +389,14 @@ class RealEstateDetailsViewModel @Inject constructor(
         }
     }
 
-//    fun onNewPhotoAdded(photo: String) {
-//        viewModelScope.launch(coroutineDispatcherProvider.io) {
-//            photosMutableStateFlow.collect {
-//                if (it.contains(PhotoViewState(photo))) {
-//                    toastMessageSingleLiveEvent.value = "This photo is already on the list"
-//                } else {
-//                    it.add(PhotoViewState(photo))
-//                }
-//            }
-//        }
-//    }
-
-    fun onPhotoDeleted(position: Int) {
+    fun onPhotoDeleted(photo: String) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             photosMutableStateFlow.collect {
-                it.removeAt(position)
+                it.remove(DetailsPhotoViewState(Uri.parse(photo)))
+
+                updateFormPhoto { form ->
+                    form.copy(photos = it)
+                }
             }
         }
     }

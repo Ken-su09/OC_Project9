@@ -72,4 +72,5 @@
     <string name="camera">Camera</string>
     <string name="add_image_from_url">Add image from URL</string>
     <string name="image_already_in_list">This photo is already on the list</string>
+    <string name="storage_permission_toast">You need those permissions to use this app at its full potential</string>
 </resources>

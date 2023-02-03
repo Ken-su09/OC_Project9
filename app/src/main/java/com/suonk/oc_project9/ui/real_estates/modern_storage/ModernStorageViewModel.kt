@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.modernstorage.storage.AndroidFileSystem
 import com.google.modernstorage.storage.toOkioPath
-import com.suonk.oc_project9.ui.real_estates.carousel.PhotoViewState
+import com.suonk.oc_project9.ui.real_estates.details.DetailsPhotoViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +21,8 @@ class ModernStorageViewModel @Inject constructor(@ApplicationContext private val
     ViewModel() {
 
     private val fileSystem = AndroidFileSystem(context)
-    private val _addedFile = MutableStateFlow<PhotoViewState?>(null)
-    val addedFile: StateFlow<PhotoViewState?> = _addedFile
+    private val _addedFile = MutableStateFlow<DetailsPhotoViewState?>(null)
+    val addedFile: StateFlow<DetailsPhotoViewState?> = _addedFile
 
     private fun clearAddedFile() {
         _addedFile.value = null
