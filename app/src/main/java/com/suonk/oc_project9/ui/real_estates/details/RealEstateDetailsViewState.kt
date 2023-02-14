@@ -18,5 +18,8 @@ data class RealEstateDetailsViewState(
     val gridZone: String,
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
-    val noPhoto: Boolean
+    val noPhoto: Boolean,
+    val entryDate: Long,
+    val saleDate: Long?,
+    val isSold: Boolean
 )

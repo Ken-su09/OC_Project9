@@ -1,16 +1,16 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
-import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.room.ColumnInfo
+import androidx.room.PrimaryKey
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.real_estate.*
-import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
+import com.suonk.oc_project9.utils.EquatableCallback
 import com.suonk.oc_project9.utils.NavArgProducer
 import com.suonk.oc_project9.utils.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,12 +34,13 @@ class RealEstateDetailsViewModel @Inject constructor(
     val isFieldEmptySingleLiveEvent = SingleLiveEvent<Boolean>()
     val toastMessageSingleLiveEvent = SingleLiveEvent<String>()
 
-    val isListEmptySingleLiveEvent = SingleLiveEvent<Boolean>()
+    private var realEstateDetailsViewStateMutableSharedFlow = MutableSharedFlow<RealEstateDetailsViewState>(replay = 1)
+    private val photosMutableStateFlow = MutableStateFlow<Set<AggregatedPhoto>>(setOf())
+    private val isSoldMutableStateFlow = MutableStateFlow(false)
 
-    private var realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
-    private var _realEstateFormMutableSharedFlow = MutableSharedFlow<RealEstateForm>(replay = 1)
-
-    private val photosMutableStateFlow = MutableStateFlow<List<AggregatedPhoto>>(emptyList())
+    fun onSoldRealEstateClick() {
+        isSoldMutableStateFlow.update { !it }
+    }
 
     data class AggregatedPhoto(
         val uri: String,
@@ -47,36 +48,34 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     val realEstateDetailsViewStateLiveData: LiveData<RealEstateDetailsViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(
-            realEstateFormMutableSharedFlow,
-            photosMutableStateFlow,
-        ) { form, aggregatedPhotos ->
+            realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
+        ) { detailsViewState, aggregatedPhotos, isSold ->
             emit(
                 RealEstateDetailsViewState(
-                    type = form.type,
-                    typePosition = form.typePosition,
-                    price = form.price.toString(),
-                    livingSpace = form.livingSpace.toString(),
-                    numberRooms = form.numberRooms.toString(),
-                    numberBedroom = form.numberBedroom.toString(),
-                    numberBathroom = form.numberBathroom.toString(),
-                    description = form.description,
-                    photos = form.photos,
-                    city = form.city,
-                    postalCode = form.postalCode,
-                    state = form.state,
-                    streetName = form.streetName,
-                    gridZone = form.gridZone,
-                    noPhoto = photoEntities.isEmpty(),
+                    type = detailsViewState.type,
+                    typePosition = detailsViewState.typePosition,
+                    price = detailsViewState.price,
+                    livingSpace = detailsViewState.livingSpace,
+                    numberRooms = detailsViewState.numberRooms,
+                    numberBedroom = detailsViewState.numberBedroom,
+                    numberBathroom = detailsViewState.numberBathroom,
+                    description = detailsViewState.description,
                     photos = aggregatedPhotos.map {
-                        DetailsPhotoViewState(
-                            uri = it.uri.toString(),
-                            clickedCallback = {
-                                photosMutableStateFlow.update { list ->
-                                    list - it
-                                }
-                            }
-                        )
-                    }
+                        DetailsPhotoViewState(it.uri, onDeleteCallback = EquatableCallback {
+                            onPhotoDeleted(it.uri)
+                        })
+                    },
+                    city = detailsViewState.city,
+                    postalCode = detailsViewState.postalCode,
+                    state = detailsViewState.state,
+                    streetName = detailsViewState.streetName,
+                    gridZone = detailsViewState.gridZone,
+                    latitude = detailsViewState.latitude,
+                    longitude = detailsViewState.longitude,
+                    noPhoto = aggregatedPhotos.isEmpty() && !isSold,
+                    entryDate = detailsViewState.entryDate,
+                    saleDate = detailsViewState.saleDate,
+                    isSold = isSold
                 )
             )
         }.collect()
@@ -90,16 +89,16 @@ class RealEstateDetailsViewModel @Inject constructor(
 
             if (realEstateEntityWithPhotos == null) {
                 // Create mode
-                _realEstateFormMutableSharedFlow.emit(
-                    RealEstateForm(
-                        id = null,
+                realEstateDetailsViewStateMutableSharedFlow.emit(
+                    RealEstateDetailsViewState(
+                        id = 0,
                         type = "",
                         typePosition = 0,
-                        price = 0.0,
-                        livingSpace = 0.0,
-                        numberRooms = 0,
-                        numberBedroom = 0,
-                        numberBathroom = 0,
+                        price = "0",
+                        livingSpace = "0",
+                        numberRooms = "0",
+                        numberBedroom = "0",
+                        numberBathroom = "0",
                         description = "",
                         photos = arrayListOf(),
                         city = "",
@@ -107,253 +106,119 @@ class RealEstateDetailsViewModel @Inject constructor(
                         state = "",
                         streetName = "",
                         gridZone = "",
-                    )
-                )
-                realEstateFormMutableSharedFlow.emit(
-                    RealEstateForm(
-                        id = null,
-                        type = "",
-                        typePosition = 0,
-                        price = 0.0,
-                        livingSpace = 0.0,
-                        numberRooms = 0,
-                        numberBedroom = 0,
-                        numberBathroom = 0,
-                        description = "",
-                        photos = arrayListOf(),
-                        city = "",
-                        postalCode = "",
-                        state = "",
-                        streetName = "",
-                        gridZone = "",
+                        latitude = 0.0,
+                        longitude = 0.0,
+                        noPhoto = true,
+                        entryDate = System.currentTimeMillis(),
+                        saleDate = null,
+                        false
                     )
                 )
             } else {
-
                 // Update mode
-                _realEstateFormMutableSharedFlow.emit(
-                    RealEstateForm(
+                realEstateDetailsViewStateMutableSharedFlow.emit(
+                    RealEstateDetailsViewState(
                         id = realEstateEntityWithPhotos.realEstateEntity.id,
                         type = realEstateEntityWithPhotos.realEstateEntity.type,
                         typePosition = realEstateTypeToSpinnerPosition(realEstateEntityWithPhotos.realEstateEntity.type),
-                        price = realEstateEntityWithPhotos.realEstateEntity.price,
-                        livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace,
-                        numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms,
-                        numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom,
-                        numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom,
+                        price = realEstateEntityWithPhotos.realEstateEntity.price.toString(),
+                        livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace.toString(),
+                        numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms.toString(),
+                        numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom.toString(),
+                        numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom.toString(),
                         description = realEstateEntityWithPhotos.realEstateEntity.description,
                         photos = realEstateEntityWithPhotos.photos.map { photoEntity ->
-                            DetailsPhotoViewState(
-                                uri = Uri.parse(photoEntity.photo),
-                                clickedCallback = {
-                                    photosMutableStateFlow.update {
-                                        it - AggregatedPhoto(photoEntity.photo)
-                                    }
-                                }
-                            )
-                        },
+                            DetailsPhotoViewState(uri = photoEntity.photo, onDeleteCallback = EquatableCallback {
+                                onPhotoDeleted(photoEntity.photo)
+                            })
+                        }.distinct(),
                         city = realEstateEntityWithPhotos.realEstateEntity.city,
                         postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
                         state = realEstateEntityWithPhotos.realEstateEntity.state,
                         streetName = realEstateEntityWithPhotos.realEstateEntity.streetName,
-                        gridZone = realEstateEntityWithPhotos.realEstateEntity.gridZone
-                    )
-                )
-                realEstateFormMutableSharedFlow.emit(
-                    RealEstateForm(
-                        id = realEstateEntityWithPhotos.realEstateEntity.id,
-                        type = realEstateEntityWithPhotos.realEstateEntity.type,
-                        typePosition = realEstateTypeToSpinnerPosition(realEstateEntityWithPhotos.realEstateEntity.type),
-                        price = realEstateEntityWithPhotos.realEstateEntity.price,
-                        livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace,
-                        numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms,
-                        numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom,
-                        numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom,
-                        description = realEstateEntityWithPhotos.realEstateEntity.description,
-                        photos = realEstateEntityWithPhotos.photos.map { DetailsPhotoViewState(Uri.parse(it.photo)) },
-                        city = realEstateEntityWithPhotos.realEstateEntity.city,
-                        postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
-                        state = realEstateEntityWithPhotos.realEstateEntity.state,
-                        streetName = realEstateEntityWithPhotos.realEstateEntity.streetName,
-                        gridZone = realEstateEntityWithPhotos.realEstateEntity.gridZone
+                        gridZone = realEstateEntityWithPhotos.realEstateEntity.gridZone,
+                        latitude = realEstateEntityWithPhotos.realEstateEntity.latitude,
+                        longitude = realEstateEntityWithPhotos.realEstateEntity.longitude,
+                        noPhoto = realEstateEntityWithPhotos.photos.isEmpty() && realEstateEntityWithPhotos.realEstateEntity.saleDate == null,
+                        entryDate = realEstateEntityWithPhotos.realEstateEntity.entryDate,
+                        saleDate = realEstateEntityWithPhotos.realEstateEntity.saleDate,
+                        isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null
                     )
                 )
 
-                val photos = arrayListOf<DetailsPhotoViewState>()
-                photos.addAll(realEstateEntityWithPhotos.photos.map { DetailsPhotoViewState(Uri.parse(it.photo)) })
+                val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
                 photosMutableStateFlow.emit(photos)
             }
         }
     }
 
     fun onSaveRealEstateButtonClicked(
-
+        type: Int,
+        price: String,
+        livingSpace: String,
+        numberRooms: String,
+        numberBedroom: String,
+        numberBathroom: String,
+        description: String,
+        postalCode: String,
+        state: String,
+        city: String,
+        streetName: String,
+        gridZone: String
     ) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val photos = arrayListOf<DetailsPhotoViewState>()
-            photos.addAll(realEstateFormMutableSharedFlow.replayCache.first().photos)
-            photosMutableStateFlow.emit(photos)
+            val photos = arrayListOf<AggregatedPhoto>()
+            photos.addAll(photosMutableStateFlow.replayCache.first().distinct())
 
-            Log.i("GetPhotosList", "photos : $photos")
+            val entryDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
 
-            realEstateFormMutableSharedFlow = _realEstateFormMutableSharedFlow
-
-            val form = realEstateFormMutableSharedFlow.replayCache.first()
+            val saleDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: if (isSoldMutableStateFlow.value) {
+                System.currentTimeMillis()
+            } else {
+                null
+            }
 
             val position = getPositionFromFullAddressUseCase.invoke(
                 context.getString(
                     R.string.full_address,
-                    form.gridZone,
-                    form.streetName,
-                    form.city,
-                    form.state,
-                    form.postalCode,
+                    gridZone,
+                    streetName,
+                    city,
+                    state,
+                    postalCode,
                 ), context
             )
 
-//            upsertNewRealEstateUseCase.invoke(
-//                realEstate = RealEstateEntity(
-//                    id = form.id ?: 0L,
-//                    type = form.type,
-//                    price = form.price,
-//                    livingSpace = form.livingSpace,
-//                    numberRooms = form.numberRooms,
-//                    numberBedroom = form.numberBedroom,
-//                    numberBathroom = form.numberBathroom,
-//                    description = form.description,
-//                    postalCode = form.postalCode,
-//                    state = form.state,
-//                    city = form.city,
-//                    streetName = form.streetName,
-//                    gridZone = form.gridZone,
-//                    pointOfInterest = "",
-//                    status = "AVAILABLE",
-//                    entryDate = System.currentTimeMillis(),
-//                    saleDate = null,
-//                    latitude = position.lat,
-//                    longitude = position.long,
-//                    agentInChargeId = 0L
-//                ), photos = photos
-//            )
+            upsertNewRealEstateUseCase.invoke(
+                realEstate = RealEstateEntity(
+                    id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
+                    type = spinnerPositionToType(type),
+                    price = price.toDouble(),
+                    livingSpace = livingSpace.toDouble(),
+                    numberRooms = numberRooms.toInt(),
+                    numberBedroom = numberBedroom.toInt(),
+                    numberBathroom = numberBathroom.toInt(),
+                    description = description,
+                    postalCode = postalCode,
+                    state = state,
+                    city = city,
+                    streetName = streetName,
+                    gridZone = gridZone,
+                    pointOfInterest = "",
+                    status = "AVAILABLE",
+                    entryDate = entryDate,
+                    saleDate = saleDate,
+                    latitude = position.lat,
+                    longitude = position.long,
+                    agentInChargeId = 0L
+                ), photos = photos
+            )
 
-//            withContext(coroutineDispatcherProvider.main) {
-//                finishSavingSingleLiveEvent.value = Unit
-//            }
-        }
-    }
-
-    //region ===============================================  ===============================================
-
-    private fun updateForm(block: (RealEstateForm) -> RealEstateForm) {
-        if (_realEstateFormMutableSharedFlow.replayCache.isNotEmpty()) {
-            _realEstateFormMutableSharedFlow.tryEmit(block(_realEstateFormMutableSharedFlow.replayCache.first()))
-        }
-    }
-
-    private fun updateFormPhoto(block: (RealEstateForm) -> RealEstateForm) {
-        realEstateFormMutableSharedFlow.tryEmit(block(realEstateFormMutableSharedFlow.replayCache.first()))
-//        _realEstateFormMutableSharedFlow.tryEmit(block(_realEstateFormMutableSharedFlow.replayCache.first()))
-    }
-
-    fun onTypeChanged(position: Int) {
-        updateForm {
-            it.copy(type = spinnerPositionToType(position), typePosition = position)
-        }
-    }
-
-    fun onPriceChanged(newTextInput: String?) {
-        newTextInput?.toDoubleOrNull()?.let { casted ->
-            updateForm { form ->
-                form.copy(price = casted)
+            withContext(coroutineDispatcherProvider.main) {
+                finishSavingSingleLiveEvent.value = Unit
             }
         }
     }
-
-    fun onLivingSpaceChanged(newTextInput: String?) {
-        newTextInput?.toDoubleOrNull()?.let { casted ->
-            updateForm { form ->
-                form.copy(livingSpace = casted)
-            }
-        }
-    }
-
-    fun onNumberRoomsChanged(newTextInput: String?) {
-        newTextInput?.toIntOrNull()?.let { casted ->
-            updateForm { form ->
-                form.copy(numberRooms = casted)
-            }
-        }
-    }
-
-    fun onNumberBedroomsChanged(newTextInput: String?) {
-        newTextInput?.toIntOrNull()?.let { casted ->
-            updateForm { form ->
-                form.copy(numberBedroom = casted)
-            }
-        }
-    }
-
-    fun onNumberBathroomsChanged(newTextInput: String?) {
-        newTextInput?.toIntOrNull()?.let { casted ->
-            updateForm { form ->
-                form.copy(numberBathroom = casted)
-            }
-        }
-    }
-
-    fun onDescriptionChanged(newTextInput: String?) {
-        newTextInput?.let { casted ->
-            updateForm { form ->
-                form.copy(description = casted)
-            }
-        }
-    }
-
-    fun onCityChanged(newTextInput: String?) {
-        newTextInput?.let { casted ->
-            updateForm { form ->
-                form.copy(city = casted)
-            }
-        }
-    }
-
-    fun onPostalCodeChanged(newTextInput: String?) {
-        newTextInput?.let { casted ->
-            updateForm { form ->
-                form.copy(postalCode = casted)
-            }
-        }
-    }
-
-    fun onStateChanged(newTextInput: String?) {
-        newTextInput?.let { casted ->
-            updateForm { form ->
-                form.copy(state = casted)
-            }
-        }
-    }
-
-    fun onStreetNameChanged(newTextInput: String?) {
-        newTextInput?.let { casted ->
-            updateForm { form ->
-                form.copy(streetName = casted)
-            }
-        }
-    }
-
-    fun onGridZoneChanged(newTextInput: String?) {
-        newTextInput?.let { casted ->
-            updateForm { form ->
-                form.copy(gridZone = casted)
-            }
-        }
-    }
-
-    //endregion
-
-    //    private fun updatePhotosForm(block: (ArrayList<PhotoViewState>) -> ArrayList<PhotoViewState>) {
-//        photosMutableStateFlow.tryEmit(block(photosMutableStateFlow.replayCache.first()))
-//    }
 
     private fun realEstateTypeToSpinnerPosition(type: String): Int {
         val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
@@ -372,32 +237,19 @@ class RealEstateDetailsViewModel @Inject constructor(
     //region ================================================================== PHOTO ==================================================================
 
     fun onNewPhotoAdded(photo: Uri) {
-        viewModelScope.launch(coroutineDispatcherProvider.io) {
-            photosMutableStateFlow.collect {
-                if (it.contains(DetailsPhotoViewState(photo))) {
-                    withContext(coroutineDispatcherProvider.main) {
-                        toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
-                    }
-                } else {
-                    it.add(DetailsPhotoViewState(photo))
-
-                    updateFormPhoto { form ->
-                        form.copy(photos = it)
-                    }
-                }
+        photosMutableStateFlow.update { list ->
+            if (list.contains(AggregatedPhoto(photo.toString()))) {
+                toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
+                list
+            } else {
+                list + AggregatedPhoto(photo.toString())
             }
         }
     }
 
-    fun onPhotoDeleted(photo: String) {
-        viewModelScope.launch(coroutineDispatcherProvider.io) {
-            photosMutableStateFlow.collect {
-                it.remove(DetailsPhotoViewState(Uri.parse(photo)))
-
-                updateFormPhoto { form ->
-                    form.copy(photos = it)
-                }
-            }
+    private fun onPhotoDeleted(photo: String) {
+        photosMutableStateFlow.update {
+            it - AggregatedPhoto(photo)
         }
     }
 

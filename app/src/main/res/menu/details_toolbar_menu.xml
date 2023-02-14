@@ -5,6 +5,11 @@
         android:id="@+id/toolbar"
         android:checkableBehavior="single">
         <item
+            android:id="@+id/action_is_sold"
+            android:icon="@drawable/ic_sold"
+            android:title="@string/toolbar_is_sold"
+            app:showAsAction="always" />
+        <item
             android:id="@+id/action_change_map"
             android:icon="@drawable/ic_map"
             android:title="@string/toolbar_change_map"
@@ -18,6 +23,6 @@
             android:id="@+id/action_save_real_estate"
             android:icon="@drawable/ic_save"
             android:title="@string/toolbar_save_real_estate"
-            app:showAsAction="ifRoom|collapseActionView" />
+            app:showAsAction="always" />
     </group>
 </menu>

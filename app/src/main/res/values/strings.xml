@@ -66,6 +66,7 @@
     <string name="toolbar_save_real_estate">Save</string>
     <string name="toolbar_add_image">Add a picture</string>
     <string name="toolbar_change_map">Change map</string>
+    <string name="toolbar_is_sold">Is Sold</string>
 
     <string name="field_empty_toast_msg">Fields can not be empty</string>
     <string name="gallery">Gallery</string>

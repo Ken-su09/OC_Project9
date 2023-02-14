@@ -64,6 +64,7 @@
     <string name="toolbar_save_real_estate">Enregistrer</string>
     <string name="toolbar_add_image">Ajouter une image</string>
     <string name="toolbar_change_map">Changer carte</string>
+    <string name="toolbar_is_sold">Est vendu</string>
 
     <string name="field_empty_toast_msg">Les champs ne peuvent être vides</string>
     <string name="gallery">Galerie</string>
