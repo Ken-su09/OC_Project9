@@ -12,6 +12,7 @@ import com.suonk.oc_project9.domain.real_estate.UpdateRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.Position
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
 import com.suonk.oc_project9.utils.*
+import com.suonk.oc_project9.utils.Defaults.getDefaultAggregatedPhotos
 import com.suonk.oc_project9.utils.Defaults.getDefaultEmptyRealEstateDetailsViewState
 import com.suonk.oc_project9.utils.Defaults.getDefaultPhotoViewStates
 import com.suonk.oc_project9.utils.Defaults.getDefaultRealEstateDetailsViewState
@@ -41,13 +42,26 @@ class RealEstateDetailsViewModelTest {
         private val DEFAULT_POSITION = Position(lat = DEFAULT_LAT, long = DEFAULT_LONG)
 
         private const val DEFAULT_TYPE = "Penthouse"
+        private val DEFAULT_TYPE_POSITION = realEstateTypeToSpinnerPosition("Penthouse")
+
         private const val NEW_TYPE = "Duplex"
+        private val NEW_TYPE_POSITION = realEstateTypeToSpinnerPosition("Duplex")
 
         private const val DEFAULT_PRICE = 29872000.0
         private const val DEFAULT_LIVING_SPACE = 8072.900
         private const val DEFAULT_NUMBER_ROOM = 8
         private const val DEFAULT_NUMBER_BEDROOM = 4
         private const val DEFAULT_NUMBER_BATHROOM = 4
+
+        private fun realEstateTypeToSpinnerPosition(type: String): Int {
+            val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
+            return types.indexOf(type)
+        }
+
+        private fun spinnerPositionToType(position: Int): String {
+            val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
+            return types[position]
+        }
     }
 
     @get:Rule
@@ -56,7 +70,7 @@ class RealEstateDetailsViewModelTest {
     @get:Rule
     val testCoroutineRule = TestCoroutineRule()
 
-    private val insertNewRealEstateUseCase: UpsertNewRealEstateUseCase = mockk()
+    private val upsertNewRealEstateUseCase: UpsertNewRealEstateUseCase = mockk()
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase = mockk()
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase = mockk()
     private val updateRealEstateUseCase: UpdateRealEstateUseCase = mockk()
@@ -65,10 +79,9 @@ class RealEstateDetailsViewModelTest {
     private val navArgProducer: NavArgProducer = mockk()
 
     private val realEstateDetailsViewModel = RealEstateDetailsViewModel(
-        insertNewRealEstateUseCase = insertNewRealEstateUseCase,
+        upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
         getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
         getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
-        updateRealEstateUseCase = updateRealEstateUseCase,
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
         context = context,
         navArgProducer = navArgProducer
@@ -79,19 +92,19 @@ class RealEstateDetailsViewModelTest {
         justRun {
 
         }
-        coJustRun { insertNewRealEstateUseCase.invoke(any(), arrayListOf()) }
+        coJustRun { upsertNewRealEstateUseCase.invoke(any(), arrayListOf()) }
         coJustRun { updateRealEstateUseCase.invoke(any(), arrayListOf()) }
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).id } returns 1L
+        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns 1L
 
         every {
-            getRealEstateFlowByIdUseCase.invoke(navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).id)
+            getRealEstateFlowByIdUseCase.invoke(navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId)
         }
     }
 
     @Test
     fun `initial case`() = testCoroutineRule.runTest {
         // GIVEN
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).id } returns 0L
+        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns 0L
 
         // WHEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
@@ -116,7 +129,27 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to insert a real estate`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstateDetailsViewModel.onSaveRealEstateButtonClicked()
+        realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
+            type = DEFAULT_TYPE_POSITION,
+            price = DEFAULT_PRICE,
+            livingSpace = DEFAULT_LIVING_SPACE,
+            numberRooms = DEFAULT_NUMBER_ROOM,
+            numberBedroom = DEFAULT_NUMBER_BEDROOM,
+            numberBathroom = DEFAULT_NUMBER_BATHROOM,
+            description = "Anchored by a vast marble gallery with sweeping staircase, ",
+            postalCode = "10010",
+            state = DEFAULT_STATE,
+            city = DEFAULT_CITY,
+            streetName = DEFAULT_STREET_NAME,
+            gridZone = DEFAULT_GRID_ZONE,
+            pointOfInterest = "",
+            status = DEFAULT_STATUS,
+            entryDate = System.currentTimeMillis(),
+            saleDate = null,
+            latitude = DEFAULT_LAT,
+            longitude = DEFAULT_LONG,
+            agentInChargeId = 1L,
+        )
 
         every {
             context.getString(
@@ -132,7 +165,7 @@ class RealEstateDetailsViewModelTest {
         } returns DEFAULT_POSITION
 
         coEvery {
-            insertNewRealEstateUseCase.invoke(
+            upsertNewRealEstateUseCase.invoke(
                 RealEstateEntity(
                     id = 0L,
                     type = NEW_TYPE,
@@ -158,13 +191,20 @@ class RealEstateDetailsViewModelTest {
             )
         }
 
-        confirmVerified(insertNewRealEstateUseCase)
+        confirmVerified(upsertNewRealEstateUseCase)
     }
 
     @Test
     fun `try to update a real estate`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstateDetailsViewModel.onSaveRealEstateButtonClicked()
+        realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
+            type = NEW_TYPE.toInt(),
+            price = DEFAULT_PRICE,
+            livingSpace = DEFAULT_LIVING_SPACE,
+            numberRooms = DEFAULT_NUMBER_ROOM,
+            numberBedroom = DEFAULT_NUMBER_BEDROOM,
+            numberBathroom = DEFAULT_NUMBER_BATHROOM,
+        )
 
         every {
             context.getString(
@@ -180,7 +220,7 @@ class RealEstateDetailsViewModelTest {
         } returns DEFAULT_POSITION
 
         coEvery {
-            insertNewRealEstateUseCase.invoke(
+            upsertNewRealEstateUseCase.invoke(
                 RealEstateEntity(
                     id = DEFAULT_ID,
                     type = NEW_TYPE,
@@ -202,11 +242,11 @@ class RealEstateDetailsViewModelTest {
                     latitude = DEFAULT_LAT,
                     longitude = DEFAULT_LONG,
                     agentInChargeId = 1L,
-                ), getDefaultPhotoViewStates()
+                ), getDefaultAggregatedPhotos()
             )
         }
 
-        confirmVerified(insertNewRealEstateUseCase)
+        confirmVerified(upsertNewRealEstateUseCase)
     }
 
 }

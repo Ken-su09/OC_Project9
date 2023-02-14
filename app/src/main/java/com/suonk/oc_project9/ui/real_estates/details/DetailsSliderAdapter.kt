@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.suonk.oc_project9.databinding.SliderItemContainerLayoutBinding
 
 class DetailsSliderAdapter : ListAdapter<DetailsPhotoViewState, DetailsSliderAdapter.SliderViewHolder>(PhotosComparator) {
@@ -23,7 +24,7 @@ class DetailsSliderAdapter : ListAdapter<DetailsPhotoViewState, DetailsSliderAda
 
     class SliderViewHolder(private val binding: SliderItemContainerLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         fun onBind(detailsPhotoViewState: DetailsPhotoViewState) {
-            binding.realEstateImage.setImageURI(detailsPhotoViewState.uri)
+            Glide.with(binding.realEstateImage).load(detailsPhotoViewState.uri).into(binding.realEstateImage)
             binding.deletePhoto.setOnClickListener {
                 detailsPhotoViewState.onDeleteCallback()
             }

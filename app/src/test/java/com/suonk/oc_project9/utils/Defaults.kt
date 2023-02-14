@@ -1,9 +1,11 @@
 package com.suonk.oc_project9.utils
 
+import android.net.Uri
 import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.ui.real_estates.details.DetailsPhotoViewState
+import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModel
 import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewState
 
 object Defaults {
@@ -132,8 +134,7 @@ object Defaults {
 
     fun getAllDefaultRealEstatesViewState(): List<RealEstateDetailsViewState> {
         return arrayListOf(
-            getDefaultRealEstateDetailsViewState(),
-            RealEstateDetailsViewState(
+            getDefaultRealEstateDetailsViewState(), RealEstateDetailsViewState(
                 id = 2L,
                 type = "Loft",
                 typePosition = 3,
@@ -269,45 +270,53 @@ object Defaults {
     }
 
     private fun getDefaultPhotoEntities(): List<PhotoEntity> {
-        return arrayListOf(
+        return listOf(
             PhotoEntity(
-                0, 1L, "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp", false
+                0, 1L, "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"
             ), PhotoEntity(
-                0, 1L, "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp", false
+                0, 1L, "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"
             ), PhotoEntity(
-                0, 1L, "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp", false
+                0, 1L, "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
             )
         )
     }
 
     fun getDefaultPhotoViewStates(): List<DetailsPhotoViewState> {
-        return arrayListOf(
+        return listOf(
             DetailsPhotoViewState(
-                false, "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"
+                uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+                EquatableCallback {}),
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+                EquatableCallback {}),
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
+                EquatableCallback {})
+        )
+    }
 
-            ), DetailsPhotoViewState(
-                false, "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"
+    fun getDefaultAggregatedPhotos(): List<RealEstateDetailsViewModel.AggregatedPhoto> {
+        return listOf(
+            RealEstateDetailsViewModel.AggregatedPhoto(
+                uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"
 
-            ), DetailsPhotoViewState(
-                false, "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
+            ), RealEstateDetailsViewModel.AggregatedPhoto(
+                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"
 
+            ), RealEstateDetailsViewModel.AggregatedPhoto(
+                uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
             )
         )
     }
 
     fun testPhotosList(): List<DetailsPhotoViewState> {
-        return arrayListOf(
-            DetailsPhotoViewState(
-                false,
-                "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
-
-                ), DetailsPhotoViewState(
-                false,
-                "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
-            ), DetailsPhotoViewState(
-                false,
-                "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
-            )
+        return listOf(
+            DetailsPhotoViewState("https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
+                EquatableCallback {}),
+            DetailsPhotoViewState("https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
+                EquatableCallback {}),
+            DetailsPhotoViewState("https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg",
+                EquatableCallback {})
         )
     }
 

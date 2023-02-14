@@ -1,5 +1,5 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
-import android.net.Uri
+import com.suonk.oc_project9.utils.EquatableCallback
 
-data class DetailsPhotoViewState(val uri: Uri, val onDeleteCallback: () -> Unit)
+data class DetailsPhotoViewState(val uri: String, val onDeleteCallback: EquatableCallback)

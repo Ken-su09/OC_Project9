@@ -1,5 +1,7 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
+import com.suonk.oc_project9.utils.EquatableCallback
+
 data class RealEstatesListViewState(
     val id: Long,
     val type: String,
@@ -9,6 +11,8 @@ data class RealEstatesListViewState(
     val description: String,
     val photos: List<ListPhotoViewState>,
     val address: String,
-    val date: String,
-    val onClickedCallback: (Long) -> Unit,
+    val entryDate: String,
+    val saleDate: String,
+    val isSold: Boolean,
+    val onClickedCallback: EquatableCallback,
 )

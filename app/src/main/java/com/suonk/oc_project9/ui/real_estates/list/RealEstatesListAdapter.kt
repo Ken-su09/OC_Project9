@@ -2,6 +2,7 @@ package com.suonk.oc_project9.ui.real_estates.list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -38,7 +39,11 @@ class RealEstatesListAdapter() :
             binding.nbRooms.text = estate.numberRooms
             binding.squareFoot.text = estate.livingSpace
             binding.price.text = estate.price
-            binding.date.text = estate.date
+            binding.entryDate.text = estate.entryDate
+
+            binding.saleDate.text = estate.saleDate
+            binding.saleDate.isVisible = estate.isSold
+            binding.iconIsSold.isVisible = estate.isSold
 
             val listSliderAdapter = ListSliderAdapter()
             listSliderAdapter.submitList(estate.photos)
@@ -58,7 +63,7 @@ class RealEstatesListAdapter() :
                 ViewPager2.OnPageChangeCallback() {})
 
             itemView.setOnClickListener {
-                estate.onClickedCallback(estate.id)
+                estate.onClickedCallback()
             }
         }
     }
