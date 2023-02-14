@@ -174,8 +174,8 @@ class RealEstateDetailsViewModel @Inject constructor(
 
             val entryDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
 
-            val saleDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: if (isSoldMutableStateFlow.value) {
-                System.currentTimeMillis()
+            val saleDate = if (isSoldMutableStateFlow.value) {
+                realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: System.currentTimeMillis()
             } else {
                 null
             }
