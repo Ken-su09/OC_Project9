@@ -114,6 +114,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         false
                     )
                 )
+                isSoldMutableStateFlow.emit(false)
             } else {
                 // Update mode
                 realEstateDetailsViewStateMutableSharedFlow.emit(
@@ -145,6 +146,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null
                     )
                 )
+                isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
 
                 val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
                 photosMutableStateFlow.emit(photos)
@@ -189,6 +191,8 @@ class RealEstateDetailsViewModel @Inject constructor(
                 ), context
             )
 
+//            Log.i("GetRealEstateId", "realEstateId : ${navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L}")
+
             upsertNewRealEstateUseCase.invoke(
                 realEstate = RealEstateEntity(
                     id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
@@ -216,6 +220,10 @@ class RealEstateDetailsViewModel @Inject constructor(
 
             withContext(coroutineDispatcherProvider.main) {
                 finishSavingSingleLiveEvent.value = Unit
+
+                if(navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L){
+                    toastMessageSingleLiveEvent.value = context.getString(R.string.new_real_estate_is_added)
+                }
             }
         }
     }
