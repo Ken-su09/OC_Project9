@@ -191,38 +191,51 @@ class RealEstateDetailsViewModel @Inject constructor(
                 ), context
             )
 
+            val isFieldEmpty =
+                isEmptyOrBlank(price) || isEmptyOrBlank(livingSpace) || isEmptyOrBlank(numberRooms) || isEmptyOrBlank(numberBedroom) || isEmptyOrBlank(
+                    numberBathroom
+                ) || isEmptyOrBlank(description) || isEmptyOrBlank(postalCode) || isEmptyOrBlank(city) || isEmptyOrBlank(streetName) || isEmptyOrBlank(
+                    gridZone
+                )
+
 //            Log.i("GetRealEstateId", "realEstateId : ${navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L}")
 
-            upsertNewRealEstateUseCase.invoke(
-                realEstate = RealEstateEntity(
-                    id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
-                    type = spinnerPositionToType(type),
-                    price = price.toDouble(),
-                    livingSpace = livingSpace.toDouble(),
-                    numberRooms = numberRooms.toInt(),
-                    numberBedroom = numberBedroom.toInt(),
-                    numberBathroom = numberBathroom.toInt(),
-                    description = description,
-                    postalCode = postalCode,
-                    state = state,
-                    city = city,
-                    streetName = streetName,
-                    gridZone = gridZone,
-                    pointOfInterest = "",
-                    status = "AVAILABLE",
-                    entryDate = entryDate,
-                    saleDate = saleDate,
-                    latitude = position.lat,
-                    longitude = position.long,
-                    agentInChargeId = 0L
-                ), photos = photos
-            )
+            if (isFieldEmpty) {
+                withContext(coroutineDispatcherProvider.main) {
+                    toastMessageSingleLiveEvent.value = context.getString(R.string.field_empty_toast_msg)
+                }
+            } else {
+                upsertNewRealEstateUseCase.invoke(
+                    realEstate = RealEstateEntity(
+                        id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
+                        type = spinnerPositionToType(type),
+                        price = price.toDouble(),
+                        livingSpace = livingSpace.toDouble(),
+                        numberRooms = numberRooms.toInt(),
+                        numberBedroom = numberBedroom.toInt(),
+                        numberBathroom = numberBathroom.toInt(),
+                        description = description,
+                        postalCode = postalCode,
+                        state = state,
+                        city = city,
+                        streetName = streetName,
+                        gridZone = gridZone,
+                        pointOfInterest = "",
+                        status = "AVAILABLE",
+                        entryDate = entryDate,
+                        saleDate = saleDate,
+                        latitude = position.lat,
+                        longitude = position.long,
+                        agentInChargeId = 0L
+                    ), photos = photos
+                )
 
-            withContext(coroutineDispatcherProvider.main) {
-                finishSavingSingleLiveEvent.value = Unit
+                withContext(coroutineDispatcherProvider.main) {
+                    finishSavingSingleLiveEvent.value = Unit
 
-                if(navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L){
-                    toastMessageSingleLiveEvent.value = context.getString(R.string.new_real_estate_is_added)
+                    if (navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L) {
+                        toastMessageSingleLiveEvent.value = context.getString(R.string.new_real_estate_is_added)
+                    }
                 }
             }
         }
