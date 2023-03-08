@@ -3,7 +3,7 @@ package com.suonk.oc_project9.domain.real_estate
 import android.content.Context
 import android.location.Geocoder
 import android.os.Build
-import com.suonk.oc_project9.model.database.data.entities.Position
+import com.suonk.oc_project9.model.database.data.entities.places.Position
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,8 +20,10 @@ class GetPositionFromFullAddressUseCase @Inject constructor() {
                 longitude = it[0].longitude
             }
         } else {
-            latitude = Geocoder(context).getFromLocationName(fullAddress, 1)?.get(0)?.latitude ?: 0.0
-            longitude = Geocoder(context).getFromLocationName(fullAddress, 1)?.get(0)?.longitude ?: 0.0
+            if (Geocoder(context).getFromLocationName(fullAddress, 1)?.isNotEmpty() == true) {
+                latitude = Geocoder(context).getFromLocationName(fullAddress, 1)?.get(0)?.latitude ?: 0.0
+                longitude = Geocoder(context).getFromLocationName(fullAddress, 1)?.get(0)?.longitude ?: 0.0
+            }
         }
 
         return Position(latitude, longitude)

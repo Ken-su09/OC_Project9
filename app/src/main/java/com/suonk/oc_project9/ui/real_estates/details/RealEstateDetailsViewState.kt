@@ -1,5 +1,7 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
+import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
+
 data class RealEstateDetailsViewState(
     val id: Long = 0L,
     val type: String,
@@ -21,5 +23,6 @@ data class RealEstateDetailsViewState(
     val noPhoto: Boolean,
     val entryDate: Long,
     val saleDate: Long?,
-    val isSold: Boolean
+    val isSold: Boolean,
+    val pointsOfInterest: List<PointOfInterest>
 )

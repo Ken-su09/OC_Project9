@@ -4,20 +4,19 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
-import androidx.room.ColumnInfo
-import androidx.room.PrimaryKey
 import com.suonk.oc_project9.R
+import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.*
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
-import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
-import com.suonk.oc_project9.utils.EquatableCallback
-import com.suonk.oc_project9.utils.NavArgProducer
-import com.suonk.oc_project9.utils.SingleLiveEvent
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
+import com.suonk.oc_project9.utils.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +24,7 @@ class RealEstateDetailsViewModel @Inject constructor(
     private val upsertNewRealEstateUseCase: UpsertNewRealEstateUseCase,
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase,
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase,
+    private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     @ApplicationContext private val context: Context,
     private val navArgProducer: NavArgProducer
@@ -50,6 +50,8 @@ class RealEstateDetailsViewModel @Inject constructor(
         combine(
             realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
         ) { detailsViewState, aggregatedPhotos, isSold ->
+
+            Log.i("PointsOfInterest", "pointsOfInterest :  ${detailsViewState.pointsOfInterest}")
             emit(
                 RealEstateDetailsViewState(
                     type = detailsViewState.type,
@@ -75,7 +77,8 @@ class RealEstateDetailsViewModel @Inject constructor(
                     noPhoto = aggregatedPhotos.isEmpty() && !isSold,
                     entryDate = detailsViewState.entryDate,
                     saleDate = detailsViewState.saleDate,
-                    isSold = isSold
+                    isSold = isSold,
+                    pointsOfInterest = detailsViewState.pointsOfInterest
                 )
             )
         }.collect()
@@ -111,11 +114,17 @@ class RealEstateDetailsViewModel @Inject constructor(
                         noPhoto = true,
                         entryDate = System.currentTimeMillis(),
                         saleDate = null,
-                        false
+                        isSold = false,
+                        pointsOfInterest = emptyList()
                     )
                 )
                 isSoldMutableStateFlow.emit(false)
             } else {
+                val pointsOfInterest = getNearbyPointsOfInterestUseCase.invoke(
+                    lat = realEstateEntityWithPhotos.realEstateEntity.latitude,
+                    long = realEstateEntityWithPhotos.realEstateEntity.longitude
+                )
+
                 // Update mode
                 realEstateDetailsViewStateMutableSharedFlow.emit(
                     RealEstateDetailsViewState(
@@ -141,9 +150,10 @@ class RealEstateDetailsViewModel @Inject constructor(
                         latitude = realEstateEntityWithPhotos.realEstateEntity.latitude,
                         longitude = realEstateEntityWithPhotos.realEstateEntity.longitude,
                         noPhoto = realEstateEntityWithPhotos.photos.isEmpty() && realEstateEntityWithPhotos.realEstateEntity.saleDate == null,
-                        entryDate = realEstateEntityWithPhotos.realEstateEntity.entryDate,
-                        saleDate = realEstateEntityWithPhotos.realEstateEntity.saleDate,
-                        isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null
+                        entryDate = fromLocalDateToLong(realEstateEntityWithPhotos.realEstateEntity.entryDate),
+                        saleDate = fromLocalDateToLongWithNullable(realEstateEntityWithPhotos.realEstateEntity.saleDate),
+                        isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null,
+                        pointsOfInterest = pointsOfInterest
                     )
                 )
                 isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
@@ -198,8 +208,6 @@ class RealEstateDetailsViewModel @Inject constructor(
                     gridZone
                 )
 
-//            Log.i("GetRealEstateId", "realEstateId : ${navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L}")
-
             if (isFieldEmpty) {
                 withContext(coroutineDispatcherProvider.main) {
                     toastMessageSingleLiveEvent.value = context.getString(R.string.field_empty_toast_msg)
@@ -222,8 +230,8 @@ class RealEstateDetailsViewModel @Inject constructor(
                         gridZone = gridZone,
                         pointOfInterest = "",
                         status = "AVAILABLE",
-                        entryDate = entryDate,
-                        saleDate = saleDate,
+                        entryDate = fromLongToLocalDate(entryDate),
+                        saleDate = fromLongToLocalDateWithNullable(saleDate),
                         latitude = position.lat,
                         longitude = position.long,
                         agentInChargeId = 0L
@@ -275,4 +283,11 @@ class RealEstateDetailsViewModel @Inject constructor(
     }
 
     //endregion
+
+    private fun fromLocalDateToLong(value: LocalDateTime): Long = value.toEpochSecond(ZoneOffset.UTC)
+    private fun fromLocalDateToLongWithNullable(value: LocalDateTime?): Long? = value?.toEpochSecond(ZoneOffset.UTC)
+
+    private fun fromLongToLocalDate(value: Long): LocalDateTime = Instant.ofEpochSecond(value).atZone(ZoneOffset.UTC).toLocalDateTime()
+    private fun fromLongToLocalDateWithNullable(value: Long?): LocalDateTime? =
+        value?.let { Instant.ofEpochSecond(it).atZone(ZoneOffset.UTC).toLocalDateTime() }
 }
