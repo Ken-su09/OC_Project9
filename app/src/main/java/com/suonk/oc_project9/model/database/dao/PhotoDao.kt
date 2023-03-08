@@ -1,7 +1,7 @@
 package com.suonk.oc_project9.model.database.dao
 
 import androidx.room.*
-import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 
 @Dao
 interface PhotoDao {

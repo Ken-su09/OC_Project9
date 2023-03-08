@@ -1,7 +1,7 @@
 package com.suonk.oc_project9.domain
 
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import kotlinx.coroutines.flow.Flow
 
 interface RealEstateRepository {

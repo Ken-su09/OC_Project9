@@ -1,8 +1,10 @@
-package com.suonk.oc_project9.model.database.data.entities
+package com.suonk.oc_project9.model.database.data.entities.real_estate
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Entity(tableName = "real_estate")
 data class RealEstateEntity(
@@ -21,8 +23,8 @@ data class RealEstateEntity(
     @ColumnInfo(name = "grid_zone") val gridZone: String,
     @ColumnInfo(name = "point_of_interest") val pointOfInterest: String,
     @ColumnInfo(name = "status") val status: String,
-    @ColumnInfo(name = "entry_date") val entryDate: Long,
-    @ColumnInfo(name = "sale_date") val saleDate: Long?,
+    @ColumnInfo(name = "entry_date") val entryDate: LocalDateTime,
+    @ColumnInfo(name = "sale_date") val saleDate: LocalDateTime?,
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "agent_in_charge_id") val agentInChargeId: Long?,

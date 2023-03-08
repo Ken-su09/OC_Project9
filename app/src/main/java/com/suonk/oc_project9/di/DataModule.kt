@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.suonk.oc_project9.api.PlacesApiHolder
+import com.suonk.oc_project9.api.PlacesApiService
 import com.suonk.oc_project9.model.database.AppDatabase
 import com.suonk.oc_project9.model.database.dao.PhotoDao
 import com.suonk.oc_project9.model.database.dao.RealEstateDao
-import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +19,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -55,7 +58,7 @@ class DataModule {
                             gridZone = "55 West",
                             pointOfInterest = "",
                             status = "Available",
-                            entryDate = System.currentTimeMillis(),
+                            entryDate = LocalDateTime.now(),
                             saleDate = null,
                             latitude = 40.744080,
                             longitude = -73.991302,
@@ -85,7 +88,7 @@ class DataModule {
                             gridZone = "920 Park",
                             pointOfInterest = "",
                             status = "Available",
-                            entryDate = System.currentTimeMillis(),
+                            entryDate = LocalDateTime.now(),
                             saleDate = null,
                             latitude = 40.776670,
                             longitude = -73.960240,
@@ -133,6 +136,13 @@ class DataModule {
                 }
             }
         }).addMigrations().build()
+
+
+    @Provides
+    @Singleton
+    fun providePlacesApiService(): PlacesApiService {
+        return PlacesApiHolder.getInstance()
+    }
 
 //    RealEstateEntity(
 //    id = ,

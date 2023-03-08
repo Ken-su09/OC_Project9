@@ -1,10 +1,11 @@
 package com.suonk.oc_project9.utils.sort
 
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
+import java.time.LocalDateTime
 
 enum class Sorting(val comparator: Comparator<RealEstateEntityWithPhotos>) {
     DATE_ASC(Comparator.comparing { it.realEstateEntity.entryDate }),
-    DATE_DESC(Comparator.comparing<RealEstateEntityWithPhotos?, Long?> {
+    DATE_DESC(Comparator.comparing<RealEstateEntityWithPhotos?, LocalDateTime?> {
         it.realEstateEntity.entryDate
     }.reversed()),
 

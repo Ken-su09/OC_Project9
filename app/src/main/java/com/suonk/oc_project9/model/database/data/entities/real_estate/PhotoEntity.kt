@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.model.database.data.entities
+package com.suonk.oc_project9.model.database.data.entities.real_estate
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
