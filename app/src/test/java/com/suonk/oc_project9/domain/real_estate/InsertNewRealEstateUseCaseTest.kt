@@ -2,7 +2,7 @@ package com.suonk.oc_project9.domain.real_estate
 
 import com.suonk.oc_project9.domain.PhotoRepository
 import com.suonk.oc_project9.domain.RealEstateRepository
-import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.utils.Defaults.getDefaultPhotoViewStates
 import com.suonk.oc_project9.utils.Defaults.getDefaultRealEstateEntity
 import com.suonk.oc_project9.utils.TestCoroutineRule

@@ -3,8 +3,7 @@ package com.suonk.oc_project9.domain.real_estate
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.domain.RealEstateRepository
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk

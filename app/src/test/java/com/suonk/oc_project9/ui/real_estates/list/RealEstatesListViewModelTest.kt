@@ -6,10 +6,9 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.*
 import com.suonk.oc_project9.utils.Defaults.getAllDefaultRealEstatesWithPhotos
-import com.suonk.oc_project9.utils.sort.Sorting
 import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun

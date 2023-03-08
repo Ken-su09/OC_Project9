@@ -1,9 +1,8 @@
 package com.suonk.oc_project9.utils
 
-import android.net.Uri
-import com.suonk.oc_project9.model.database.data.entities.PhotoEntity
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.ui.real_estates.details.DetailsPhotoViewState
 import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModel
 import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewState
