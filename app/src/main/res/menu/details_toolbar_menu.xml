@@ -20,6 +20,11 @@
             android:title="@string/toolbar_save_real_estate"
             app:showAsAction="ifRoom|collapseActionView" />
         <item
+            android:id="@+id/action_show_point_of_interest"
+            android:icon="@drawable/ic_area"
+            android:title="Point of Interest"
+            app:showAsAction="ifRoom|collapseActionView" />
+        <item
             android:id="@+id/action_save_real_estate"
             android:icon="@drawable/ic_save"
             android:title="@string/toolbar_save_real_estate"

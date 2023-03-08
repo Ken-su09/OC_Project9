@@ -1,8 +1,8 @@
 package com.suonk.oc_project9.model.database.dao
 
 import androidx.room.*
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntity
-import com.suonk.oc_project9.model.database.data.entities.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
+import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,6 +19,10 @@ interface RealEstateDao {
     @Transaction
     @Query("SELECT * FROM real_estate ORDER BY price DESC")
     fun getAllRealEstatesWithPhotosSortByPrice(): Flow<List<RealEstateEntityWithPhotos>>
+
+//    @Transaction
+//    @Query("SELECT * FROM real_estate WHERE ")
+//    fun getAllRealEstatesWithPhotosWithInput(input: String): Flow<List<RealEstateEntityWithPhotos>>
 
     @Query("SELECT * FROM real_estate WHERE id = :id")
     fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos>

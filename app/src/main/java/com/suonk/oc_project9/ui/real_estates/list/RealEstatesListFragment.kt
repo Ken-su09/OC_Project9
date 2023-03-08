@@ -5,6 +5,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -14,6 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.FragmentRealEstatesListBinding
+import com.suonk.oc_project9.ui.filter.SearchBottomSheetDialogFragment
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -60,11 +62,33 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
 
                 val searchItem = menu.findItem(R.id.action_search)
                 val searchView = searchItem?.actionView as SearchView
+                searchView.imeOptions = EditorInfo.IME_ACTION_DONE;
+                searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(search: String?): Boolean {
+                        search?.let {
+//                            viewModel.onSearchQueryDone(search)
+                        }
+
+                        return false
+                    }
+
+                    override fun onQueryTextChange(search: String?): Boolean {
+                        search?.let {
+                            viewModel.onSearchQueryChanged(search)
+                        }
+                        return true
+                    }
+                })
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                viewModel.setMutableState(menuItem.itemId)
-                menuItem.isChecked = true
+                if (menuItem.itemId == R.id.add_more_criteria) {
+                    val modalBottomSheet = SearchBottomSheetDialogFragment()
+                    modalBottomSheet.show(requireFragmentManager(), "")
+                } else {
+                    viewModel.setMutableState(menuItem.itemId)
+                    menuItem.isChecked = true
+                }
                 return true
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)

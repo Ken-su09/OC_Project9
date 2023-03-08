@@ -17,6 +17,22 @@ object Utils {
         return (euro * 1.04).roundToInt()
     }
 
+    fun convertDollarToEuro(dollars: Double): Double {
+        return (dollars * 0.96)
+    }
+
+    fun convertEuroToDollar(euro: Double): Double {
+        return (euro * 1.04)
+    }
+
+    fun convertSquareMetreToSquareFoot(value: Double): Double {
+        return value * 10.763867361111
+    }
+
+    fun convertSquareFootToSquareMetre(value: Double): Double {
+        return value / 10.763867361111
+    }
+
     val todayDate: String
         get() {
             val dateFormat: DateFormat = SimpleDateFormat("yyyy/MM/dd")
@@ -26,13 +42,5 @@ object Utils {
     fun isInternetAvailable(context: Context): Boolean {
         val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
         return wifi.isWifiEnabled
-    }
-
-    fun convertSquareMetreToSquareFoot(value: Double): Double {
-        return value * 10.763867361111
-    }
-
-    fun convertSquareFootToSquareMetre(value: Double): Double {
-        return value / 10.763867361111
     }
 }

@@ -65,14 +65,10 @@
             app:showAsAction="always">
             <menu>
                 <item
-                    android:title="@string/filter_by"
+                    android:id="@+id/remove_filter"
+                    android:title="@string/remove_filter"
                     app:showAsAction="collapseActionView" />
-                <group android:checkableBehavior="single">
-                    <item
-                        android:id="@+id/remove_filter"
-                        android:checked="true"
-                        android:title="@string/remove_filter"
-                        app:showAsAction="collapseActionView" />
+                <group android:checkableBehavior="none">
                     <item
                         android:id="@+id/house_filter"
                         android:title="@string/house_filter"
@@ -92,6 +88,11 @@
                     <item
                         android:id="@+id/loft_filter"
                         android:title="@string/loft_filter"
+                        app:showAsAction="collapseActionView" />
+                    <item
+                        android:id="@+id/add_more_criteria"
+                        android:checkable="false"
+                        android:title="@string/add_more_criteria"
                         app:showAsAction="collapseActionView" />
                 </group>
             </menu>

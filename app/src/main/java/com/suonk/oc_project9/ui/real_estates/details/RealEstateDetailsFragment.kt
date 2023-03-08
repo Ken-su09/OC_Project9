@@ -32,14 +32,15 @@ import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.suonk.oc_project9.R
-import com.suonk.oc_project9.databinding.BuilderBottomLayoutBinding
+import com.suonk.oc_project9.databinding.AddNewPhotoBuilderBottomBinding
 import com.suonk.oc_project9.databinding.FragmentRealEstateDetailsBinding
+import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestListAdapter
+import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListAdapter
+import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListFragmentDirections
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
@@ -109,6 +110,10 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 return when (menuItem.itemId) {
                     R.id.action_change_map -> {
                         binding.map.isVisible = !binding.map.isVisible
+                        true
+                    }
+                    R.id.action_show_point_of_interest -> {
+                        binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
                         true
                     }
                     R.id.action_save_real_estate -> {
@@ -190,6 +195,11 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
             setupMap(realEstate.city, realEstate.latitude, realEstate.longitude)
 
             isUpdatingFromViewState = false
+
+            val listAdapter = PointOfInterestListAdapter()
+            listAdapter.submitList(realEstate.pointsOfInterest)
+
+            binding.pointOfInterestList.adapter = listAdapter
         }
     }
 
@@ -236,7 +246,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region ================================================================ IMAGE =================================================================
 
     private fun addNewImage() {
-        val bottomSheetBinding = BuilderBottomLayoutBinding.inflate(layoutInflater, null, false)
+        val bottomSheetBinding = AddNewPhotoBuilderBottomBinding.inflate(layoutInflater, null, false)
         val builderBottom = BottomSheetDialog(requireContext())
         builderBottom.setContentView(bottomSheetBinding.root)
 
@@ -269,7 +279,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     }
 
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let {
                 viewModel.onNewPhotoAdded(it)

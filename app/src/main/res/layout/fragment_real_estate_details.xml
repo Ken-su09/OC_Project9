@@ -194,7 +194,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/number_of_rooms"
                 app:layout_constraintTop_toBottomOf="@+id/living_space_layout"
-                app:startIconDrawable="@drawable/ic_area">
+                app:startIconDrawable="@drawable/ic_room">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/nb_rooms"
@@ -212,7 +212,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/number_of_bedrooms"
                 app:layout_constraintTop_toBottomOf="@+id/nb_rooms_layout"
-                app:startIconDrawable="@drawable/ic_dollar">
+                app:startIconDrawable="@drawable/ic_bed">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/nb_bedrooms"
@@ -297,6 +297,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/point_of_interest_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_point_of_interest" />
     </FrameLayout>
 
 </ScrollView>
