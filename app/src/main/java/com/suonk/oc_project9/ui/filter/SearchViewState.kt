@@ -1,16 +1,29 @@
 package com.suonk.oc_project9.ui.filter
 
-data class SearchViewState(
-    val livingSpaceMin: String,
-    val livingSpaceMax: String,
-    val priceMin: String,
-    val priceMax: String,
-    val nbRoomsMin: String,
-    val nbRoomsMax: String,
-    val nbBedroomsMin: String,
-    val nbBedroomsMax: String,
-    val entryDateMin: String,
-    val entryDateMax: String,
-    val saleDateMin: String,
-    val saleDateMax: String,
-)
+sealed class SearchViewState(
+    val type: SearchType,
+) {
+
+    abstract val min: String
+    abstract val max: String
+    abstract val title: String
+
+    data class Bounded(
+        override val min: String,
+        override val max: String,
+        override val title: String,
+        val onValuesSelected: (String?, Boolean) -> Unit
+    ) : SearchViewState(SearchType.BOUNDED)
+
+    data class Date(
+        override val min: String,
+        override val max: String,
+        override val title: String,
+        val onValuesSelected: (Int, Int, Int, Boolean) -> Unit
+    ) : SearchViewState(SearchType.DATE)
+
+    enum class SearchType {
+        BOUNDED,
+        DATE
+    }
+}

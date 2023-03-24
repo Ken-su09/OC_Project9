@@ -1,6 +1,5 @@
 package com.suonk.oc_project9.di
 
-import PlacesRepositoryImpl
 import com.suonk.oc_project9.domain.PhotoRepository
 import com.suonk.oc_project9.domain.PlacesRepository
 import com.suonk.oc_project9.domain.RealEstateRepository
@@ -8,6 +7,7 @@ import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.model.database.data.PhotoRepositoryImpl
 import com.suonk.oc_project9.model.database.data.PlacesRepositoryImpl
 import com.suonk.oc_project9.model.database.data.RealEstateRepositoryImpl
+import com.suonk.oc_project9.model.database.data.SearchRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

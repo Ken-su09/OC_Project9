@@ -4,6 +4,7 @@ import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstate
 import java.time.LocalDateTime
 
 sealed class Filter {
+
     abstract fun isMatching(entity: RealEstateEntityWithPhotos): Boolean
 
     data class LivingSpaceFilter(val min: Double?, val max: Double?) : Filter() {
@@ -48,21 +49,21 @@ sealed class Filter {
         }
     }
 
-    data class EntryDateFilter(val min: LocalDateTime?, val max: LocalDateTime?) : Filter() {
+    data class EntryDateFilter(val from: LocalDateTime?, val to: LocalDateTime?) : Filter() {
         override fun isMatching(entity: RealEstateEntityWithPhotos): Boolean = when {
-            min == null && max != null -> entity.realEstateEntity.entryDate.isBefore(max)
-            max == null && min != null -> entity.realEstateEntity.entryDate.isAfter(min)
-            min != null && max != null -> entity.realEstateEntity.entryDate.isBefore(max) && entity.realEstateEntity.entryDate.isAfter(min)
+            from == null && to != null -> entity.realEstateEntity.entryDate.isBefore(to)
+            to == null && from != null -> entity.realEstateEntity.entryDate.isAfter(from)
+            from != null && to != null -> entity.realEstateEntity.entryDate.isBefore(to) && entity.realEstateEntity.entryDate.isAfter(from)
             else -> true
         }
     }
 
-    data class SaleDateFilter(val min: LocalDateTime?, val max: LocalDateTime?) : Filter() {
+    data class SaleDateFilter(val from: LocalDateTime?, val to: LocalDateTime?) : Filter() {
         override fun isMatching(entity: RealEstateEntityWithPhotos): Boolean = when {
-            min == null && max != null -> entity.realEstateEntity.saleDate?.isBefore(max) == true
-            max == null && min != null -> entity.realEstateEntity.saleDate?.isAfter(min) == true
-            min != null && max != null -> entity.realEstateEntity.saleDate?.isBefore(max) == true && entity.realEstateEntity.saleDate.isAfter(
-                min
+            from == null && to != null -> entity.realEstateEntity.saleDate?.isBefore(to) == true
+            to == null && from != null -> entity.realEstateEntity.saleDate?.isAfter(from) == true
+            from != null && to != null -> entity.realEstateEntity.saleDate?.isBefore(to) == true && entity.realEstateEntity.saleDate.isAfter(
+                from
             )
             else -> true
         }
