@@ -2,9 +2,11 @@ package com.suonk.oc_project9.ui.real_estates.list
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import com.suonk.oc_project9.R
+import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.ui.filter.Filter
@@ -27,6 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RealEstatesListViewModel @Inject constructor(
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase,
+    private val searchRepository: SearchRepository,
     coroutineDispatcherProvider: CoroutineDispatcherProvider,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -48,9 +51,15 @@ class RealEstatesListViewModel @Inject constructor(
 
     val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
         combine(
-            getAllRealEstatesUseCase.invoke(), sortingMutableStateFlow, filteringMutableStateFlow, searchMutableStateFlow
-        ) { entities: List<RealEstateEntityWithPhotos>, sorting, filterId, search ->
-            val list = entities.asSequence().sortedWith(sorting.comparator).map {
+            getAllRealEstatesUseCase.invoke(),
+            sortingMutableStateFlow,
+            filteringMutableStateFlow,
+            searchMutableStateFlow,
+            searchRepository.getCurrentSearchParametersFlow()
+        ) { entities: List<RealEstateEntityWithPhotos>, sorting, filterId, search, filters ->
+            val list = entities.asSequence().filter { realEstate ->
+                filters.all { it.isMatching(realEstate) }
+            }.sortedWith(sorting.comparator).map {
                 transformEntityToViewState(it)
             }.filter {
                 when (filterId) {
@@ -88,6 +97,11 @@ class RealEstatesListViewModel @Inject constructor(
             withContext(coroutineDispatcherProvider.main) {
                 numberOfRealEstatesSingleLiveEvent.value = context.getString(R.string.validate_filtering, list.size)
             }
+
+            list.forEach {
+
+            }
+
             emit(list)
         }.collect()
     }
