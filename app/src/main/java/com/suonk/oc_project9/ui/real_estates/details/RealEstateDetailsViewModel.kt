@@ -2,7 +2,6 @@ package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -123,7 +122,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         latitude = 0.0,
                         longitude = 0.0,
                         noPhoto = true,
-                        entryDate = 0L,
+                        entryDate = null,
                         saleDate = null,
                         isSold = false,
                         pointsOfInterest = emptyList()
@@ -164,7 +163,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         latitude = realEstateEntityWithPhotos.realEstateEntity.latitude,
                         longitude = realEstateEntityWithPhotos.realEstateEntity.longitude,
                         noPhoto = realEstateEntityWithPhotos.photos.isEmpty() && realEstateEntityWithPhotos.realEstateEntity.saleDate == null,
-                        entryDate = fromLocalDateToLong(realEstateEntityWithPhotos.realEstateEntity.entryDate),
+                        entryDate = fromLocalDateToInstant(realEstateEntityWithPhotos.realEstateEntity.entryDate),
                         saleDate = fromLocalDateToLongWithNullable(realEstateEntityWithPhotos.realEstateEntity.saleDate),
                         isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null,
                         pointsOfInterest = pointsOfInterest
@@ -207,11 +206,8 @@ class RealEstateDetailsViewModel @Inject constructor(
             } else {
                 val photos = photosMutableStateFlow.replayCache.first().distinct()
 
-                val entryDate = if (realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate == 0L) {
-                    ZonedDateTime.now(clock).toInstant().toEpochMilli()
-                } else {
-                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
-                }
+                val entryDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
+                    ?: ZonedDateTime.now(clock).toInstant()
 
                 val saleDate = if (isSoldMutableStateFlow.value) {
                     realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate
@@ -247,7 +243,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         streetName = streetName,
                         gridZone = gridZone,
                         status = if (saleDate == null) context.getString(R.string.real_estate_status_available) else context.getString(R.string.real_estate_status_not_available),
-                        entryDate = fromLongToLocalDate(entryDate),
+                        entryDate = fromInstantToLocalDate(entryDate),
                         saleDate = fromLongToLocalDateWithNullable(saleDate),
                         latitude = position.lat,
                         longitude = position.long,
@@ -302,10 +298,10 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     //endregion
 
-    private fun fromLocalDateToLong(value: LocalDateTime): Long = value.toEpochSecond(ZoneOffset.UTC)
+    private fun fromLocalDateToInstant(value: LocalDateTime): Instant = value.toInstant(ZoneOffset.UTC)
     private fun fromLocalDateToLongWithNullable(value: LocalDateTime?): Long? = value?.toEpochSecond(ZoneOffset.UTC)
 
-    private fun fromLongToLocalDate(value: Long): LocalDateTime = Instant.ofEpochSecond(value).atZone(ZoneOffset.UTC).toLocalDateTime()
+    private fun fromInstantToLocalDate(instant: Instant): LocalDateTime = instant.atZone(ZoneOffset.UTC).toLocalDateTime()
     private fun fromLongToLocalDateWithNullable(value: Long?): LocalDateTime? =
         value?.let { Instant.ofEpochSecond(it).atZone(ZoneOffset.UTC).toLocalDateTime() }
 }

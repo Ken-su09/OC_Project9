@@ -58,7 +58,7 @@ object Defaults {
             latitude = 0.0,
             longitude = 0.0,
             noPhoto = true,
-            entryDate = 0L,
+            entryDate = null,
             saleDate = null,
             isSold = false,
             pointsOfInterest = emptyList(),
@@ -185,7 +185,12 @@ object Defaults {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = DEFAULT_TIMESTAMP_LONG,
+            entryDate = Instant.now(
+                Clock.fixed(
+                    Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG),
+                    ZoneOffset.UTC
+                )
+            ),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),

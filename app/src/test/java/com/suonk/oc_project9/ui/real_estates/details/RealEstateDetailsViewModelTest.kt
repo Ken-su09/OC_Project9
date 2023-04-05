@@ -32,7 +32,6 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 class RealEstateDetailsViewModelTest {
@@ -75,7 +74,7 @@ class RealEstateDetailsViewModelTest {
         const val DEFAULT_NUMBER_BEDROOM_STRING = "4"
         const val DEFAULT_NUMBER_BATHROOM = 2
         const val DEFAULT_NUMBER_BATHROOM_STRING = "2"
-        const val DEFAULT_TIMESTAMP_LONG = 1000000000L // 09/09/2001 - 01:46:40
+        const val DEFAULT_TIMESTAMP_LONG = 1_000_000_000L // 09/09/2001 - 01:46:40
 
         private const val DEFAULT_ID_TO_ADD = 0L
         private const val DEFAULT_EMPTY_TYPE_POSITION = 0
@@ -131,7 +130,10 @@ class RealEstateDetailsViewModelTest {
     private val context: Context = mockk()
     private val navArgProducer: NavArgProducer = mockk()
 
-    private val fixedClock = Clock.fixed(Instant.EPOCH.plusMillis(DEFAULT_TIMESTAMP_LONG), ZoneId.systemDefault())
+    private val fixedClock = Clock.fixed(
+        Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG),
+        ZoneOffset.UTC
+    )
 
     private val realEstateDetailsViewModel = RealEstateDetailsViewModel(
         upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
@@ -391,7 +393,7 @@ class RealEstateDetailsViewModelTest {
                     streetName = "25th Street",
                     gridZone = "55 West",
                     status = "Available",
-                    entryDate = LocalDateTime.now(),
+                    entryDate = LocalDateTime.now(fixedClock),
                     saleDate = null,
                     latitude = 40.744080,
                     longitude = -73.991302,
@@ -465,7 +467,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = LocalDateTime.now(fixedClock).toEpochSecond(ZoneOffset.UTC),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),
@@ -585,7 +587,7 @@ class RealEstateDetailsViewModelTest {
             latitude = 0.0,
             longitude = 0.0,
             noPhoto = true,
-            entryDate = 0L,
+            entryDate = null,
             saleDate = null,
             isSold = false,
             pointsOfInterest = emptyList(),
@@ -640,7 +642,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = LocalDateTime.now(fixedClock).toEpochSecond(ZoneOffset.UTC),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),
