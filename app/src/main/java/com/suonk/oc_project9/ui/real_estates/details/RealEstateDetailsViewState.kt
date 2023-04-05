@@ -3,7 +3,7 @@ package com.suonk.oc_project9.ui.real_estates.details
 import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
 
 data class RealEstateDetailsViewState(
-    val id: Long = 0L,
+    val id: Long,
     val type: String,
     val typePosition: Int,
     val price: String,
@@ -18,8 +18,8 @@ data class RealEstateDetailsViewState(
     val state: String,
     val streetName: String,
     val gridZone: String,
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
+    val latitude: Double,
+    val longitude: Double,
     val noPhoto: Boolean,
     val entryDate: Long,
     val saleDate: Long?,

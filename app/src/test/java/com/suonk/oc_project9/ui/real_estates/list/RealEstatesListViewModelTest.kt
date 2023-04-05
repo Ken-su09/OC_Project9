@@ -1,10 +1,11 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.content.Context
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
+import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.*
@@ -33,10 +34,14 @@ class RealEstatesListViewModelTest {
 
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase = mockk()
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider = mockk()
+    private val searchRepository: SearchRepository = mockk()
     private val context: Context = mockk()
 
     private val realEstatesListViewModel = RealEstatesListViewModel(
-        getAllRealEstatesUseCase, coroutineDispatcherProvider, context
+        getAllRealEstatesUseCase,
+        searchRepository,
+        coroutineDispatcherProvider,
+        context
     )
 
     @Before

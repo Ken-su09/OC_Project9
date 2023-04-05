@@ -15,7 +15,7 @@ class RealEstateRepositoryImpl @Inject constructor(private val dao: RealEstateDa
     override fun getAllRealEstatesWithPhotos(): Flow<List<RealEstateEntityWithPhotos>> =
         dao.getAllRealEstatesWithPhotos()
 
-    override fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos> =
+    override fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos?> =
         dao.getRealEstateById(id)
 
     override suspend fun upsertRealEstate(estate: RealEstateEntity) = dao.upsertRealEstate(estate)

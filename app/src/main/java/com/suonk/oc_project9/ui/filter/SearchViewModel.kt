@@ -8,10 +8,13 @@ import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.filter.ToggleFilterUseCase
 import com.suonk.oc_project9.domain.filter.model.FilterQuery
+import com.suonk.oc_project9.ui.real_estates.details.RealEstateForm
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.filter.FilterType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -22,6 +25,8 @@ class SearchViewModel @Inject constructor(
     coroutineDispatcherProvider: CoroutineDispatcherProvider,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    private val filters = listOf<SearchFilterForm>()
 
     val viewStateLiveData: LiveData<List<SearchViewState>> = liveData(coroutineDispatcherProvider.io) {
         searchRepository.getCurrentSearchParametersFlow().collect { filters: List<Filter> ->
@@ -37,41 +42,43 @@ class SearchViewModel @Inject constructor(
                     Filter.SaleDateFilter(null, null),
                 ).map { filter ->
                     when (filter) {
-                        is Filter.LivingSpaceFilter -> SearchViewState.Bounded(min = filter.min?.toString() ?: "",
+                        is Filter.LivingSpaceFilter -> SearchViewState.Bounded(
+                            min = filter.min?.toString() ?: "",
                             max = filter.max?.toString() ?: "",
                             title = context.getString(R.string.living_space_title),
-                            onValuesSelected = { value, isMax ->
-                                updateFilter(value, isMax, FilterType.LivingSpace)
+                            onValuesSelected = { minValue, maxValue ->
+                                updateFilter(minValue, maxValue, FilterType.LivingSpace)
                             })
                         is Filter.PriceFilter -> SearchViewState.Bounded(min = filter.min?.toString() ?: "",
                             max = filter.max?.toString() ?: "",
                             title = context.getString(R.string.price_title),
-                            onValuesSelected = { value, isMax ->
-                                updateFilter(value, isMax, FilterType.Price)
+                            onValuesSelected = { minValue, maxValue ->
+                                updateFilter(minValue, maxValue, FilterType.Price)
                             })
                         is Filter.NbRoomsFilter -> SearchViewState.Bounded(min = filter.min?.toString() ?: "",
                             max = filter.max?.toString() ?: "",
                             title = context.getString(R.string.nb_rooms_title),
-                            onValuesSelected = { value, isMax ->
-                                updateFilter(value, isMax, FilterType.NbRooms)
+                            onValuesSelected = { minValue, maxValue ->
+                                updateFilter(minValue, maxValue, FilterType.NbRooms)
                             })
                         is Filter.NbBedroomsFilter -> SearchViewState.Bounded(min = filter.min?.toString() ?: "",
                             max = filter.max?.toString() ?: "",
                             title = context.getString(R.string.nb_bedrooms_title),
-                            onValuesSelected = { value, isMax ->
-                                updateFilter(value, isMax, FilterType.NbBedrooms)
+                            onValuesSelected = { minValue, maxValue ->
+                                updateFilter(minValue, maxValue, FilterType.NbBedrooms)
                             })
-                        is Filter.EntryDateFilter -> SearchViewState.Date(min = filter.from?.toString() ?: "",
+                        is Filter.EntryDateFilter -> SearchViewState.Date(
+                            min = filter.from?.toString() ?: "",
                             max = filter.to?.toString() ?: "",
                             title = context.getString(R.string.entry_date),
-                            onValuesSelected = { year, month, day, isDateFrom ->
-                                updateFilterDate(year, month, day, FilterType.EntryDate, isDateFrom)
+                            onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
+                                updateFilterDate(yearFrom, monthFrom, dayFrom, FilterType.EntryDate, yearTo, monthTo, dayTo)
                             })
                         is Filter.SaleDateFilter -> SearchViewState.Date(min = filter.from?.toString() ?: "",
                             max = filter.to?.toString() ?: "",
                             title = context.getString(R.string.sale_date),
-                            onValuesSelected = { year, month, day, isDateFrom ->
-                                updateFilterDate(year, month, day, FilterType.SaleDate, isDateFrom)
+                            onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
+                                updateFilterDate(yearFrom, monthFrom, dayFrom, FilterType.SaleDate, yearTo, monthTo, dayTo)
                             })
                     }
                 })
@@ -114,16 +121,16 @@ class SearchViewModel @Inject constructor(
                             SearchViewState.Date(min = filter.from?.toString() ?: "",
                                 max = filter.to?.toString() ?: "",
                                 title = context.getString(R.string.entry_date),
-                                onValuesSelected = { year, month, day, isDateFrom ->
-                                    updateFilterDate(year, month, day, FilterType.EntryDate, isDateFrom)
+                                onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
+                                    updateFilterDate(yearFrom, monthFrom, dayFrom, FilterType.EntryDate, yearTo, monthTo, dayTo)
                                 })
                         )
                         is Filter.SaleDateFilter -> searchViewStateList.add(
                             SearchViewState.Date(min = filter.from?.toString() ?: "",
                                 max = filter.to?.toString() ?: "",
                                 title = context.getString(R.string.sale_date),
-                                onValuesSelected = { year, month, day, isDateFrom ->
-                                    updateFilterDate(year, month, day, FilterType.SaleDate, isDateFrom)
+                                onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
+                                    updateFilterDate(yearFrom, monthFrom, dayFrom, FilterType.SaleDate, yearTo, monthTo, dayTo)
                                 })
                         )
                     }
@@ -131,8 +138,7 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.LivingSpaceFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(
-                            min = "",
+                        SearchViewState.Bounded(min = "",
                             max = "",
                             title = context.getString(R.string.living_space_title),
                             onValuesSelected = { min, max ->
@@ -143,8 +149,7 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.PriceFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(
-                            min = "",
+                        SearchViewState.Bounded(min = "",
                             max = "",
                             title = context.getString(R.string.price_title),
                             onValuesSelected = { min, max ->
@@ -155,8 +160,7 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.NbRoomsFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(
-                            min = "",
+                        SearchViewState.Bounded(min = "",
                             max = "",
                             title = context.getString(R.string.nb_rooms_title),
                             onValuesSelected = { min, max ->
@@ -167,8 +171,7 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.NbBedroomsFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(
-                            min = "",
+                        SearchViewState.Bounded(min = "",
                             max = "",
                             title = context.getString(R.string.nb_bedrooms_title),
                             onValuesSelected = { min, max ->
@@ -182,8 +185,8 @@ class SearchViewModel @Inject constructor(
                         SearchViewState.Date(min = "",
                             max = "",
                             title = context.getString(R.string.entry_date),
-                            onValuesSelected = { year, month, day, isDateFrom ->
-                                updateFilterDate(year, month, day, FilterType.EntryDate, isDateFrom)
+                            onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
+                                updateFilterDate(yearFrom, monthFrom, dayFrom, FilterType.EntryDate, yearTo, monthTo, dayTo)
                             })
                     )
                 }
@@ -193,8 +196,8 @@ class SearchViewModel @Inject constructor(
                         SearchViewState.Date(min = "",
                             max = "",
                             title = context.getString(R.string.sale_date),
-                            onValuesSelected = { year, month, day, isDateFrom ->
-                                updateFilterDate(year, month, day, FilterType.SaleDate, isDateFrom)
+                            onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
+                                updateFilterDate(yearFrom, monthFrom, dayFrom, FilterType.SaleDate, yearTo, monthTo, dayTo)
                             })
                     )
                 }
@@ -209,122 +212,285 @@ class SearchViewModel @Inject constructor(
         searchRepository.reset()
     }
 
-    private fun updateFilter(value: String?, isMax: Boolean, filterType: FilterType) {
-        when (filterType) {
-            FilterType.LivingSpace -> {
-                val casted = value?.toDoubleOrNull()
+    fun onValidateClicked() {
+        filters.forEach { filter ->
+            when (filter.filterType) {
+                FilterType.LivingSpace -> {
+                    val castedMin = (filter as SearchFilterForm.FilterLivingSpace).minValue
+                    val castedMax = filter.maxValue
 
-                if (isMax) {
-                    toggleFilterUseCase.invoke(FilterQuery.LivingSpaceFilter(min = FilterQuery.SearchParam.NoOp,
-                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
-                } else {
-                    toggleFilterUseCase.invoke(FilterQuery.LivingSpaceFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
-                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+                    toggleFilterUseCase.invoke(
+                        FilterQuery.LivingSpaceFilter(
+                            min = FilterQuery.SearchParam.Update(castedMin),
+                            max = FilterQuery.SearchParam.Update(castedMax)
+                        )
+                    )
                 }
-            }
-            FilterType.Price -> {
-                val casted = value?.toDoubleOrNull()
+                FilterType.Price -> {
+                    val castedMin = (filter as SearchFilterForm.FilterPrice).minValue
+                    val castedMax = filter.maxValue
 
-                if (isMax) {
-                    toggleFilterUseCase.invoke(FilterQuery.PriceFilter(min = FilterQuery.SearchParam.NoOp,
-                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
-                } else {
-                    toggleFilterUseCase.invoke(FilterQuery.PriceFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
-                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+                    toggleFilterUseCase.invoke(
+                        FilterQuery.PriceFilter(
+                            min = FilterQuery.SearchParam.Update(castedMin),
+                            max = FilterQuery.SearchParam.Update(castedMax)
+                        )
+                    )
                 }
-            }
-            FilterType.NbRooms -> {
-                val casted = value?.toIntOrNull()
+                FilterType.NbRooms -> {
+                    val castedMin = (filter as SearchFilterForm.FilterNbRooms).minValue
+                    val castedMax = filter.maxValue
 
-                if (isMax) {
-                    toggleFilterUseCase.invoke(FilterQuery.NbRoomsFilter(min = FilterQuery.SearchParam.NoOp,
-                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
-                } else {
-                    toggleFilterUseCase.invoke(FilterQuery.NbRoomsFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
-                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+                    toggleFilterUseCase.invoke(
+                        FilterQuery.NbRoomsFilter(
+                            min = FilterQuery.SearchParam.Update(castedMin),
+                            max = FilterQuery.SearchParam.Update(castedMax)
+                        )
+                    )
                 }
-            }
-            FilterType.NbBedrooms -> {
-                val casted = value?.toIntOrNull()
+                FilterType.NbBedrooms -> {
+                    val castedMin = (filter as SearchFilterForm.FilterNbBedrooms).minValue
+                    val castedMax = filter.maxValue
 
-                if (isMax) {
-                    toggleFilterUseCase.invoke(FilterQuery.NbBedroomsFilter(min = FilterQuery.SearchParam.NoOp,
-                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
-                } else {
-                    toggleFilterUseCase.invoke(FilterQuery.NbBedroomsFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
-                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+                    toggleFilterUseCase.invoke(
+                        FilterQuery.NbBedroomsFilter(
+                            min = FilterQuery.SearchParam.Update(castedMin),
+                            max = FilterQuery.SearchParam.Update(castedMax)
+                        )
+                    )
+                }
+
+                FilterType.EntryDate -> {
+                    val yearFrom = (filter as SearchFilterForm.FilterEntryDate).yearFrom
+                    val monthFrom = filter.monthFrom
+                    val dayOfMonthFrom = filter.dayFrom
+                    val yearTo = filter.yearTo
+                    val monthTo = filter.monthTo
+                    val dayOfMonthTo = filter.dayTo
+
+                    val entryDateFrom = try {
+                        LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
+                    val entryDateTo = try {
+                        LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
+
+                    toggleFilterUseCase.invoke(
+                        FilterQuery.EntryDateFilter(
+                            from = if (entryDateFrom != null) {
+                                FilterQuery.SearchParam.Update(entryDateFrom)
+                            } else {
+                                FilterQuery.SearchParam.Delete
+                            }, to = if (entryDateTo != null) {
+                                FilterQuery.SearchParam.Update(entryDateTo)
+                            } else {
+                                FilterQuery.SearchParam.Delete
+                            }
+                        )
+                    )
+                }
+                FilterType.SaleDate -> {
+                    val yearFrom = (filter as SearchFilterForm.FilterEntryDate).yearFrom
+                    val monthFrom = filter.monthFrom
+                    val dayOfMonthFrom = filter.dayFrom
+                    val yearTo = filter.yearTo
+                    val monthTo = filter.monthTo
+                    val dayOfMonthTo = filter.dayTo
+
+                    val saleDateFrom = try {
+                        LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
+                    val saleDateTo = try {
+                        LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
+
+                    toggleFilterUseCase.invoke(
+                        FilterQuery.EntryDateFilter(
+                            from = if (saleDateFrom != null) {
+                                FilterQuery.SearchParam.Update(saleDateFrom)
+                            } else {
+                                FilterQuery.SearchParam.Delete
+                            }, to = if (saleDateTo != null) {
+                                FilterQuery.SearchParam.Update(saleDateTo)
+                            } else {
+                                FilterQuery.SearchParam.Delete
+                            }
+                        )
+                    )
                 }
             }
         }
     }
 
+    private fun updateFilter(min: String?, max: String?, filterType: FilterType) {
+        when (filterType) {
+            FilterType.LivingSpace -> {
+                val castedMin = min?.toDoubleOrNull()
+                val castedMax = max?.toDoubleOrNull()
+
+                filters + SearchFilterForm.FilterLivingSpace(castedMin ?: 0.0, castedMax ?: 0.0)
+            }
+            FilterType.Price -> {
+                val castedMin = min?.let { BigDecimal(min) }
+                val castedMax = max?.let { BigDecimal(max) }
+
+                filters + SearchFilterForm.FilterPrice(castedMin ?: BigDecimal(0), castedMax ?: BigDecimal(0))
+            }
+            FilterType.NbRooms -> {
+                val castedMin = min?.toIntOrNull()
+                val castedMax = max?.toIntOrNull()
+
+                filters + SearchFilterForm.FilterNbRooms(castedMin ?: 0, castedMax ?: 0)
+            }
+            FilterType.NbBedrooms -> {
+                val castedMin = min?.toIntOrNull()
+                val castedMax = max?.toIntOrNull()
+
+                filters + SearchFilterForm.FilterNbBedrooms(castedMin ?: 0, castedMax ?: 0)
+            }
+        }
+    }
+
+//    private fun updateFilter(value: String?, isMax: Boolean) {
+//        when (filterType) {
+//            FilterType.LivingSpace -> {
+//                val casted = value?.toDoubleOrNull()
+//
+//                if (isMax) {
+//                    filters + SearchViewState.Bounded()
+//
+//                    toggleFilterUseCase.invoke(FilterQuery.LivingSpaceFilter(min = FilterQuery.SearchParam.NoOp,
+//                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
+//                } else {
+//                    toggleFilterUseCase.invoke(FilterQuery.LivingSpaceFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
+//                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+//                }
+//            }
+//            FilterType.Price -> {
+//                val casted = value?.toDoubleOrNull()
+//
+//                if (isMax) {
+//                    toggleFilterUseCase.invoke(FilterQuery.PriceFilter(min = FilterQuery.SearchParam.NoOp,
+//                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
+//                } else {
+//                    toggleFilterUseCase.invoke(FilterQuery.PriceFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
+//                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+//                }
+//            }
+//            FilterType.NbRooms -> {
+//                val casted = value?.toIntOrNull()
+//
+//                if (isMax) {
+//                    toggleFilterUseCase.invoke(FilterQuery.NbRoomsFilter(min = FilterQuery.SearchParam.NoOp,
+//                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
+//                } else {
+//                    toggleFilterUseCase.invoke(FilterQuery.NbRoomsFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
+//                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+//                }
+//            }
+//            FilterType.NbBedrooms -> {
+//                val casted = value?.toIntOrNull()
+//
+//                if (isMax) {
+//                    toggleFilterUseCase.invoke(FilterQuery.NbBedroomsFilter(min = FilterQuery.SearchParam.NoOp,
+//                        max = casted?.let { FilterQuery.SearchParam.Update(casted) } ?: FilterQuery.SearchParam.Delete))
+//                } else {
+//                    toggleFilterUseCase.invoke(FilterQuery.NbBedroomsFilter(min = casted?.let { FilterQuery.SearchParam.Update(casted) }
+//                        ?: FilterQuery.SearchParam.Delete, max = FilterQuery.SearchParam.NoOp))
+//                }
+//            }
+//        }
+//    }
+
     private fun updateFilterDate(
-        year: Int, month: Int, dayOfMonth: Int, filterType: FilterType, isDateFrom: Boolean
+        yearFrom: Int, monthFrom: Int, dayOfMonthFrom: Int, filterType: FilterType,
+        yearTo: Int, monthTo: Int, dayOfMonthTo: Int
     ) {
         when (filterType) {
             FilterType.EntryDate -> {
-                val entryDate = try {
-                    LocalDateTime.of(year, month, dayOfMonth, 0, 0)
+                filters + SearchFilterForm.FilterEntryDate(yearFrom, monthFrom, dayOfMonthFrom, yearTo, monthTo, dayOfMonthTo)
+
+                val entryDateFrom = try {
+                    LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null
                 }
 
-                if (isDateFrom) {
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.EntryDateFilter(
-                            from = if (entryDate != null) {
-                                FilterQuery.SearchParam.Update(entryDate)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }, to = FilterQuery.SearchParam.NoOp
-                        )
-                    )
-                } else {
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.EntryDateFilter(
-                            from = FilterQuery.SearchParam.NoOp, to = if (entryDate != null) {
-                                FilterQuery.SearchParam.Update(entryDate)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }
-                        )
-                    )
+                val entryDateTo = try {
+                    LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
                 }
+//                if (isDateFrom) {
+//                    toggleFilterUseCase.invoke(
+//                        FilterQuery.EntryDateFilter(
+//                            from = if (entryDate != null) {
+//                                FilterQuery.SearchParam.Update(entryDate)
+//                            } else {
+//                                FilterQuery.SearchParam.Delete
+//                            }, to = FilterQuery.SearchParam.NoOp
+//                        )
+//                    )
+//                } else {
+//                    toggleFilterUseCase.invoke(
+//                        FilterQuery.EntryDateFilter(
+//                            from = FilterQuery.SearchParam.NoOp, to = if (entryDate != null) {
+//                                FilterQuery.SearchParam.Update(entryDate)
+//                            } else {
+//                                FilterQuery.SearchParam.Delete
+//                            }
+//                        )
+//                    )
+//                }
             }
             FilterType.SaleDate -> {
-                val saleDate = try {
-                    LocalDateTime.of(year, month, dayOfMonth, 0, 0)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
+                filters + SearchFilterForm.FilterSaleDate(yearFrom, monthFrom, dayOfMonthFrom, yearTo, monthTo, dayOfMonthTo)
 
-                if (isDateFrom) {
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.SaleDateFilter(
-                            from = if (saleDate != null) {
-                                FilterQuery.SearchParam.Update(saleDate)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }, to = FilterQuery.SearchParam.NoOp
-                        )
-                    )
-                } else {
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.SaleDateFilter(
-                            from = FilterQuery.SearchParam.NoOp,
-                            to = if (saleDate != null) {
-                                FilterQuery.SearchParam.Update(saleDate)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }
-                        )
-                    )
-                }
+//                val saleDate = try {
+//                    LocalDateTime.of(year, month, dayOfMonth, 0, 0)
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                    null
+//                }
+//
+//                if (isDateFrom) {
+//                    toggleFilterUseCase.invoke(
+//                        FilterQuery.SaleDateFilter(
+//                            from = if (saleDate != null) {
+//                                FilterQuery.SearchParam.Update(saleDate)
+//                            } else {
+//                                FilterQuery.SearchParam.Delete
+//                            }, to = FilterQuery.SearchParam.NoOp
+//                        )
+//                    )
+//                } else {
+//                    toggleFilterUseCase.invoke(
+//                        FilterQuery.SaleDateFilter(
+//                            from = FilterQuery.SearchParam.NoOp, to = if (saleDate != null) {
+//                                FilterQuery.SearchParam.Update(saleDate)
+//                            } else {
+//                                FilterQuery.SearchParam.Delete
+//                            }
+//                        )
+//                    )
+//                }
             }
         }
     }
 
-    //endregion
+//endregion
 }

@@ -19,6 +19,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.time.Clock
 import java.time.LocalDateTime
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -45,7 +47,7 @@ class DataModule {
                         RealEstateEntity(
                             id = 1L,
                             type = "Penthouse",
-                            price = 29872000.0,
+                            price = BigDecimal(29872000.0),
                             livingSpace = 8072.900,
                             numberRooms = 8,
                             numberBedroom = 4,
@@ -56,7 +58,6 @@ class DataModule {
                             city = "New York",
                             streetName = "25th Street",
                             gridZone = "55 West",
-                            pointOfInterest = "",
                             status = "Available",
                             entryDate = LocalDateTime.now(),
                             saleDate = null,
@@ -75,7 +76,7 @@ class DataModule {
                         RealEstateEntity(
                             id = 2L,
                             type = "Apartment",
-                            price = 10495.0,
+                            price = BigDecimal(10495.0),
                             livingSpace = 1410.0,
                             numberRooms = 4,
                             numberBedroom = 2,
@@ -86,7 +87,6 @@ class DataModule {
                             city = "New York",
                             streetName = "920 Park Avenue",
                             gridZone = "920 Park",
-                            pointOfInterest = "",
                             status = "Available",
                             entryDate = LocalDateTime.now(),
                             saleDate = null,
@@ -142,6 +142,12 @@ class DataModule {
     @Singleton
     fun providePlacesApiService(): PlacesApiService {
         return PlacesApiHolder.getInstance()
+    }
+
+    @Provides
+    @Singleton
+    fun provideClock(): Clock {
+        return Clock.systemDefaultZone()
     }
 
 //    RealEstateEntity(

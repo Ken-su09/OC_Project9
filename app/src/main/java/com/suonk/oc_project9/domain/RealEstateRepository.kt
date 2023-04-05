@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface RealEstateRepository {
 
     fun getAllRealEstatesWithPhotos(): Flow<List<RealEstateEntityWithPhotos>>
-    fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos>
+    fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos?>
 
     suspend fun upsertRealEstate(estate: RealEstateEntity): Long
 

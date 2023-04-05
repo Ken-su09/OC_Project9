@@ -1,12 +1,13 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
 import com.suonk.oc_project9.utils.EquatableCallback
+import java.math.BigDecimal
 
 data class RealEstatesListViewState(
     val id: Long,
     val type: String,
     val price: String,
-    val priceValue: Double,
+    val priceValue: BigDecimal,
     val numberRooms: String,
     val numberRoomsValue: Int,
     val livingSpace: String,

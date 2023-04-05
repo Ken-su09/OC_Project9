@@ -1,6 +1,7 @@
 package com.suonk.oc_project9.ui.filter
 
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 sealed class Filter {
@@ -16,7 +17,7 @@ sealed class Filter {
         }
     }
 
-    data class PriceFilter(val min: Double?, val max: Double?) : Filter() {
+    data class PriceFilter(val min: BigDecimal?, val max: BigDecimal?) : Filter() {
         override fun isMatching(entity: RealEstateEntityWithPhotos): Boolean = when {
             min == null && max != null -> {
                 entity.realEstateEntity.price <= max

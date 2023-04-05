@@ -24,8 +24,9 @@ interface RealEstateDao {
 //    @Query("SELECT * FROM real_estate WHERE ")
 //    fun getAllRealEstatesWithPhotosWithInput(input: String): Flow<List<RealEstateEntityWithPhotos>>
 
-    @Query("SELECT * FROM real_estate WHERE id = :id")
-    fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos>
+    @Transaction
+    @Query("SELECT * FROM real_estate WHERE id = :id LIMIT 1")
+    fun getRealEstateById(id: Long): Flow<RealEstateEntityWithPhotos?>
 
     //endregion
 

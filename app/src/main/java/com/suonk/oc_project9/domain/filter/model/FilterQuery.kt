@@ -1,11 +1,12 @@
 package com.suonk.oc_project9.domain.filter.model
 
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 sealed class FilterQuery {
 
     data class LivingSpaceFilter(val min: SearchParam<Double>, val max: SearchParam<Double>) : FilterQuery()
-    data class PriceFilter(val min: SearchParam<Double>, val max: SearchParam<Double>) : FilterQuery()
+    data class PriceFilter(val min: SearchParam<BigDecimal>, val max: SearchParam<BigDecimal>) : FilterQuery()
     data class NbRoomsFilter(val min: SearchParam<Int>, val max: SearchParam<Int>) : FilterQuery()
     data class NbBedroomsFilter(val min: SearchParam<Int>, val max: SearchParam<Int>) : FilterQuery()
 
@@ -14,7 +15,6 @@ sealed class FilterQuery {
 
     sealed class SearchParam<out T> {
         data class Update<T>(val value: T) : SearchParam<T>()
-        object NoOp : SearchParam<Nothing>()
         object Delete : SearchParam<Nothing>()
     }
 }

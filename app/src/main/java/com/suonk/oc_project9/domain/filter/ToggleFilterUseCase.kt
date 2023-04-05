@@ -15,10 +15,7 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
 
         when (filterQuery) {
             is FilterQuery.LivingSpaceFilter -> {
-                Log.i("GetFilterFlow", "filterQuery : $filterQuery")
-
                 val previousFilter = filters.filterIsInstance<Filter.LivingSpaceFilter>().firstOrNull()
-                Log.i("GetFilterFlow", "previousFilter : $previousFilter")
 
                 if (previousFilter == null) {
                     val newFilter = Filter.LivingSpaceFilter(
@@ -27,27 +24,20 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     )
 
                     if (newFilter.min != null || newFilter.max != null) {
-                        searchRepository.addFilter(newFilter)
+                        searchRepository.updateFilter(newFilter)
                     }
                 } else {
                     val newMin = when (filterQuery.min) {
                         is FilterQuery.SearchParam.Update -> filterQuery.min.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.min
                         is FilterQuery.SearchParam.Delete -> null
                     }
                     val newMax = when (filterQuery.max) {
                         is FilterQuery.SearchParam.Update -> filterQuery.max.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.max
                         is FilterQuery.SearchParam.Delete -> null
                     }
 
-                    Log.i("GetFilterFlow", "newMin : $newMin")
-                    Log.i("GetFilterFlow", "newMax : $newMax")
-
-                    searchRepository.removeFilter(previousFilter)
-
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(
+                        searchRepository.updateFilter(
                             Filter.LivingSpaceFilter(
                                 min = newMin, max = newMax
                             )
@@ -65,24 +55,20 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     )
 
                     if (newFilter.min != null || newFilter.max != null) {
-                        searchRepository.addFilter(newFilter)
+                        searchRepository.updateFilter(newFilter)
                     }
                 } else {
                     val newMin = when (filterQuery.min) {
                         is FilterQuery.SearchParam.Update -> filterQuery.min.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.min
                         is FilterQuery.SearchParam.Delete -> null
                     }
                     val newMax = when (filterQuery.max) {
                         is FilterQuery.SearchParam.Update -> filterQuery.max.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.max
                         is FilterQuery.SearchParam.Delete -> null
                     }
 
-                    searchRepository.removeFilter(previousFilter)
-
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(
+                        searchRepository.updateFilter(
                             Filter.PriceFilter(
                                 min = newMin, max = newMax
                             )
@@ -100,24 +86,20 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     )
 
                     if (newFilter.min != null || newFilter.max != null) {
-                        searchRepository.addFilter(newFilter)
+                        searchRepository.updateFilter(newFilter)
                     }
                 } else {
                     val newMin = when (filterQuery.min) {
                         is FilterQuery.SearchParam.Update -> filterQuery.min.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.min
                         is FilterQuery.SearchParam.Delete -> null
                     }
                     val newMax = when (filterQuery.max) {
                         is FilterQuery.SearchParam.Update -> filterQuery.max.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.max
                         is FilterQuery.SearchParam.Delete -> null
                     }
 
-                    searchRepository.removeFilter(previousFilter)
-
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(
+                        searchRepository.updateFilter(
                             Filter.NbRoomsFilter(
                                 min = newMin, max = newMax
                             )
@@ -135,24 +117,20 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     )
 
                     if (newFilter.min != null || newFilter.max != null) {
-                        searchRepository.addFilter(newFilter)
+                        searchRepository.updateFilter(newFilter)
                     }
                 } else {
                     val newMin = when (filterQuery.min) {
                         is FilterQuery.SearchParam.Update -> filterQuery.min.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.min
                         is FilterQuery.SearchParam.Delete -> null
                     }
                     val newMax = when (filterQuery.max) {
                         is FilterQuery.SearchParam.Update -> filterQuery.max.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.max
                         is FilterQuery.SearchParam.Delete -> null
                     }
 
-                    searchRepository.removeFilter(previousFilter)
-
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(
+                        searchRepository.updateFilter(
                             Filter.NbBedroomsFilter(
                                 min = newMin, max = newMax
                             )
@@ -170,24 +148,21 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     )
 
                     if (newFilter.from != null || newFilter.to != null) {
-                        searchRepository.addFilter(newFilter)
+                        searchRepository.updateFilter(newFilter)
                     }
                 } else {
                     val newMin = when (filterQuery.from) {
                         is FilterQuery.SearchParam.Update -> filterQuery.from.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.from
                         is FilterQuery.SearchParam.Delete -> null
                     }
                     val newMax = when (filterQuery.to) {
                         is FilterQuery.SearchParam.Update -> filterQuery.to.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.to
                         is FilterQuery.SearchParam.Delete -> null
                     }
 
-                    searchRepository.removeFilter(previousFilter)
 
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(Filter.EntryDateFilter(from = newMin, to = newMax))
+                        searchRepository.updateFilter(Filter.EntryDateFilter(from = newMin, to = newMax))
                     }
                 }
             }
@@ -201,24 +176,20 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     )
 
                     if (newFilter.from != null || newFilter.to != null) {
-                        searchRepository.addFilter(newFilter)
+                        searchRepository.updateFilter(newFilter)
                     }
                 } else {
                     val newMin = when (filterQuery.from) {
                         is FilterQuery.SearchParam.Update -> filterQuery.from.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.from
                         is FilterQuery.SearchParam.Delete -> null
                     }
                     val newMax = when (filterQuery.to) {
                         is FilterQuery.SearchParam.Update -> filterQuery.to.value
-                        is FilterQuery.SearchParam.NoOp -> previousFilter.to
                         is FilterQuery.SearchParam.Delete -> null
                     }
 
-                    searchRepository.removeFilter(previousFilter)
-
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(Filter.SaleDateFilter(from = newMin, to = newMax))
+                        searchRepository.updateFilter(Filter.SaleDateFilter(from = newMin, to = newMax))
                     }
                 }
             }

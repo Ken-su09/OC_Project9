@@ -23,7 +23,8 @@ class SearchBottomSheetDialogFragment : BottomSheetDialogFragment(R.layout.filte
 
     private fun setupButtons() {
         binding.filterValidation.setOnClickListener {
-
+            viewModel.onValidateClicked()
+            dismiss()
         }
         binding.resetFilter.setOnClickListener {
             viewModel.onResetFiltersClicked()
@@ -31,7 +32,7 @@ class SearchBottomSheetDialogFragment : BottomSheetDialogFragment(R.layout.filte
     }
 
     private fun setupEditTextsContentWithViewModel() {
-        val listAdapter = SearchListAdapter(requireContext())
+        val listAdapter = SearchListAdapter()
         viewModel.viewStateLiveData.observe(this) { list ->
             listAdapter.submitList(list)
             binding.list.adapter = listAdapter

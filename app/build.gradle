@@ -106,35 +106,29 @@ dependencies {
 
     // Test
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:3.11.1'
-    testImplementation 'org.mockito:mockito-inline:2.13.0'
     testImplementation 'org.hamcrest:hamcrest-library:2.2'
-    testImplementation "androidx.arch.core:core-testing:2.1.0"
-    testImplementation "android.arch.core:core-testing:1.1.1"
+
+    testImplementation "androidx.arch.core:core-testing:2.2.0"
+    testImplementation "androidx.arch.core:core-runtime:2.2.0"
+    testImplementation "androidx.arch.core:core-common:2.2.0"
+
     testImplementation 'com.google.dagger:hilt-android-testing:2.38.1'
     testImplementation 'org.robolectric:robolectric:4.6'
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.10.0'
     testAnnotationProcessor 'com.google.dagger:hilt-android-compiler:2.38.1'
     testImplementation 'androidx.test:rules:1.5.0'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
 
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
-    testImplementation("org.junit.vintage:junit-vintage-engine:5.5.1")
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.8.2")
 
     testImplementation("io.mockk:mockk:1.13.3")
     testImplementation "io.mockk:mockk-android:1.13.3"
     testImplementation "io.mockk:mockk-agent:1.13.3"
     testImplementation 'com.willowtreeapps.assertk:assertk-jvm:0.25'
 
-    // Unit tests
+    androidTestImplementation 'androidx.test:rules:1.5.0'
 
-//    testImplementation(Libs.ARCH_CORE_TESTING) {
-//        exclude("org.mockito", "mockito-core")
-//    }
-//    testImplementation(Libs.ASSERTK)
-//    testImplementation(Libs.COROUTINES_TEST)
-//    testImplementation(Libs.JUNIT)
-//    testImplementation(Libs.MOCKK)
+    // Unit tests
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'

@@ -9,5 +9,5 @@ import javax.inject.Singleton
 @Singleton
 class GetRealEstateFlowByIdUseCase @Inject constructor(private val realEstateRepository: RealEstateRepository) {
 
-    fun invoke(id: Long): Flow<RealEstateEntityWithPhotos> = realEstateRepository.getRealEstateById(id)
+    fun invoke(id: Long): Flow<RealEstateEntityWithPhotos?> = realEstateRepository.getRealEstateById(id)
 }

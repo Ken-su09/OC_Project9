@@ -3,20 +3,28 @@ package com.suonk.oc_project9.ui.real_estates.details
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
-import com.suonk.oc_project9.domain.real_estate.*
+import com.suonk.oc_project9.domain.real_estate.GetPositionFromFullAddressUseCase
+import com.suonk.oc_project9.domain.real_estate.GetRealEstateFlowByIdUseCase
+import com.suonk.oc_project9.domain.real_estate.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
-import com.suonk.oc_project9.utils.*
+import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
+import com.suonk.oc_project9.utils.EquatableCallback
+import com.suonk.oc_project9.utils.NavArgProducer
+import com.suonk.oc_project9.utils.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.math.BigDecimal
+import java.text.DecimalFormat
+import java.time.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +35,8 @@ class RealEstateDetailsViewModel @Inject constructor(
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     @ApplicationContext private val context: Context,
-    private val navArgProducer: NavArgProducer
+    private val navArgProducer: NavArgProducer,
+    private val clock: Clock
 ) : ViewModel() {
 
     val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
@@ -48,12 +57,14 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     val realEstateDetailsViewStateLiveData: LiveData<RealEstateDetailsViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(
-            realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
+            realEstateDetailsViewStateMutableSharedFlow,
+            photosMutableStateFlow,
+            isSoldMutableStateFlow
         ) { detailsViewState, aggregatedPhotos, isSold ->
 
-            Log.i("PointsOfInterest", "pointsOfInterest :  ${detailsViewState.pointsOfInterest}")
             emit(
                 RealEstateDetailsViewState(
+                    id = detailsViewState.id,
                     type = detailsViewState.type,
                     typePosition = detailsViewState.typePosition,
                     price = detailsViewState.price,
@@ -92,13 +103,13 @@ class RealEstateDetailsViewModel @Inject constructor(
 
             if (realEstateEntityWithPhotos == null) {
                 // Create mode
-                realEstateDetailsViewStateMutableSharedFlow.emit(
+                realEstateDetailsViewStateMutableSharedFlow.tryEmit(
                     RealEstateDetailsViewState(
                         id = 0,
-                        type = "",
+                        type = spinnerPositionToType(0),
                         typePosition = 0,
-                        price = "0",
-                        livingSpace = "0",
+                        price = "0.0",
+                        livingSpace = "0.0",
                         numberRooms = "0",
                         numberBedroom = "0",
                         numberBathroom = "0",
@@ -112,7 +123,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         latitude = 0.0,
                         longitude = 0.0,
                         noPhoto = true,
-                        entryDate = System.currentTimeMillis(),
+                        entryDate = 0L,
                         saleDate = null,
                         isSold = false,
                         pointsOfInterest = emptyList()
@@ -125,13 +136,16 @@ class RealEstateDetailsViewModel @Inject constructor(
                     long = realEstateEntityWithPhotos.realEstateEntity.longitude
                 )
 
+//                val price = NumberFormat.getInstance(Locale.getDefault()).format(realEstateEntityWithPhotos.realEstateEntity.price)
+                val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
+
                 // Update mode
-                realEstateDetailsViewStateMutableSharedFlow.emit(
+                realEstateDetailsViewStateMutableSharedFlow.tryEmit(
                     RealEstateDetailsViewState(
                         id = realEstateEntityWithPhotos.realEstateEntity.id,
                         type = realEstateEntityWithPhotos.realEstateEntity.type,
                         typePosition = realEstateTypeToSpinnerPosition(realEstateEntityWithPhotos.realEstateEntity.type),
-                        price = realEstateEntityWithPhotos.realEstateEntity.price.toString(),
+                        price = price,
                         livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace.toString(),
                         numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms.toString(),
                         numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom.toString(),
@@ -179,28 +193,6 @@ class RealEstateDetailsViewModel @Inject constructor(
         gridZone: String
     ) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val photos = arrayListOf<AggregatedPhoto>()
-            photos.addAll(photosMutableStateFlow.replayCache.first().distinct())
-
-            val entryDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
-
-            val saleDate = if (isSoldMutableStateFlow.value) {
-                realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: System.currentTimeMillis()
-            } else {
-                null
-            }
-
-            val position = getPositionFromFullAddressUseCase.invoke(
-                context.getString(
-                    R.string.full_address,
-                    gridZone,
-                    streetName,
-                    city,
-                    state,
-                    postalCode,
-                ), context
-            )
-
             val isFieldEmpty =
                 isEmptyOrBlank(price) || isEmptyOrBlank(livingSpace) || isEmptyOrBlank(numberRooms) || isEmptyOrBlank(numberBedroom) || isEmptyOrBlank(
                     numberBathroom
@@ -213,11 +205,37 @@ class RealEstateDetailsViewModel @Inject constructor(
                     toastMessageSingleLiveEvent.value = context.getString(R.string.field_empty_toast_msg)
                 }
             } else {
+                val photos = photosMutableStateFlow.replayCache.first().distinct()
+
+                val entryDate = if (realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate == 0L) {
+                    ZonedDateTime.now(clock).toInstant().toEpochMilli()
+                } else {
+                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
+                }
+
+                val saleDate = if (isSoldMutableStateFlow.value) {
+                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate
+                        ?: ZonedDateTime.now(clock).toInstant().toEpochMilli()
+                } else {
+                    null
+                }
+
+                val position = getPositionFromFullAddressUseCase.invoke(
+                    context.getString(
+                        R.string.full_address,
+                        gridZone,
+                        streetName,
+                        city,
+                        state,
+                        postalCode,
+                    ), context
+                )
+
                 upsertNewRealEstateUseCase.invoke(
                     realEstate = RealEstateEntity(
                         id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
                         type = spinnerPositionToType(type),
-                        price = price.toDouble(),
+                        price = BigDecimal(price.toDouble()),
                         livingSpace = livingSpace.toDouble(),
                         numberRooms = numberRooms.toInt(),
                         numberBedroom = numberBedroom.toInt(),
@@ -228,14 +246,14 @@ class RealEstateDetailsViewModel @Inject constructor(
                         city = city,
                         streetName = streetName,
                         gridZone = gridZone,
-                        pointOfInterest = "",
-                        status = "AVAILABLE",
+                        status = if (saleDate == null) context.getString(R.string.real_estate_status_available) else context.getString(R.string.real_estate_status_not_available),
                         entryDate = fromLongToLocalDate(entryDate),
                         saleDate = fromLongToLocalDateWithNullable(saleDate),
                         latitude = position.lat,
                         longitude = position.long,
-                        agentInChargeId = 0L
-                    ), photos = photos
+                        agentInChargeId = 1L
+                    ),
+                    photos = photos,
                 )
 
                 withContext(coroutineDispatcherProvider.main) {

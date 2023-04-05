@@ -3,6 +3,7 @@ package com.suonk.oc_project9.domain.real_estate
 import com.suonk.oc_project9.domain.PhotoRepository
 import com.suonk.oc_project9.domain.RealEstateRepository
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
+import com.suonk.oc_project9.utils.Defaults.getDefaultAggregatedPhotos
 import com.suonk.oc_project9.utils.Defaults.getDefaultPhotoViewStates
 import com.suonk.oc_project9.utils.Defaults.getDefaultRealEstateEntity
 import com.suonk.oc_project9.utils.TestCoroutineRule
@@ -33,14 +34,14 @@ class InsertNewRealEstateUseCaseTest {
     @Test
     fun `test invoke insert a new real estate use case`() = testCoroutineRule.runTest {
         // WHEN
-        insertNewRealEstateUseCase.invoke(getDefaultRealEstateEntity(), getDefaultPhotoViewStates())
+        insertNewRealEstateUseCase.invoke(getDefaultRealEstateEntity(), getDefaultAggregatedPhotos())
 
         // THEN
         coVerify(exactly = 1) { realEstateRepository.upsertRealEstate(getDefaultRealEstateEntity()) }
         coVerify(exactly = 3) {
             getDefaultPhotoViewStates().map {
                 photoRepository.insertPhoto(
-                    photo = PhotoEntity(0L, 1L, it.photo, it.isUri)
+                    photo = PhotoEntity(0L, 1L, it.uri)
                 )
             }
         }
