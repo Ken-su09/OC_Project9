@@ -2,7 +2,7 @@
     <string name="app_name">OC_Project9</string>
 
     <string name="number_rooms">%1$d Pièces • %2$d Chambres • %3$d Salles de bain</string>
-    <string name="square_foot">%1$f m²</string>
+    <string name="square_meter">%1$f m²</string>
     <string name="real_estate_price">%1$s$</string>
     <string name="price_value">€</string>
 
@@ -67,6 +67,7 @@
     <string name="toolbar_change_map">Changer carte</string>
     <string name="toolbar_is_sold">Est vendu</string>
 
+    <string name="fields_are_not_digits">Les champs doivent être des nombres</string>
     <string name="field_empty_toast_msg">Les champs ne peuvent être vides</string>
     <string name="two_fields_filled_toast_msg">Les deux champs doivent être remplis</string>
     <string name="gallery">Galerie</string>
@@ -89,8 +90,8 @@
     <string name="max_value">Max</string>
     <string name="min_value">Min</string>
 
-    <string name="validate_filtering">Voir les %1$d bien(s)</string>
-    <string name="reset_filter">Réinitialiser le filtre</string>
+    <string name="validate_filtering">Valider les filtres</string>
+    <string name="reset_filter">Réinitialiser les filtres</string>
     <string name="start_time_from">From</string>
     <string name="start_time_to">To</string>
     <string name="entry_date">Entry Date</string>

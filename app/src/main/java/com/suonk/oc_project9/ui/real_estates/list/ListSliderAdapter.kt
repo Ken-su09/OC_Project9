@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -25,7 +26,7 @@ class ListSliderAdapter : ListAdapter<ListPhotoViewState, ListSliderAdapter.Slid
     class SliderViewHolder(private val binding: SliderItemContainerLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun onBind(listPhotoViewState: ListPhotoViewState) {
-            binding.realEstateImage.setImageURI(listPhotoViewState.uri)
+            binding.realEstateImage.setImageURI(Uri.parse(listPhotoViewState.photo))
             binding.deletePhoto.isVisible = false
         }
     }

@@ -23,8 +23,16 @@ class SearchBottomSheetDialogFragment : BottomSheetDialogFragment(R.layout.filte
 
     private fun setupButtons() {
         binding.filterValidation.setOnClickListener {
-            viewModel.onValidateClicked()
-            dismiss()
+            viewModel.onValidateClicked(
+                binding.livingSpaceMin.text?.toString(),
+                binding.livingSpaceMax.text?.toString(),
+                binding.priceMin.text?.toString(),
+                binding.priceMax.text?.toString(),
+                binding.nbRoomsMin.text?.toString(),
+                binding.nbRoomsMax.text?.toString(),
+                binding.nbBedroomsMin.text?.toString(),
+                binding.nbBedroomsMax.text?.toString()
+            )
         }
         binding.resetFilter.setOnClickListener {
             viewModel.onResetFiltersClicked()
@@ -32,11 +40,11 @@ class SearchBottomSheetDialogFragment : BottomSheetDialogFragment(R.layout.filte
     }
 
     private fun setupEditTextsContentWithViewModel() {
-        val listAdapter = SearchListAdapter()
-        viewModel.viewStateLiveData.observe(this) { list ->
-            listAdapter.submitList(list)
-            binding.list.adapter = listAdapter
-        }
+//        val listAdapter = SearchListAdapter()
+//        viewModel.viewStateLiveData.observe(this) { list ->
+//            listAdapter.submitList(list)
+//            binding.list.adapter = listAdapter
+//        }
     }
 
     //region ============================================= Date =============================================

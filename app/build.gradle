@@ -3,10 +3,10 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'androidx.navigation.safeargs'
-    id 'jacoco'
     id 'dagger.hilt.android.plugin'
     id 'com.google.gms.google-services'
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+    id 'org.jetbrains.kotlinx.kover'
 }
 
 android {
@@ -140,3 +140,4 @@ dependencies {
 
     debugImplementation "androidx.fragment:fragment-testing:1.5.4"
 }
+

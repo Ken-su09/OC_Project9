@@ -3,6 +3,7 @@ package com.suonk.oc_project9.ui.filter
 import android.app.DatePickerDialog
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -41,16 +42,27 @@ class SearchListAdapter : ListAdapter<SearchViewState, RecyclerView.ViewHolder>(
     override fun getItemViewType(position: Int): Int = getItem(position).type.ordinal
 
     class BoundedViewHolder(private val binding: ItemSearchListBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun onBind(searchViewState: SearchViewState) {
+        fun onBind(searchViewState: SearchViewState.Bounded) {
             binding.title.text = searchViewState.title
             binding.min.setText(searchViewState.min)
             binding.max.setText(searchViewState.max)
+
+            binding.min.doAfterTextChanged {
+                searchViewState.onValuesSelected(
+                    binding.min.text?.toString(), binding.max.text?.toString()
+                )
+            }
+            binding.max.doAfterTextChanged {
+                searchViewState.onValuesSelected(
+                    binding.min.text?.toString(), binding.max.text?.toString()
+                )
+            }
         }
     }
 
     class DateViewHolder(private val binding: ItemFilterDateListBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun onBind(searchViewState: SearchViewState) {
+        fun onBind(searchViewState: SearchViewState.Date) {
             val current = LocalDate.now()
 
             binding.title.text = searchViewState.title
@@ -68,7 +80,7 @@ class SearchListAdapter : ListAdapter<SearchViewState, RecyclerView.ViewHolder>(
             binding.from.setOnClickListener { view ->
                 val datePickerDialog = DatePickerDialog(
                     view.context, { _, year, month, dayOfMonth ->
-                        (searchViewState as SearchViewState.Date).onValuesSelected(year, month, dayOfMonth, yearTo, monthTo, dayOfMonthTo)
+                        searchViewState.onValuesSelected(year, month, dayOfMonth, yearTo, monthTo, dayOfMonthTo)
 
                         if (month + 1 < 10) {
                             binding.from.setText(
@@ -89,7 +101,9 @@ class SearchListAdapter : ListAdapter<SearchViewState, RecyclerView.ViewHolder>(
             binding.to.setOnClickListener { view ->
                 val datePickerDialog = DatePickerDialog(
                     view.context, { p0, year, month, dayOfMonth ->
-                        (searchViewState as SearchViewState.Date).onValuesSelected(yearFrom, monthFrom, dayOfMonthFrom, year, month, dayOfMonth)
+                        (searchViewState as SearchViewState.Date).onValuesSelected(
+                            yearFrom, monthFrom, dayOfMonthFrom, year, month, dayOfMonth
+                        )
                         if (month + 1 < 10) {
                             binding.to.setText(
                                 view.context.getString(

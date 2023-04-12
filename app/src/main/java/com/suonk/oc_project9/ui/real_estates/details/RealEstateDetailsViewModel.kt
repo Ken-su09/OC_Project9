@@ -2,6 +2,7 @@ package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -56,9 +57,7 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     val realEstateDetailsViewStateLiveData: LiveData<RealEstateDetailsViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(
-            realEstateDetailsViewStateMutableSharedFlow,
-            photosMutableStateFlow,
-            isSoldMutableStateFlow
+            realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
         ) { detailsViewState, aggregatedPhotos, isSold ->
 
             emit(
@@ -131,8 +130,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                 isSoldMutableStateFlow.emit(false)
             } else {
                 val pointsOfInterest = getNearbyPointsOfInterestUseCase.invoke(
-                    lat = realEstateEntityWithPhotos.realEstateEntity.latitude,
-                    long = realEstateEntityWithPhotos.realEstateEntity.longitude
+                    lat = realEstateEntityWithPhotos.realEstateEntity.latitude, long = realEstateEntityWithPhotos.realEstateEntity.longitude
                 )
 
 //                val price = NumberFormat.getInstance(Locale.getDefault()).format(realEstateEntityWithPhotos.realEstateEntity.price)
@@ -199,19 +197,26 @@ class RealEstateDetailsViewModel @Inject constructor(
                     gridZone
                 )
 
+            val isFieldsAreNotDigits =
+                price.toDoubleOrNull() == null && livingSpace.toDoubleOrNull() == null && numberRooms.toDoubleOrNull() == null && numberBedroom.toDoubleOrNull() == null
+
             if (isFieldEmpty) {
                 withContext(coroutineDispatcherProvider.main) {
                     toastMessageSingleLiveEvent.value = context.getString(R.string.field_empty_toast_msg)
                 }
+            } else if (isFieldsAreNotDigits) {
+                withContext(coroutineDispatcherProvider.main) {
+                    toastMessageSingleLiveEvent.value = context.getString(R.string.fields_are_not_digits)
+                }
             } else {
                 val photos = photosMutableStateFlow.replayCache.first().distinct()
 
-                val entryDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate
-                    ?: ZonedDateTime.now(clock).toInstant()
+                val entryDate =
+                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate ?: ZonedDateTime.now(clock).toInstant()
 
                 val saleDate = if (isSoldMutableStateFlow.value) {
-                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate
-                        ?: ZonedDateTime.now(clock).toInstant().toEpochMilli()
+                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: ZonedDateTime.now(clock).toInstant()
+                        .toEpochMilli()
                 } else {
                     null
                 }

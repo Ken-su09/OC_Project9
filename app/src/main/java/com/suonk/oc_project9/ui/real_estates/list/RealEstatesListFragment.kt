@@ -86,7 +86,7 @@ class RealEstatesListFragment : Fragment(R.layout.fragment_real_estates_list) {
                     val modalBottomSheet = SearchBottomSheetDialogFragment()
                     modalBottomSheet.show(requireFragmentManager(), "")
                 } else {
-                    viewModel.setMutableState(menuItem.itemId)
+                    viewModel.onSortedOrFilterClicked(menuItem.itemId)
                     menuItem.isChecked = true
                 }
                 return true

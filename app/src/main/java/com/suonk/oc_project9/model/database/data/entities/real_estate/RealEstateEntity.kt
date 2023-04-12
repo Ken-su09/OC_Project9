@@ -21,7 +21,6 @@ data class RealEstateEntity(
     @ColumnInfo(name = "city") val city: String,
     @ColumnInfo(name = "street_name") val streetName: String,
     @ColumnInfo(name = "grid_zone") val gridZone: String,
-//    @ColumnInfo(name = "point_of_interest") val pointOfInterest: String,
     @ColumnInfo(name = "status") val status: String,
     @ColumnInfo(name = "entry_date") val entryDate: LocalDateTime,
     @ColumnInfo(name = "sale_date") val saleDate: LocalDateTime?,

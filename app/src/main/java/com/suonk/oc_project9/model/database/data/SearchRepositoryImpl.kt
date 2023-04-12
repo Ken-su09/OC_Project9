@@ -12,31 +12,6 @@ import javax.inject.Singleton
 class SearchRepositoryImpl @Inject constructor() : SearchRepository {
 
     private val currentSearchParameterFlow = MutableStateFlow<List<Filter>>(emptyList())
-//    private val currentSearchParameterFlow = MutableStateFlow(
-//        listOf(
-//            Filter.LivingSpaceFilter(null, null),
-//            Filter.PriceFilter(null, null),
-//            Filter.NbRoomsFilter(null, null),
-//            Filter.NbBedroomsFilter(null, null),
-//            Filter.EntryDateFilter(null, null),
-//            Filter.SaleDateFilter(null, null),
-//        )
-//    )
-
-//    private val currentSearchParameterFlow = MutableStateFlow(
-//        mutableMapOf(
-//            FilterType.LivingSpace to Filter.LivingSpaceFilter(null, null),
-//            FilterType.Price to Filter.PriceFilter(null, null),
-//            FilterType.NbRooms to Filter.NbRoomsFilter(null, null),
-//            FilterType.NbBedrooms to Filter.NbBedroomsFilter(null, null),
-//            FilterType.EntryDate to Filter.EntryDateFilter(null, null),
-//            FilterType.SaleDate to Filter.SaleDateFilter(null, null),
-//        )
-//    )
-
-//    override fun getCurrentSearchParametersFlow(): StateFlow<Map<FilterType, Filter>> {
-//        return currentSearchParameterFlow
-//    }
 
     override fun getCurrentSearchParametersFlow(): StateFlow<List<Filter>> {
         return currentSearchParameterFlow
@@ -107,13 +82,5 @@ class SearchRepositoryImpl @Inject constructor() : SearchRepository {
 
     override fun reset() {
         currentSearchParameterFlow.value = emptyList()
-//        currentSearchParameterFlow.value = mutableMapOf(
-//            FilterType.LivingSpace to Filter.LivingSpaceFilter(null, null),
-//            FilterType.Price to Filter.PriceFilter(null, null),
-//            FilterType.NbRooms to Filter.NbRoomsFilter(null, null),
-//            FilterType.NbBedrooms to Filter.NbBedroomsFilter(null, null),
-//            FilterType.EntryDate to Filter.EntryDateFilter(null, null),
-//            FilterType.SaleDate to Filter.SaleDateFilter(null, null),
-//        )
     }
 }

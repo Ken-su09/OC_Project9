@@ -1,6 +1,7 @@
 package com.suonk.oc_project9.ui.filter
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -8,12 +9,15 @@ import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.filter.ToggleFilterUseCase
 import com.suonk.oc_project9.domain.filter.model.FilterQuery
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateForm
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
+import com.suonk.oc_project9.utils.SingleLiveEvent
 import com.suonk.oc_project9.utils.filter.FilterType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -22,11 +26,15 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val toggleFilterUseCase: ToggleFilterUseCase,
     private val searchRepository: SearchRepository,
-    coroutineDispatcherProvider: CoroutineDispatcherProvider,
+    private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val filters = listOf<SearchFilterForm>()
+    private val filtersFlow = MutableStateFlow(listOf<SearchFilterForm>())
+    private val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
+
+    private var previousMin = 0.0
+    private var previousMax = 0.0
 
     val viewStateLiveData: LiveData<List<SearchViewState>> = liveData(coroutineDispatcherProvider.io) {
         searchRepository.getCurrentSearchParametersFlow().collect { filters: List<Filter> ->
@@ -42,8 +50,7 @@ class SearchViewModel @Inject constructor(
                     Filter.SaleDateFilter(null, null),
                 ).map { filter ->
                     when (filter) {
-                        is Filter.LivingSpaceFilter -> SearchViewState.Bounded(
-                            min = filter.min?.toString() ?: "",
+                        is Filter.LivingSpaceFilter -> SearchViewState.Bounded(min = filter.min?.toString() ?: "",
                             max = filter.max?.toString() ?: "",
                             title = context.getString(R.string.living_space_title),
                             onValuesSelected = { minValue, maxValue ->
@@ -67,8 +74,7 @@ class SearchViewModel @Inject constructor(
                             onValuesSelected = { minValue, maxValue ->
                                 updateFilter(minValue, maxValue, FilterType.NbBedrooms)
                             })
-                        is Filter.EntryDateFilter -> SearchViewState.Date(
-                            min = filter.from?.toString() ?: "",
+                        is Filter.EntryDateFilter -> SearchViewState.Date(min = filter.from?.toString() ?: "",
                             max = filter.to?.toString() ?: "",
                             title = context.getString(R.string.entry_date),
                             onValuesSelected = { yearFrom, monthFrom, dayFrom, yearTo, monthTo, dayTo ->
@@ -212,155 +218,179 @@ class SearchViewModel @Inject constructor(
         searchRepository.reset()
     }
 
-    fun onValidateClicked() {
-        filters.forEach { filter ->
-            when (filter.filterType) {
-                FilterType.LivingSpace -> {
-                    val castedMin = (filter as SearchFilterForm.FilterLivingSpace).minValue
-                    val castedMax = filter.maxValue
+    fun onValidateClicked(
+        livingSpaceMin: String?,
+        livingSpaceMax: String?,
+        priceMin: String?,
+        priceMax: String?,
+        nbRoomsMin: String?,
+        nbRoomsMax: String?,
+        nbBedroomsMin: String?,
+        nbBedroomsMax: String?,
+    ) {
+        val castedLivingSpaceMin = livingSpaceMin?.toDoubleOrNull() ?: 0.0
+        val castedLivingSpaceMax = livingSpaceMax?.toDoubleOrNull() ?: 0.0
 
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.LivingSpaceFilter(
-                            min = FilterQuery.SearchParam.Update(castedMin),
-                            max = FilterQuery.SearchParam.Update(castedMax)
-                        )
-                    )
-                }
-                FilterType.Price -> {
-                    val castedMin = (filter as SearchFilterForm.FilterPrice).minValue
-                    val castedMax = filter.maxValue
+        toggleFilterUseCase.invoke(
+            FilterQuery.LivingSpaceFilter(
+                min = FilterQuery.SearchParam.Update(castedLivingSpaceMin), max = FilterQuery.SearchParam.Update(castedLivingSpaceMax)
+            )
+        )
 
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.PriceFilter(
-                            min = FilterQuery.SearchParam.Update(castedMin),
-                            max = FilterQuery.SearchParam.Update(castedMax)
-                        )
-                    )
-                }
-                FilterType.NbRooms -> {
-                    val castedMin = (filter as SearchFilterForm.FilterNbRooms).minValue
-                    val castedMax = filter.maxValue
+        val castedPriceMin = priceMin?.let { BigDecimal(priceMin) } ?: BigDecimal(0.0)
+        val castedPriceMax = priceMax?.let { BigDecimal(priceMax) } ?: BigDecimal(0.0)
 
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.NbRoomsFilter(
-                            min = FilterQuery.SearchParam.Update(castedMin),
-                            max = FilterQuery.SearchParam.Update(castedMax)
-                        )
-                    )
-                }
-                FilterType.NbBedrooms -> {
-                    val castedMin = (filter as SearchFilterForm.FilterNbBedrooms).minValue
-                    val castedMax = filter.maxValue
 
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.NbBedroomsFilter(
-                            min = FilterQuery.SearchParam.Update(castedMin),
-                            max = FilterQuery.SearchParam.Update(castedMax)
-                        )
-                    )
-                }
+        toggleFilterUseCase.invoke(
+            FilterQuery.PriceFilter(
+                min = FilterQuery.SearchParam.Update(castedPriceMin), max = FilterQuery.SearchParam.Update(castedPriceMax)
+            )
+        )
 
-                FilterType.EntryDate -> {
-                    val yearFrom = (filter as SearchFilterForm.FilterEntryDate).yearFrom
-                    val monthFrom = filter.monthFrom
-                    val dayOfMonthFrom = filter.dayFrom
-                    val yearTo = filter.yearTo
-                    val monthTo = filter.monthTo
-                    val dayOfMonthTo = filter.dayTo
+        val castedNbRoomsMin = nbRoomsMin?.toIntOrNull() ?: 0
+        val castedNbRoomsMax = nbRoomsMax?.toIntOrNull() ?: 0
 
-                    val entryDateFrom = try {
-                        LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
-                    val entryDateTo = try {
-                        LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
+        toggleFilterUseCase.invoke(
+            FilterQuery.NbRoomsFilter(
+                min = FilterQuery.SearchParam.Update(castedNbRoomsMin), max = FilterQuery.SearchParam.Update(castedNbRoomsMax)
+            )
+        )
 
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.EntryDateFilter(
-                            from = if (entryDateFrom != null) {
-                                FilterQuery.SearchParam.Update(entryDateFrom)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }, to = if (entryDateTo != null) {
-                                FilterQuery.SearchParam.Update(entryDateTo)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }
-                        )
-                    )
-                }
-                FilterType.SaleDate -> {
-                    val yearFrom = (filter as SearchFilterForm.FilterEntryDate).yearFrom
-                    val monthFrom = filter.monthFrom
-                    val dayOfMonthFrom = filter.dayFrom
-                    val yearTo = filter.yearTo
-                    val monthTo = filter.monthTo
-                    val dayOfMonthTo = filter.dayTo
+        val castedNbBedroomsMin = nbBedroomsMin?.toIntOrNull() ?: 0
+        val castedNbBedroomsMax = nbBedroomsMax?.toIntOrNull() ?: 0
 
-                    val saleDateFrom = try {
-                        LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
-                    val saleDateTo = try {
-                        LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
+        toggleFilterUseCase.invoke(
+            FilterQuery.NbBedroomsFilter(
+                min = FilterQuery.SearchParam.Update(castedNbBedroomsMin), max = FilterQuery.SearchParam.Update(castedNbBedroomsMax)
+            )
+        )
 
-                    toggleFilterUseCase.invoke(
-                        FilterQuery.EntryDateFilter(
-                            from = if (saleDateFrom != null) {
-                                FilterQuery.SearchParam.Update(saleDateFrom)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }, to = if (saleDateTo != null) {
-                                FilterQuery.SearchParam.Update(saleDateTo)
-                            } else {
-                                FilterQuery.SearchParam.Delete
-                            }
-                        )
-                    )
-                }
-            }
-        }
+//        CoroutineScope(coroutineDispatcherProvider.io).launch {
+//            filtersFlow.collect {
+//                it.forEach { filter ->
+//                    Log.i("FilterList", "filter : $filter")
+//
+//                    when (filter.filterType) {
+//                        FilterType.LivingSpace -> {
+//                            val castedMin = (filter as SearchFilterForm.FilterLivingSpace).minValue
+//                            val castedMax = filter.maxValue
+//
+//                            toggleFilterUseCase.invoke(
+//                                FilterQuery.LivingSpaceFilter(
+//                                    min = FilterQuery.SearchParam.Update(castedMin), max = FilterQuery.SearchParam.Update(castedMax)
+//                                )
+//                            )
+//                        }
+//                        FilterType.Price -> {
+//                            val castedMin = (filter as SearchFilterForm.FilterPrice).minValue
+//                            val castedMax = filter.maxValue
+//
+//                            toggleFilterUseCase.invoke(
+//                                FilterQuery.PriceFilter(
+//                                    min = FilterQuery.SearchParam.Update(castedMin), max = FilterQuery.SearchParam.Update(castedMax)
+//                                )
+//                            )
+//                        }
+//                        FilterType.NbRooms -> {
+//                            val castedMin = (filter as SearchFilterForm.FilterNbRooms).minValue
+//                            val castedMax = filter.maxValue
+//
+//                            toggleFilterUseCase.invoke(
+//                                FilterQuery.NbRoomsFilter(
+//                                    min = FilterQuery.SearchParam.Update(castedMin), max = FilterQuery.SearchParam.Update(castedMax)
+//                                )
+//                            )
+//                        }
+//                        FilterType.NbBedrooms -> {
+//                            val castedMin = (filter as SearchFilterForm.FilterNbBedrooms).minValue
+//                            val castedMax = filter.maxValue
+//
+//                            toggleFilterUseCase.invoke(
+//                                FilterQuery.NbBedroomsFilter(
+//                                    min = FilterQuery.SearchParam.Update(castedMin), max = FilterQuery.SearchParam.Update(castedMax)
+//                                )
+//                            )
+//                        }
+//
+//                        FilterType.EntryDate -> {
+//                            val yearFrom = (filter as SearchFilterForm.FilterEntryDate).yearFrom
+//                            val monthFrom = filter.monthFrom
+//                            val dayOfMonthFrom = filter.dayFrom
+//                            val yearTo = filter.yearTo
+//                            val monthTo = filter.monthTo
+//                            val dayOfMonthTo = filter.dayTo
+//
+//                            val entryDateFrom = try {
+//                                LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
+//                            } catch (e: Exception) {
+//                                e.printStackTrace()
+//                                null
+//                            }
+//                            val entryDateTo = try {
+//                                LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
+//                            } catch (e: Exception) {
+//                                e.printStackTrace()
+//                                null
+//                            }
+//
+//                            toggleFilterUseCase.invoke(
+//                                FilterQuery.EntryDateFilter(
+//                                    from = if (entryDateFrom != null) {
+//                                        FilterQuery.SearchParam.Update(entryDateFrom)
+//                                    } else {
+//                                        FilterQuery.SearchParam.Delete
+//                                    }, to = if (entryDateTo != null) {
+//                                        FilterQuery.SearchParam.Update(entryDateTo)
+//                                    } else {
+//                                        FilterQuery.SearchParam.Delete
+//                                    }
+//                                )
+//                            )
+//                        }
+//                        FilterType.SaleDate -> {
+//                            val yearFrom = (filter as SearchFilterForm.FilterEntryDate).yearFrom
+//                            val monthFrom = filter.monthFrom
+//                            val dayOfMonthFrom = filter.dayFrom
+//                            val yearTo = filter.yearTo
+//                            val monthTo = filter.monthTo
+//                            val dayOfMonthTo = filter.dayTo
+//
+//                            val saleDateFrom = try {
+//                                LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
+//                            } catch (e: Exception) {
+//                                e.printStackTrace()
+//                                null
+//                            }
+//                            val saleDateTo = try {
+//                                LocalDateTime.of(yearTo, monthTo, dayOfMonthTo, 0, 0)
+//                            } catch (e: Exception) {
+//                                e.printStackTrace()
+//                                null
+//                            }
+//
+//                            toggleFilterUseCase.invoke(
+//                                FilterQuery.EntryDateFilter(
+//                                    from = if (saleDateFrom != null) {
+//                                        FilterQuery.SearchParam.Update(saleDateFrom)
+//                                    } else {
+//                                        FilterQuery.SearchParam.Delete
+//                                    }, to = if (saleDateTo != null) {
+//                                        FilterQuery.SearchParam.Update(saleDateTo)
+//                                    } else {
+//                                        FilterQuery.SearchParam.Delete
+//                                    }
+//                                )
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        finishSavingSingleLiveEvent.value = Unit
     }
 
     private fun updateFilter(min: String?, max: String?, filterType: FilterType) {
-        when (filterType) {
-            FilterType.LivingSpace -> {
-                val castedMin = min?.toDoubleOrNull()
-                val castedMax = max?.toDoubleOrNull()
-
-                filters + SearchFilterForm.FilterLivingSpace(castedMin ?: 0.0, castedMax ?: 0.0)
-            }
-            FilterType.Price -> {
-                val castedMin = min?.let { BigDecimal(min) }
-                val castedMax = max?.let { BigDecimal(max) }
-
-                filters + SearchFilterForm.FilterPrice(castedMin ?: BigDecimal(0), castedMax ?: BigDecimal(0))
-            }
-            FilterType.NbRooms -> {
-                val castedMin = min?.toIntOrNull()
-                val castedMax = max?.toIntOrNull()
-
-                filters + SearchFilterForm.FilterNbRooms(castedMin ?: 0, castedMax ?: 0)
-            }
-            FilterType.NbBedrooms -> {
-                val castedMin = min?.toIntOrNull()
-                val castedMax = max?.toIntOrNull()
-
-                filters + SearchFilterForm.FilterNbBedrooms(castedMin ?: 0, castedMax ?: 0)
-            }
-        }
+        Log.i("FilterList", "filterType : $filterType")
     }
 
 //    private fun updateFilter(value: String?, isMax: Boolean) {
@@ -415,12 +445,12 @@ class SearchViewModel @Inject constructor(
 //    }
 
     private fun updateFilterDate(
-        yearFrom: Int, monthFrom: Int, dayOfMonthFrom: Int, filterType: FilterType,
-        yearTo: Int, monthTo: Int, dayOfMonthTo: Int
+        yearFrom: Int, monthFrom: Int, dayOfMonthFrom: Int, filterType: FilterType, yearTo: Int, monthTo: Int, dayOfMonthTo: Int
     ) {
+        // TODO
         when (filterType) {
             FilterType.EntryDate -> {
-                filters + SearchFilterForm.FilterEntryDate(yearFrom, monthFrom, dayOfMonthFrom, yearTo, monthTo, dayOfMonthTo)
+//                filtersFlow + SearchFilterForm.FilterEntryDate(yearFrom, monthFrom, dayOfMonthFrom, yearTo, monthTo, dayOfMonthTo)
 
                 val entryDateFrom = try {
                     LocalDateTime.of(yearFrom, monthFrom, dayOfMonthFrom, 0, 0)
@@ -458,7 +488,7 @@ class SearchViewModel @Inject constructor(
 //                }
             }
             FilterType.SaleDate -> {
-                filters + SearchFilterForm.FilterSaleDate(yearFrom, monthFrom, dayOfMonthFrom, yearTo, monthTo, dayOfMonthTo)
+//                filtersFlow + SearchFilterForm.FilterSaleDate(yearFrom, monthFrom, dayOfMonthFrom, yearTo, monthTo, dayOfMonthTo)
 
 //                val saleDate = try {
 //                    LocalDateTime.of(year, month, dayOfMonth, 0, 0)

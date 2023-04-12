@@ -5,10 +5,255 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/living_space_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/living_space_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/living_space_min"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:hint="@string/min_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/living_space_max"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/living_space_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/living_space_max"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/max_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/living_space_min"
+        app:layout_constraintTop_toBottomOf="@+id/living_space_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/price_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/living_space_min"
+        tools:text="@string/price_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/price_min"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:hint="@string/min_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/price_max"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/price_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/price_max"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/max_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/price_min"
+        app:layout_constraintTop_toBottomOf="@+id/price_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/nb_rooms_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/price_min"
+        tools:text="@string/nb_rooms_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/nb_rooms_min"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:hint="@string/min_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/nb_rooms_max"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nb_rooms_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/nb_rooms_max"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/max_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/nb_rooms_min"
+        app:layout_constraintTop_toBottomOf="@+id/nb_rooms_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/nb_bedrooms_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nb_rooms_min"
+        tools:text="@string/nb_bedrooms_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/nb_bedrooms_min"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:hint="@string/min_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/nb_bedrooms_max"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms_title" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/nb_bedrooms_max"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/max_value"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/nb_bedrooms_min"
+        app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/entry_date_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms_min"
+        tools:text="@string/entry_date" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/entry_date_from_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintEnd_toStartOf="@+id/entry_date_to_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/entry_date_title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/entry_date_from_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:cursorVisible="false"
+            android:focusable="false"
+            android:hint="@string/start_time_from"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/entry_date_to_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/entry_date_from_layout"
+        app:layout_constraintTop_toBottomOf="@+id/entry_date_title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/entry_date_to_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:cursorVisible="false"
+            android:focusable="false"
+            android:hint="@string/start_time_to"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/sale_date_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/entry_date_from_layout"
+        tools:text="@string/sale_date" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/sale_date_from_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintEnd_toStartOf="@+id/sale_date_to_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sale_date_title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/sale_date_from_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:cursorVisible="false"
+            android:focusable="false"
+            android:hint="@string/start_time_from"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/sale_date_to_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/sale_date_from_layout"
+        app:layout_constraintTop_toBottomOf="@+id/sale_date_title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/sale_date_to_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:cursorVisible="false"
+            android:focusable="false"
+            android:hint="@string/start_time_to"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:visibility="invisible"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
