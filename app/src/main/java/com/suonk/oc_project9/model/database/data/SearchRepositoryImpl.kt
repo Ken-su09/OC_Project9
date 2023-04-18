@@ -11,10 +11,20 @@ import javax.inject.Singleton
 @Singleton
 class SearchRepositoryImpl @Inject constructor() : SearchRepository {
 
-    private val currentSearchParameterFlow = MutableStateFlow<List<Filter>>(emptyList())
+    private val currentFilterParameterFlow = MutableStateFlow<List<Filter>>(emptyList())
 
-    override fun getCurrentSearchParametersFlow(): StateFlow<List<Filter>> {
+    override fun getCurrentFilterParametersFlow(): StateFlow<List<Filter>> {
+        return currentFilterParameterFlow
+    }
+
+    private val currentSearchParameterFlow = MutableStateFlow("")
+
+    override fun getCurrentSearchParametersFlow(): StateFlow<String> {
         return currentSearchParameterFlow
+    }
+
+    override fun setCurrentSearchParametersFlow(search: String) {
+        currentSearchParameterFlow.tryEmit(search)
     }
 
     override fun updateFilter(filter: Filter) {
@@ -69,18 +79,18 @@ class SearchRepositoryImpl @Inject constructor() : SearchRepository {
     }
 
     override fun addFilter(filter: Filter) {
-        currentSearchParameterFlow.update { filters ->
+        currentFilterParameterFlow.update { filters ->
             filters + filter
         }
     }
 
     override fun removeFilter(filter: Filter) {
-        currentSearchParameterFlow.update { filters ->
+        currentFilterParameterFlow.update { filters ->
             filters - filter
         }
     }
 
     override fun reset() {
-        currentSearchParameterFlow.value = emptyList()
+        currentFilterParameterFlow.value = emptyList()
     }
 }

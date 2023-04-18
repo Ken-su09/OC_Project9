@@ -14,10 +14,7 @@ import com.suonk.oc_project9.utils.SingleLiveEvent
 import com.suonk.oc_project9.utils.filter.FilterType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -37,7 +34,7 @@ class SearchViewModel @Inject constructor(
     private var previousMax = 0.0
 
     val viewStateLiveData: LiveData<List<SearchViewState>> = liveData(coroutineDispatcherProvider.io) {
-        searchRepository.getCurrentSearchParametersFlow().collect { filters: List<Filter> ->
+        searchRepository.getCurrentFilterParametersFlow().collect { filters: List<Filter> ->
             val searchViewStateList = arrayListOf<SearchViewState>()
 
             if (filters.isEmpty()) {

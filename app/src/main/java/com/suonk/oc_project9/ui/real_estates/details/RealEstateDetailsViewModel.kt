@@ -2,16 +2,15 @@ package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
 import android.net.Uri
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
-import com.suonk.oc_project9.domain.real_estate.GetPositionFromFullAddressUseCase
-import com.suonk.oc_project9.domain.real_estate.GetRealEstateFlowByIdUseCase
-import com.suonk.oc_project9.domain.real_estate.UpsertNewRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
+import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
+import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.EquatableCallback

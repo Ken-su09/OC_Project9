@@ -2,6 +2,7 @@ package com.suonk.oc_project9.domain.real_estate
 
 import com.suonk.oc_project9.domain.PhotoRepository
 import com.suonk.oc_project9.domain.RealEstateRepository
+import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest
 import com.suonk.oc_project9.utils.Defaults.getDefaultAggregatedPhotos

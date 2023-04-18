@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.domain.real_estate
+package com.suonk.oc_project9.domain.real_estate.get
 
 import com.suonk.oc_project9.domain.RealEstateRepository
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos

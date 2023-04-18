@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.domain.real_estate
+package com.suonk.oc_project9.domain.real_estate.get
 
 import android.content.Context
 import android.location.Geocoder

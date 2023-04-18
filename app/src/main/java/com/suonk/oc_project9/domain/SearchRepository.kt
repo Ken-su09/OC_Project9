@@ -7,8 +7,10 @@ import kotlinx.coroutines.flow.update
 
 interface SearchRepository {
 
-    fun getCurrentSearchParametersFlow(): StateFlow<List<Filter>>
-//    fun getCurrentSearchParametersFlow(): StateFlow<Map<FilterType, Filter>>
+    fun getCurrentFilterParametersFlow(): StateFlow<List<Filter>>
+
+    fun getCurrentSearchParametersFlow(): StateFlow<String>
+    fun setCurrentSearchParametersFlow(search: String)
 
     fun updateFilter(filter: Filter)
 

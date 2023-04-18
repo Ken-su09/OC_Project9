@@ -6,7 +6,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
-import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
+import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
@@ -46,7 +46,7 @@ class RealEstatesListViewModelTest {
     @Before
     fun setup() {
         every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
-        every { searchRepository.getCurrentSearchParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
 
         every {
             context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
@@ -102,7 +102,7 @@ class RealEstatesListViewModelTest {
 
             verify {
                 getAllRealEstatesUseCase.invoke()
-                searchRepository.getCurrentSearchParametersFlow()
+                searchRepository.getCurrentFilterParametersFlow()
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -151,7 +151,7 @@ class RealEstatesListViewModelTest {
 
             verify {
                 getAllRealEstatesUseCase.invoke()
-                searchRepository.getCurrentSearchParametersFlow()
+                searchRepository.getCurrentFilterParametersFlow()
             }
             confirmVerified(
                 getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
@@ -171,7 +171,7 @@ class RealEstatesListViewModelTest {
 
             verify {
                 getAllRealEstatesUseCase.invoke()
-                searchRepository.getCurrentSearchParametersFlow()
+                searchRepository.getCurrentFilterParametersFlow()
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -228,7 +228,7 @@ class RealEstatesListViewModelTest {
 
             verify {
                 getAllRealEstatesUseCase.invoke()
-                searchRepository.getCurrentSearchParametersFlow()
+                searchRepository.getCurrentFilterParametersFlow()
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -278,7 +278,7 @@ class RealEstatesListViewModelTest {
 
             verify {
                 getAllRealEstatesUseCase.invoke()
-                searchRepository.getCurrentSearchParametersFlow()
+                searchRepository.getCurrentFilterParametersFlow()
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -327,7 +327,7 @@ class RealEstatesListViewModelTest {
 
             verify {
                 getAllRealEstatesUseCase.invoke()
-                searchRepository.getCurrentSearchParametersFlow()
+                searchRepository.getCurrentFilterParametersFlow()
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)

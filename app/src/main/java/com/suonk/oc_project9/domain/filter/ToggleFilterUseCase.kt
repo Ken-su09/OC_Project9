@@ -13,7 +13,7 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
     fun invoke(filterQuery: FilterQuery) {
         Log.i("FilterList", "filterQuery : $filterQuery")
 
-        val filters = searchRepository.getCurrentSearchParametersFlow().value
+        val filters = searchRepository.getCurrentFilterParametersFlow().value
 
         when (filterQuery) {
             is FilterQuery.LivingSpaceFilter -> {

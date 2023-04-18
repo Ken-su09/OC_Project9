@@ -6,9 +6,9 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
-import com.suonk.oc_project9.domain.real_estate.GetPositionFromFullAddressUseCase
-import com.suonk.oc_project9.domain.real_estate.GetRealEstateFlowByIdUseCase
-import com.suonk.oc_project9.domain.real_estate.UpsertNewRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
+import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
+import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.places.Position
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity

@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
-import com.suonk.oc_project9.domain.real_estate.GetAllRealEstatesUseCase
+import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
+import com.suonk.oc_project9.domain.real_estate.filter.SearchRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.EquatableCallback
@@ -17,6 +19,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -24,13 +28,14 @@ import javax.inject.Inject
 class RealEstatesListViewModel @Inject constructor(
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase,
     private val searchRepository: SearchRepository,
-    coroutineDispatcherProvider: CoroutineDispatcherProvider,
+    private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
+    private val searchRealEstateUseCase: SearchRealEstateUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val sortingMutableStateFlow = MutableStateFlow(Sorting.DATE_ASC)
     private val filteringMutableStateFlow = MutableStateFlow(R.id.remove_filter)
-    private val searchMutableStateFlow = MutableStateFlow("")
+    private var searchMutableStateFlow = MutableStateFlow("")
 
     val toastMessageSingleLiveEvent = SingleLiveEvent<String>()
 
@@ -42,13 +47,19 @@ class RealEstatesListViewModel @Inject constructor(
         }
     }
 
+    init {
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+
+        }
+    }
+
     val realEstateLiveData: LiveData<List<RealEstatesListViewState>> = liveData(coroutineDispatcherProvider.io) {
         combine(
             getAllRealEstatesUseCase.invoke(),
             sortingMutableStateFlow,
             filteringMutableStateFlow,
             searchMutableStateFlow,
-            searchRepository.getCurrentSearchParametersFlow()
+            searchRepository.getCurrentFilterParametersFlow()
         ) { entities: List<RealEstateEntityWithPhotos>, sorting, filterId, search, filters ->
             val list = entities.asSequence().filter { realEstate ->
                 filters.all { it.isMatching(realEstate) }
@@ -153,7 +164,12 @@ class RealEstatesListViewModel @Inject constructor(
     }
 
     fun onSearchQueryChanged(search: String) {
-        searchMutableStateFlow.value = search
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+            val searchFlow = searchRealEstateUseCase.invoke(search).firstOrNull() ?: ""
+            searchMutableStateFlow.tryEmit(searchFlow)
+
+            
+        }
     }
 
 //    val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
