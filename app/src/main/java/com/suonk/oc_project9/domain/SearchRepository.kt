@@ -2,6 +2,7 @@ package com.suonk.oc_project9.domain
 
 import com.suonk.oc_project9.ui.filter.Filter
 import com.suonk.oc_project9.utils.filter.FilterType
+import com.suonk.oc_project9.utils.sort.Sorting
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
@@ -11,6 +12,10 @@ interface SearchRepository {
 
     fun getCurrentSearchParametersFlow(): StateFlow<String>
     fun setCurrentSearchParametersFlow(search: String)
+
+    fun getCurrentSortFilterParametersFlow(): StateFlow<Int>
+    fun getCurrentSortParameterFlow(): StateFlow<Sorting>
+    fun setCurrentSortFilterParametersFlow(itemId: Int)
 
     fun updateFilter(filter: Filter)
 

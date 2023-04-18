@@ -9,6 +9,8 @@ import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.domain.real_estate.filter.SearchRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter.FilterRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter.SortReaEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.EquatableCallback
@@ -30,6 +32,8 @@ class RealEstatesListViewModel @Inject constructor(
     private val searchRepository: SearchRepository,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     private val searchRealEstateUseCase: SearchRealEstateUseCase,
+    private val filterRealEstateUseCase: FilterRealEstateUseCase,
+    private val sortReaEstateUseCase: SortReaEstateUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -44,12 +48,6 @@ class RealEstatesListViewModel @Inject constructor(
     sealed class RealEstatesViewAction {
         sealed class Navigate : RealEstatesViewAction() {
             data class Detail(val realEstateId: Long) : Navigate()
-        }
-    }
-
-    init {
-        viewModelScope.launch(coroutineDispatcherProvider.io) {
-
         }
     }
 
@@ -102,29 +100,6 @@ class RealEstatesListViewModel @Inject constructor(
         }.collect()
     }
 
-    fun onSortedOrFilterClicked(itemId: Int) {
-        when (itemId) {
-            R.id.sort_by_date_asc -> sortingMutableStateFlow.value = Sorting.DATE_ASC
-            R.id.sort_by_price_asc -> sortingMutableStateFlow.value = Sorting.PRICE_ASC
-            R.id.sort_by_living_space_asc -> sortingMutableStateFlow.value = Sorting.LIVING_SPACE_ASC
-            R.id.sort_by_rooms_number_asc -> sortingMutableStateFlow.value = Sorting.ROOMS_NUMBER_ASC
-            R.id.sort_by_date_desc -> sortingMutableStateFlow.value = Sorting.DATE_DESC
-            R.id.sort_by_price_desc -> sortingMutableStateFlow.value = Sorting.PRICE_DESC
-            R.id.sort_by_living_space_desc -> sortingMutableStateFlow.value = Sorting.LIVING_SPACE_DESC
-            R.id.sort_by_rooms_number_desc -> sortingMutableStateFlow.value = Sorting.ROOMS_NUMBER_DESC
-            R.id.remove_filter -> {
-                searchRepository.reset()
-                filteringMutableStateFlow.value = R.id.remove_filter
-            }
-            R.id.house_filter -> filteringMutableStateFlow.value = R.id.house_filter
-            R.id.penthouse_filter -> filteringMutableStateFlow.value = R.id.penthouse_filter
-            R.id.duplex_filter -> filteringMutableStateFlow.value = R.id.duplex_filter
-            R.id.flat_filter -> filteringMutableStateFlow.value = R.id.flat_filter
-            R.id.loft_filter -> filteringMutableStateFlow.value = R.id.loft_filter
-            else -> Unit
-        }
-    }
-
     private fun checkIfTwoFieldsAreFilled(firstField: String, secondField: String): Boolean {
         return !(firstField.isNotBlank() && firstField.isNotEmpty() && secondField.isEmpty() || secondField.isBlank() || secondField.isNotBlank() && secondField.isNotEmpty() && firstField.isEmpty() || firstField.isBlank())
     }
@@ -167,61 +142,15 @@ class RealEstatesListViewModel @Inject constructor(
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             val searchFlow = searchRealEstateUseCase.invoke(search).firstOrNull() ?: ""
             searchMutableStateFlow.tryEmit(searchFlow)
-
-            
         }
     }
 
-//    val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
-//        sortingMutableStateFlow.flatMapLatest { sortField ->
-//            getAllRealEstatesUseCase.invoke(sortField)
-//        }.collect { entities ->
-//            emit(
-//                entities.map {
-//                    transformEntityToViewState(it)
-//                }
-//            )
-//        }
-//    }
-
-//    val realEstateLiveData = liveData(coroutineDispatcherProvider.io) {
-//        sortingMutableStateFlow.collectLatest { sortField ->
-//            getAllRealEstatesUseCase.invoke(sortField).collect { entities ->
-//                emit(entities.map {
-//                    transformEntityToViewState(it)
-//                })
-//            }
-//        }
-//    }
-
-//    private val searchMutableStateFlow = MutableStateFlow<String?>(null)
-//
-//    val viewStateLiveDataVM: LiveData<List<String>> = liveData(coroutineDispatcherProvider.io) {
-//        combine(
-//            myRepo.getAllStuff(),
-//            searchMutableStateFlow
-//        ) { allStuff, search ->
-//            if (search == null) {
-//                emit(map(allStuff))
-//            } else {
-//                emit(
-//                    map(
-//                        allStuff.filter { it == search }
-//                    )
-//                )
-//            }
-//        }.collect()
-//    }
-//
-//    val viewStateLiveDataSQL: LiveData<List<String>> = searchMutableStateFlow.flatMapLatest {
-//        if (it == null) {
-//            myRepo.getAllStuff()
-//        } else {
-//            myRepo.getStuffWithSomeSearch(it)
-//        }
-//    }.asLiveData(coroutineDispatcherProvider.IO)
-//
-//    private fun map(allStuff: List<String>): List<String> {
-//        return allStuff
-//    }
+    fun onSortedOrFilterClicked(itemId: Int) {
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+            val filterFlow = filterRealEstateUseCase.invoke(itemId).firstOrNull() ?: R.id.remove_filter
+            val sortFlow = sortReaEstateUseCase.invoke(itemId).firstOrNull() ?: Sorting.DATE_ASC
+            filteringMutableStateFlow.tryEmit(filterFlow)
+            sortingMutableStateFlow.tryEmit(sortFlow)
+        }
+    }
 }

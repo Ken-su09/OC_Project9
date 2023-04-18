@@ -6,11 +6,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SortFilterRealEstateUseCase @Inject constructor(private val searchRepository: SearchRepository) {
+class FilterRealEstateUseCase @Inject constructor(private val searchRepository: SearchRepository) {
 
     fun invoke(itemId: Int): Flow<Int> {
-        searchRepository.setCurrentSearchParametersFlow(search)
+        searchRepository.setCurrentSortFilterParametersFlow(itemId)
 
-        return searchRepository.getCurrentSearchParametersFlow()
+        return searchRepository.getCurrentSortFilterParametersFlow()
     }
 }
