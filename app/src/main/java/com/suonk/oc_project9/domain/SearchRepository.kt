@@ -1,17 +1,15 @@
 package com.suonk.oc_project9.domain
 
 import com.suonk.oc_project9.ui.filter.Filter
-import com.suonk.oc_project9.utils.filter.FilterType
 import com.suonk.oc_project9.utils.sort.Sorting
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 
 interface SearchRepository {
 
     fun getCurrentFilterParametersFlow(): StateFlow<List<Filter>>
 
     fun getCurrentSearchParametersFlow(): StateFlow<String>
-    fun setCurrentSearchParametersFlow(search: String)
+    fun setCurrentSearchParameters(search: String)
 
     fun getCurrentSortFilterParametersFlow(): StateFlow<Int>
     fun getCurrentSortParameterFlow(): StateFlow<Sorting>

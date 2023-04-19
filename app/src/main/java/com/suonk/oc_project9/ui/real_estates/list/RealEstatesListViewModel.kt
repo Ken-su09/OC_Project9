@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,7 @@ import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.domain.real_estate.filter.SearchRealEstateUseCase
 import com.suonk.oc_project9.domain.real_estate.filter.FilterRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter.GetRealEstateSearchUseCase
 import com.suonk.oc_project9.domain.real_estate.filter.SortReaEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
@@ -29,17 +31,17 @@ import javax.inject.Inject
 @HiltViewModel
 class RealEstatesListViewModel @Inject constructor(
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase,
+    private val getRealEstateSearchUseCase: GetRealEstateSearchUseCase,
     private val searchRepository: SearchRepository,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     private val searchRealEstateUseCase: SearchRealEstateUseCase,
     private val filterRealEstateUseCase: FilterRealEstateUseCase,
     private val sortReaEstateUseCase: SortReaEstateUseCase,
-    @ApplicationContext private val context: Context
+    private val application: Application,
 ) : ViewModel() {
 
     private val sortingMutableStateFlow = MutableStateFlow(Sorting.DATE_ASC)
     private val filteringMutableStateFlow = MutableStateFlow(R.id.remove_filter)
-    private var searchMutableStateFlow = MutableStateFlow("")
 
     val toastMessageSingleLiveEvent = SingleLiveEvent<String>()
 
@@ -56,7 +58,7 @@ class RealEstatesListViewModel @Inject constructor(
             getAllRealEstatesUseCase.invoke(),
             sortingMutableStateFlow,
             filteringMutableStateFlow,
-            searchMutableStateFlow,
+            getRealEstateSearchUseCase.invoke(),
             searchRepository.getCurrentFilterParametersFlow()
         ) { entities: List<RealEstateEntityWithPhotos>, sorting, filterId, search, filters ->
             val list = entities.asSequence().filter { realEstate ->
@@ -107,22 +109,22 @@ class RealEstatesListViewModel @Inject constructor(
     private fun transformEntityToViewState(entity: RealEstateEntityWithPhotos): RealEstatesListViewState {
         return RealEstatesListViewState(id = entity.realEstateEntity.id,
             type = entity.realEstateEntity.type,
-            price = context.getString(
+            price = application.getString(
                 R.string.real_estate_price, entity.realEstateEntity.price
             ),
             priceValue = entity.realEstateEntity.price,
-            numberRooms = context.getString(
+            numberRooms = application.getString(
                 R.string.number_rooms,
                 entity.realEstateEntity.numberRooms,
                 entity.realEstateEntity.numberBedroom,
                 entity.realEstateEntity.numberBathroom
             ),
             numberRoomsValue = entity.realEstateEntity.numberRooms,
-            livingSpace = context.getString(R.string.square_meter, entity.realEstateEntity.livingSpace),
+            livingSpace = application.getString(R.string.square_meter, entity.realEstateEntity.livingSpace),
             livingSpaceValue = entity.realEstateEntity.livingSpace,
             description = entity.realEstateEntity.description,
             photos = entity.photos.map { ListPhotoViewState(it.photo) }.distinct(),
-            address = context.getString(
+            address = application.getString(
                 R.string.full_address,
                 entity.realEstateEntity.gridZone,
                 entity.realEstateEntity.streetName,
@@ -139,15 +141,12 @@ class RealEstatesListViewModel @Inject constructor(
     }
 
     fun onSearchQueryChanged(search: String) {
-        viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val searchFlow = searchRealEstateUseCase.invoke(search).firstOrNull() ?: ""
-            searchMutableStateFlow.tryEmit(searchFlow)
-        }
+        searchRealEstateUseCase.invoke(search)
     }
 
     fun onSortedOrFilterClicked(itemId: Int) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val filterFlow = filterRealEstateUseCase.invoke(itemId).firstOrNull() ?: R.id.remove_filter
+            val filterFlow = filterRealEstateUseCase.invoke(itemId).firstOrNull() ?: R.id.remove_filter // TODO Kenzy use unidirectionnal flows
             val sortFlow = sortReaEstateUseCase.invoke(itemId).firstOrNull() ?: Sorting.DATE_ASC
             filteringMutableStateFlow.tryEmit(filterFlow)
             sortingMutableStateFlow.tryEmit(sortFlow)

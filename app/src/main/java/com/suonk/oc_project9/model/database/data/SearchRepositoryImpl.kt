@@ -26,7 +26,7 @@ class SearchRepositoryImpl @Inject constructor() : SearchRepository {
         return currentSearchParameterFlow
     }
 
-    override fun setCurrentSearchParametersFlow(search: String) {
+    override fun setCurrentSearchParameters(search: String) {
         currentSearchParameterFlow.tryEmit(search)
     }
 
