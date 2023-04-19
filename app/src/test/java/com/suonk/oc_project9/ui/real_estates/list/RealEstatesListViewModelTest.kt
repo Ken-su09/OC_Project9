@@ -6,12 +6,16 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
+import com.suonk.oc_project9.domain.real_estate.filter.FilterRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter.SearchRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter.SortReaEstateUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.ui.filter.Filter
 import com.suonk.oc_project9.utils.*
+import com.suonk.oc_project9.utils.sort.Sorting
 import io.mockk.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runCurrent
@@ -34,12 +38,18 @@ class RealEstatesListViewModelTest {
 
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase = mockk()
     private val searchRepository: SearchRepository = mockk()
+    private val searchRealEstateUseCase: SearchRealEstateUseCase = mockk()
+    private val filterRealEstateUseCase: FilterRealEstateUseCase = mockk()
+    private val sortReaEstateUseCase: SortReaEstateUseCase = mockk()
     private val context: Context = mockk()
 
     private val realEstatesListViewModel = RealEstatesListViewModel(
         getAllRealEstatesUseCase = getAllRealEstatesUseCase,
         searchRepository = searchRepository,
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+        searchRealEstateUseCase = searchRealEstateUseCase,
+        filterRealEstateUseCase = filterRealEstateUseCase,
+        sortReaEstateUseCase = sortReaEstateUseCase,
         context = context
     )
 
@@ -47,6 +57,10 @@ class RealEstatesListViewModelTest {
     fun setup() {
         every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
         every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+
+        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        coEvery { filterRealEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_FILTER_ID)
+        coEvery { sortReaEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
 
         every {
             context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
@@ -133,8 +147,15 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_POSTAL_CODE
                 )
             }
+
             confirmVerified(
-                getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
             )
         }
     }
@@ -154,15 +175,27 @@ class RealEstatesListViewModelTest {
                 searchRepository.getCurrentFilterParametersFlow()
             }
             confirmVerified(
-                getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
             )
         }
     }
+
+    // FILTER
 
     @Test
     fun `get all real estates with filter by type penthouse`() = testCoroutineRule.runTest {
         // GIVEN
         realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
+
+//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        coEvery { filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(PENTHOUSE_FILTER_ID)
+        coEvery { sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -172,6 +205,8 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+                sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -202,8 +237,15 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_POSTAL_CODE
                 )
             }
+
             confirmVerified(
-                getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
             )
         }
     }
@@ -211,8 +253,10 @@ class RealEstatesListViewModelTest {
     @Test
     fun `get all real estates with filter by type penthouse and then remove filter`() = testCoroutineRule.runTest {
         // GIVEN
-        justRun { searchRepository.reset() }
         realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
+
+        coEvery { filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(PENTHOUSE_FILTER_ID)
+        coEvery { sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -221,6 +265,10 @@ class RealEstatesListViewModelTest {
 
             // GIVEN II
             realEstatesListViewModel.onSortedOrFilterClicked(R.id.remove_filter)
+
+            coEvery { filterRealEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_FILTER_ID)
+            coEvery { sortReaEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+
             runCurrent()
 
             // THEN II
@@ -229,6 +277,10 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+                filterRealEstateUseCase.invoke(DEFAULT_FILTER_ID)
+                sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+                sortReaEstateUseCase.invoke(DEFAULT_FILTER_ID)
 
                 context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -258,18 +310,27 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_STATE,
                     SECOND_DEFAULT_POSTAL_CODE
                 )
-                searchRepository.reset()
             }
             confirmVerified(
-                getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
             )
         }
     }
 
     @Test
-    fun `get all real estates with filter by type loft`() = testCoroutineRule.runTest {
+    fun `get all real estates with filter by type loft should be empty`() = testCoroutineRule.runTest {
         // GIVEN
         realEstatesListViewModel.onSortedOrFilterClicked(R.id.loft_filter)
+
+//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        coEvery { filterRealEstateUseCase.invoke(LOFT_FILTER_ID) } returns flowOf(LOFT_FILTER_ID)
+        coEvery { sortReaEstateUseCase.invoke(LOFT_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -309,8 +370,19 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_POSTAL_CODE
                 )
             }
+            coVerify {
+                filterRealEstateUseCase.invoke(LOFT_FILTER_ID)
+                sortReaEstateUseCase.invoke(LOFT_FILTER_ID)
+            }
+
             confirmVerified(
-                getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
             )
         }
     }
@@ -318,7 +390,11 @@ class RealEstatesListViewModelTest {
     @Test
     fun `get all real estates with filter by nonsense filter`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstatesListViewModel.onSortedOrFilterClicked(-10000)
+        realEstatesListViewModel.onSortedOrFilterClicked(NON_SENSE_FILTER_ID)
+
+//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        coEvery { filterRealEstateUseCase.invoke(NON_SENSE_FILTER_ID) } returns flowOf(NON_SENSE_FILTER_ID)
+        coEvery { sortReaEstateUseCase.invoke(NON_SENSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -358,8 +434,209 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_POSTAL_CODE
                 )
             }
+            coVerify {
+                filterRealEstateUseCase.invoke(NON_SENSE_FILTER_ID)
+                sortReaEstateUseCase.invoke(NON_SENSE_FILTER_ID)
+            }
             confirmVerified(
-                getAllRealEstatesUseCase, searchRepository, testCoroutineRule.getTestCoroutineDispatcherProvider(), context
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
+            )
+        }
+    }
+
+    // SORT
+
+    @Test
+    fun `get all real estates with sort by price asc`() = testCoroutineRule.runTest {
+        // GIVEN
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
+
+//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        coEvery { filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(PENTHOUSE_FILTER_ID)
+        coEvery { sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesFilterByPenthouse())
+
+            verify {
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+                filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+                sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+
+                context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
+                context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                context.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                context.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                context.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                context.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                context.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                context.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
+            )
+        }
+    }
+
+
+    // SEARCH
+
+    @Test
+    fun `get all real estates with user click on space in search bar`() = testCoroutineRule.runTest {
+        // GIVEN
+        realEstatesListViewModel.onSearchQueryChanged(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
+
+        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE) } returns flowOf(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getAllDefaultRealEstatesListViewStates())
+
+            verify {
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+
+                context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
+                context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                context.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                context.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                context.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                context.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                context.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                context.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            coVerify {
+                searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
+            )
+        }
+    }
+
+    @Test
+    fun `get all real estates with search by upper east side`() = testCoroutineRule.runTest {
+        // GIVEN
+        realEstatesListViewModel.onSearchQueryChanged(DEFAULT_SEARCH_UPPER_EAST_SIDE)
+
+        coEvery { searchRealEstateUseCase.invoke(DEFAULT_SEARCH_UPPER_EAST_SIDE) } returns flowOf(DEFAULT_SEARCH_UPPER_EAST_SIDE)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesFilterByUpperEastSide())
+
+            verify {
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+
+                context.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
+                context.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                context.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                context.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                context.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                context.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                context.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                context.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            coVerify {
+                searchRealEstateUseCase.invoke(DEFAULT_SEARCH_UPPER_EAST_SIDE)
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                searchRepository,
+                searchRealEstateUseCase,
+                filterRealEstateUseCase,
+                sortReaEstateUseCase,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                context
             )
         }
     }
@@ -380,6 +657,10 @@ class RealEstatesListViewModelTest {
 
     private fun getDefaultRealEstatesListViewStatesFilterByPenthouse(): List<RealEstatesListViewState> {
         return listOf(getDefaultFirstRealEstatesListViewState())
+    }
+
+    private fun getDefaultRealEstatesListViewStatesFilterByUpperEastSide(): List<RealEstatesListViewState> {
+        return listOf(getDefaultSecondRealEstatesListViewState())
     }
 
     // FIRST
@@ -631,6 +912,20 @@ class RealEstatesListViewModelTest {
         private const val SECOND_PHOTO_2 = "SECOND_PHOTO_2"
         private const val SECOND_PHOTO_3 = "SECOND_PHOTO_3"
         private const val SECOND_PHOTO_4 = "SECOND_PHOTO_4"
+
+        private const val DEFAULT_EMPTY_SEARCH = ""
+        private const val DEFAULT_EMPTY_SEARCH_WITH_SPACE = " "
+        private const val DEFAULT_SEARCH_UPPER_EAST_SIDE = "Upper East Side"
+
+        private const val DEFAULT_FILTER_ID = R.id.remove_filter
+        private const val PENTHOUSE_FILTER_ID = R.id.penthouse_filter
+        private const val LOFT_FILTER_ID = R.id.loft_filter
+        private const val SORT_BY_PRICE_ASC_ID = R.id.sort_by_price_asc
+
+        private val DEFAULT_SORTING = Sorting.DATE_ASC
+        private val PRICE_ASC_SORTING = Sorting.PRICE_ASC
+
+        private const val NON_SENSE_FILTER_ID = -100000
 
         private fun realEstateTypeToSpinnerPosition(type: String): Int {
             val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
