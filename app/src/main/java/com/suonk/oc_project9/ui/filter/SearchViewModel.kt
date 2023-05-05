@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
-import com.suonk.oc_project9.domain.filter.ToggleFilterUseCase
-import com.suonk.oc_project9.domain.filter.model.FilterQuery
+import com.suonk.oc_project9.domain.more_criteria.ToggleFilterUseCase
+import com.suonk.oc_project9.domain.more_criteria.model.FilterQuery
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.SingleLiveEvent
 import com.suonk.oc_project9.utils.filter.FilterType
@@ -28,7 +28,7 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val filtersFlow = MutableStateFlow(listOf<SearchFilterForm>())
-    private val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
+    val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
 
     private var previousMin = 0.0
     private var previousMax = 0.0
@@ -141,7 +141,8 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.LivingSpaceFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(min = "",
+                        SearchViewState.Bounded(
+                            min = "",
                             max = "",
                             title = context.getString(R.string.living_space_title),
                             onValuesSelected = { min, max ->
@@ -152,7 +153,8 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.PriceFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(min = "",
+                        SearchViewState.Bounded(
+                            min = "",
                             max = "",
                             title = context.getString(R.string.price_title),
                             onValuesSelected = { min, max ->
@@ -163,7 +165,8 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.NbRoomsFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(min = "",
+                        SearchViewState.Bounded(
+                            min = "",
                             max = "",
                             title = context.getString(R.string.nb_rooms_title),
                             onValuesSelected = { min, max ->
@@ -174,7 +177,8 @@ class SearchViewModel @Inject constructor(
 
                 if (!filters.any { it is Filter.NbBedroomsFilter }) {
                     searchViewStateList.add(
-                        SearchViewState.Bounded(min = "",
+                        SearchViewState.Bounded(
+                            min = "",
                             max = "",
                             title = context.getString(R.string.nb_bedrooms_title),
                             onValuesSelected = { min, max ->
@@ -225,8 +229,11 @@ class SearchViewModel @Inject constructor(
         nbBedroomsMin: String?,
         nbBedroomsMax: String?,
     ) {
-        val castedLivingSpaceMin = livingSpaceMin?.toDoubleOrNull() ?: 0.0
-        val castedLivingSpaceMax = livingSpaceMax?.toDoubleOrNull() ?: 0.0
+        val castedLivingSpaceMin = livingSpaceMin?.toDoubleOrNull()
+        val castedLivingSpaceMax = livingSpaceMax?.toDoubleOrNull()
+
+        Log.i("FilterWithMoreCriteria", "castedLivingSpaceMin : $castedLivingSpaceMin")
+        Log.i("FilterWithMoreCriteria", "castedLivingSpaceMax : $castedLivingSpaceMax")
 
         toggleFilterUseCase.invoke(
             FilterQuery.LivingSpaceFilter(
@@ -234,9 +241,16 @@ class SearchViewModel @Inject constructor(
             )
         )
 
-        val castedPriceMin = priceMin?.let { BigDecimal(priceMin) } ?: BigDecimal(0.0)
-        val castedPriceMax = priceMax?.let { BigDecimal(priceMax) } ?: BigDecimal(0.0)
-
+        val castedPriceMin = if (priceMin?.isNotEmpty() == true) {
+            BigDecimal(priceMin)
+        } else {
+            null
+        }
+        val castedPriceMax = if (priceMax?.isNotEmpty() == true) {
+            BigDecimal(priceMax)
+        } else {
+            null
+        }
 
         toggleFilterUseCase.invoke(
             FilterQuery.PriceFilter(
@@ -244,8 +258,8 @@ class SearchViewModel @Inject constructor(
             )
         )
 
-        val castedNbRoomsMin = nbRoomsMin?.toIntOrNull() ?: 0
-        val castedNbRoomsMax = nbRoomsMax?.toIntOrNull() ?: 0
+        val castedNbRoomsMin = nbRoomsMin?.toIntOrNull()
+        val castedNbRoomsMax = nbRoomsMax?.toIntOrNull()
 
         toggleFilterUseCase.invoke(
             FilterQuery.NbRoomsFilter(
@@ -253,8 +267,8 @@ class SearchViewModel @Inject constructor(
             )
         )
 
-        val castedNbBedroomsMin = nbBedroomsMin?.toIntOrNull() ?: 0
-        val castedNbBedroomsMax = nbBedroomsMax?.toIntOrNull() ?: 0
+        val castedNbBedroomsMin = nbBedroomsMin?.toIntOrNull()
+        val castedNbBedroomsMax = nbBedroomsMax?.toIntOrNull()
 
         toggleFilterUseCase.invoke(
             FilterQuery.NbBedroomsFilter(

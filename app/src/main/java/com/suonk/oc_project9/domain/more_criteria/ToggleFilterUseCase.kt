@@ -1,8 +1,7 @@
-package com.suonk.oc_project9.domain.filter
+package com.suonk.oc_project9.domain.more_criteria
 
-import android.util.Log
 import com.suonk.oc_project9.domain.SearchRepository
-import com.suonk.oc_project9.domain.filter.model.FilterQuery
+import com.suonk.oc_project9.domain.more_criteria.model.FilterQuery
 import com.suonk.oc_project9.ui.filter.Filter
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,8 +10,6 @@ import javax.inject.Singleton
 class ToggleFilterUseCase @Inject constructor(private val searchRepository: SearchRepository) {
 
     fun invoke(filterQuery: FilterQuery) {
-        Log.i("FilterList", "filterQuery : $filterQuery")
-
         val filters = searchRepository.getCurrentFilterParametersFlow().value
 
         when (filterQuery) {
@@ -39,11 +36,7 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     }
 
                     if (newMin != null || newMax != null) {
-                        searchRepository.addFilter(
-                            Filter.LivingSpaceFilter(
-                                min = newMin, max = newMax
-                            )
-                        )
+                        searchRepository.addFilter(Filter.LivingSpaceFilter(min = newMin, max = newMax))
                     }
                 }
             }
@@ -197,7 +190,5 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
             }
         }
     }
-
-    // reified (with inline)
 }
 

@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.domain.filter.model
+package com.suonk.oc_project9.domain.more_criteria.model
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -14,7 +14,7 @@ sealed class FilterQuery {
     data class SaleDateFilter(val from: SearchParam<LocalDateTime>, val to: SearchParam<LocalDateTime>) : FilterQuery()
 
     sealed class SearchParam<out T> {
-        data class Update<T>(val value: T) : SearchParam<T>()
+        data class Update<T>(val value: T?) : SearchParam<T>()
         object Delete : SearchParam<Nothing>()
     }
 }

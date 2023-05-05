@@ -30,12 +30,12 @@ class SearchRepositoryImpl @Inject constructor() : SearchRepository {
         currentSearchParameterFlow.tryEmit(search)
     }
 
-    override fun getCurrentSortFilterParametersFlow(): StateFlow<Int> {
-        return currentSortFilterParameterFlow
-    }
-
     override fun getCurrentSortParameterFlow(): StateFlow<Sorting> {
         return currentSortParameterFlow
+    }
+
+    override fun getCurrentSortFilterParametersFlow(): StateFlow<Int> {
+        return currentSortFilterParameterFlow
     }
 
     override fun setCurrentSortFilterParametersFlow(itemId: Int) {
@@ -49,14 +49,15 @@ class SearchRepositoryImpl @Inject constructor() : SearchRepository {
             R.id.sort_by_living_space_desc -> currentSortParameterFlow.tryEmit(Sorting.LIVING_SPACE_DESC)
             R.id.sort_by_rooms_number_desc -> currentSortParameterFlow.tryEmit(Sorting.ROOMS_NUMBER_DESC)
             R.id.remove_filter -> {
-                currentSortFilterParameterFlow.value = R.id.remove_filter
+                currentSortFilterParameterFlow.tryEmit(R.id.remove_filter)
+                reset()
             }
-            R.id.house_filter -> currentSortFilterParameterFlow.value = R.id.house_filter
-            R.id.penthouse_filter -> currentSortFilterParameterFlow.value = R.id.penthouse_filter
-            R.id.duplex_filter -> currentSortFilterParameterFlow.value = R.id.duplex_filter
-            R.id.flat_filter -> currentSortFilterParameterFlow.value = R.id.flat_filter
-            R.id.loft_filter -> currentSortFilterParameterFlow.value = R.id.loft_filter
-            else -> Unit
+            R.id.house_filter -> currentSortFilterParameterFlow.tryEmit(R.id.house_filter)
+            R.id.penthouse_filter -> currentSortFilterParameterFlow.tryEmit(R.id.penthouse_filter)
+            R.id.duplex_filter -> currentSortFilterParameterFlow.tryEmit(R.id.duplex_filter)
+            R.id.flat_filter -> currentSortFilterParameterFlow.tryEmit(R.id.flat_filter)
+            R.id.loft_filter -> currentSortFilterParameterFlow.tryEmit(R.id.loft_filter)
+            else -> currentSortFilterParameterFlow.tryEmit(R.id.remove_filter)
         }
     }
 

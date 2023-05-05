@@ -6,10 +6,11 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
-import com.suonk.oc_project9.domain.real_estate.filter.FilterRealEstateUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.GetRealEstateSearchUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.SearchRealEstateUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.SortReaEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.search.GetSearchRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.search.SetSearchRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetCurrentSortFilterParametersUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetSortingParametersUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.SetCurrentSortFilterParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
@@ -38,34 +39,33 @@ class RealEstatesListViewModelTest {
     val testCoroutineRule = TestCoroutineRule()
 
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase = mockk()
-    private val getRealEstateSearchUseCase: GetRealEstateSearchUseCase = mockk()
+    private val getSearchRealEstateUseCase: GetSearchRealEstateUseCase = mockk()
+    private val setSearchRealEstateUseCase: SetSearchRealEstateUseCase = mockk()
+
+    private val getCurrentSortFilterParametersUseCase: GetCurrentSortFilterParametersUseCase = mockk()
+    private val setCurrentSortFilterParametersUseCase: SetCurrentSortFilterParametersUseCase = mockk()
+
+    private val getSortingParametersUseCase: GetSortingParametersUseCase = mockk()
+
     private val searchRepository: SearchRepository = mockk()
-    private val searchRealEstateUseCase: SearchRealEstateUseCase = mockk()
-    private val filterRealEstateUseCase: FilterRealEstateUseCase = mockk()
-    private val sortReaEstateUseCase: SortReaEstateUseCase = mockk()
     private val application: Application = mockk()
 
     private val realEstatesListViewModel = RealEstatesListViewModel(
         getAllRealEstatesUseCase = getAllRealEstatesUseCase,
-        getRealEstateSearchUseCase = getRealEstateSearchUseCase,
+        getSearchRealEstateUseCase = getSearchRealEstateUseCase,
+        setSearchRealEstateUseCase = setSearchRealEstateUseCase,
+
+        getCurrentSortFilterParametersUseCase = getCurrentSortFilterParametersUseCase,
+        setCurrentSortFilterParametersUseCase = setCurrentSortFilterParametersUseCase,
+        getSortingParametersUseCase = getSortingParametersUseCase,
+
         searchRepository = searchRepository,
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
-        searchRealEstateUseCase = searchRealEstateUseCase,
-        filterRealEstateUseCase = filterRealEstateUseCase,
-        sortReaEstateUseCase = sortReaEstateUseCase,
         application = application
     )
 
     @Before
     fun setup() {
-        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
-        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
-
-        coJustRun { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) }
-        coEvery { getRealEstateSearchUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
-        coEvery { filterRealEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_FILTER_ID)
-        coEvery { sortReaEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
-
         every {
             application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
         } returns FIRST_DEFAULT_PRICE_STRING
@@ -74,7 +74,9 @@ class RealEstatesListViewModelTest {
         } returns SECOND_DEFAULT_PRICE_STRING
 
         every {
-            application.getString(R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM)
+            application.getString(
+                R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+            )
         } returns FIRST_DEFAULT_NUMBER_ALL_ROOMS_STRING
         every {
             application.getString(
@@ -113,6 +115,16 @@ class RealEstatesListViewModelTest {
 
     @Test
     fun `nominal case`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(DEFAULT_FILTER_ID)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
             // THEN
@@ -121,6 +133,9 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
+                getSortingParametersUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -154,10 +169,12 @@ class RealEstatesListViewModelTest {
 
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -169,6 +186,13 @@ class RealEstatesListViewModelTest {
         // GIVEN
         every { getAllRealEstatesUseCase.invoke() } returns flowOf(emptyList())
 
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(DEFAULT_FILTER_ID)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
             // THEN
@@ -177,13 +201,19 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
+                getSortingParametersUseCase.invoke()
             }
+
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -195,11 +225,15 @@ class RealEstatesListViewModelTest {
     @Test
     fun `get all real estates with filter by type penthouse`() = testCoroutineRule.runTest {
         // GIVEN
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+
         realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
 
-//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
-        coEvery { filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(PENTHOUSE_FILTER_ID)
-        coEvery { sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.penthouse_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.penthouse_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -207,10 +241,12 @@ class RealEstatesListViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesFilterByPenthouse())
 
             verify {
+                getSearchRealEstateUseCase.invoke()
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
-                filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
-                sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+                setCurrentSortFilterParametersUseCase.invoke(R.id.penthouse_filter)
+                getSortingParametersUseCase.invoke()
+                getCurrentSortFilterParametersUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -244,10 +280,12 @@ class RealEstatesListViewModelTest {
 
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -257,23 +295,30 @@ class RealEstatesListViewModelTest {
     @Test
     fun `get all real estates with filter by type penthouse and then remove filter`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
 
-        coEvery { filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(PENTHOUSE_FILTER_ID)
-        coEvery { sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.penthouse_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.penthouse_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesFilterByPenthouse())
 
-            // GIVEN II
-            realEstatesListViewModel.onSortedOrFilterClicked(R.id.remove_filter)
-
-            coEvery { filterRealEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_FILTER_ID)
-            coEvery { sortReaEstateUseCase.invoke(DEFAULT_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
-
             runCurrent()
+
+            // GIVEN II
+
+            justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.remove_filter) }
+            every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.remove_filter)
+            every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+            realEstatesListViewModel.onSortedOrFilterClicked(R.id.remove_filter)
 
             // THEN II
             assertThat(it.value).isEqualTo(getAllDefaultRealEstatesListViewStates())
@@ -281,10 +326,10 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
-                filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
-                filterRealEstateUseCase.invoke(DEFAULT_FILTER_ID)
-                sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
-                sortReaEstateUseCase.invoke(DEFAULT_FILTER_ID)
+                setCurrentSortFilterParametersUseCase.invoke(PENTHOUSE_FILTER_ID)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -317,24 +362,28 @@ class RealEstatesListViewModelTest {
             }
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
         }
+
+
     }
 
     @Test
     fun `get all real estates with filter by type loft should be empty`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstatesListViewModel.onSortedOrFilterClicked(R.id.loft_filter)
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.loft_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.loft_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
 
-//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
-        coEvery { filterRealEstateUseCase.invoke(LOFT_FILTER_ID) } returns flowOf(LOFT_FILTER_ID)
-        coEvery { sortReaEstateUseCase.invoke(LOFT_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.loft_filter)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -344,6 +393,10 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                setCurrentSortFilterParametersUseCase.invoke(LOFT_FILTER_ID)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -374,17 +427,15 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_POSTAL_CODE
                 )
             }
-            coVerify {
-                filterRealEstateUseCase.invoke(LOFT_FILTER_ID)
-                sortReaEstateUseCase.invoke(LOFT_FILTER_ID)
-            }
 
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -396,9 +447,9 @@ class RealEstatesListViewModelTest {
         // GIVEN
         realEstatesListViewModel.onSortedOrFilterClicked(NON_SENSE_FILTER_ID)
 
-//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
-        coEvery { filterRealEstateUseCase.invoke(NON_SENSE_FILTER_ID) } returns flowOf(NON_SENSE_FILTER_ID)
-        coEvery { sortReaEstateUseCase.invoke(NON_SENSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+        justRun { setCurrentSortFilterParametersUseCase.invoke(NON_SENSE_FILTER_ID) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(NON_SENSE_FILTER_ID)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -408,6 +459,11 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                setCurrentSortFilterParametersUseCase.invoke(NON_SENSE_FILTER_ID)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
+
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -438,16 +494,14 @@ class RealEstatesListViewModelTest {
                     SECOND_DEFAULT_POSTAL_CODE
                 )
             }
-            coVerify {
-                filterRealEstateUseCase.invoke(NON_SENSE_FILTER_ID)
-                sortReaEstateUseCase.invoke(NON_SENSE_FILTER_ID)
-            }
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -459,22 +513,24 @@ class RealEstatesListViewModelTest {
     @Test
     fun `get all real estates with sort by price asc`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstatesListViewModel.onSortedOrFilterClicked(R.id.penthouse_filter)
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.sort_by_price_asc) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.sort_by_price_asc)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(PRICE_ASC_SORTING)
 
-//        coEvery { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH) } returns flowOf(DEFAULT_EMPTY_SEARCH)
-        coEvery { filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(PENTHOUSE_FILTER_ID)
-        coEvery { sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID) } returns flowOf(DEFAULT_SORTING)
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.sort_by_price_asc)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
             // THEN
-            assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesFilterByPenthouse())
+            assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesSortedByPriceAsc())
 
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
-                filterRealEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
-                sortReaEstateUseCase.invoke(PENTHOUSE_FILTER_ID)
+                setCurrentSortFilterParametersUseCase.invoke(R.id.sort_by_price_asc)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -508,10 +564,12 @@ class RealEstatesListViewModelTest {
 
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -524,10 +582,10 @@ class RealEstatesListViewModelTest {
     @Test
     fun `get all real estates with user click on space in search bar`() = testCoroutineRule.runTest {
         // GIVEN
-        realEstatesListViewModel.onSearchQueryChanged(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
+        justRun { setSearchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE) }
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
 
-        coJustRun { searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE) }
-        coEvery { getRealEstateSearchUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
+        realEstatesListViewModel.onSearchQueryChanged(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -537,6 +595,10 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                setSearchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
+                getSearchRealEstateUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -568,16 +630,14 @@ class RealEstatesListViewModelTest {
                 )
             }
 
-            coVerify {
-                searchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
-            }
-
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -589,8 +649,8 @@ class RealEstatesListViewModelTest {
         // GIVEN
         realEstatesListViewModel.onSearchQueryChanged(DEFAULT_SEARCH_UPPER_EAST_SIDE)
 
-        coJustRun { searchRealEstateUseCase.invoke(DEFAULT_SEARCH_UPPER_EAST_SIDE) }
-        coEvery { getRealEstateSearchUseCase.invoke() } returns flowOf(DEFAULT_SEARCH_UPPER_EAST_SIDE)
+        justRun { setSearchRealEstateUseCase.invoke(DEFAULT_SEARCH_UPPER_EAST_SIDE) }
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_SEARCH_UPPER_EAST_SIDE)
 
         // WHEN
         realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
@@ -600,6 +660,10 @@ class RealEstatesListViewModelTest {
             verify {
                 getAllRealEstatesUseCase.invoke()
                 searchRepository.getCurrentFilterParametersFlow()
+                setSearchRealEstateUseCase.invoke(DEFAULT_SEARCH_UPPER_EAST_SIDE)
+                getSearchRealEstateUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getCurrentSortFilterParametersUseCase.invoke()
 
                 application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
                 application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
@@ -631,16 +695,14 @@ class RealEstatesListViewModelTest {
                 )
             }
 
-            coVerify {
-                searchRealEstateUseCase.invoke(DEFAULT_SEARCH_UPPER_EAST_SIDE)
-            }
-
             confirmVerified(
                 getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
                 searchRepository,
-                searchRealEstateUseCase,
-                filterRealEstateUseCase,
-                sortReaEstateUseCase,
                 testCoroutineRule.getTestCoroutineDispatcherProvider(),
                 application
             )
@@ -663,6 +725,10 @@ class RealEstatesListViewModelTest {
 
     private fun getDefaultRealEstatesListViewStatesFilterByPenthouse(): List<RealEstatesListViewState> {
         return listOf(getDefaultFirstRealEstatesListViewState())
+    }
+
+    private fun getDefaultRealEstatesListViewStatesSortedByPriceAsc(): List<RealEstatesListViewState> {
+        return listOf(getDefaultSecondRealEstatesListViewState(), getDefaultFirstRealEstatesListViewState())
     }
 
     private fun getDefaultRealEstatesListViewStatesFilterByUpperEastSide(): List<RealEstatesListViewState> {

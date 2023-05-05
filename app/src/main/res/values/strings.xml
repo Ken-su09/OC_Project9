@@ -56,6 +56,7 @@
 
     <string name="filter_by">Filter by :</string>
     <string name="remove_filter">Remove filter</string>
+    <string name="apartement_filter">Apartment</string>
     <string name="house_filter">House</string>
     <string name="penthouse_filter">Penthouse</string>
     <string name="duplex_filter">Duplex</string>

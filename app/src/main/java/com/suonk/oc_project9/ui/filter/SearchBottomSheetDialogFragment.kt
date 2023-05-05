@@ -4,9 +4,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.FilterRealEstateBottomSheetBinding
+import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsFragmentDirections
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,6 +21,10 @@ class SearchBottomSheetDialogFragment : BottomSheetDialogFragment(R.layout.filte
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         setupEditTextsContentWithViewModel()
         setupButtons()
+
+        viewModel.finishSavingSingleLiveEvent.observe(viewLifecycleOwner) {
+            dismiss()
+        }
     }
 
     private fun setupButtons() {
@@ -33,9 +39,6 @@ class SearchBottomSheetDialogFragment : BottomSheetDialogFragment(R.layout.filte
                 binding.nbBedroomsMin.text?.toString(),
                 binding.nbBedroomsMax.text?.toString()
             )
-        }
-        binding.resetFilter.setOnClickListener {
-            viewModel.onResetFiltersClicked()
         }
     }
 

@@ -11,11 +11,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:text="@string/living_space_title"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="@string/living_space_title" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/living_space_min"
@@ -47,11 +47,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:text="@string/price_title"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/living_space_min"
-        tools:text="@string/price_title" />
+        app:layout_constraintTop_toBottomOf="@+id/living_space_min" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/price_min"
@@ -83,11 +83,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:text="@string/nb_rooms_title"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/price_min"
-        tools:text="@string/nb_rooms_title" />
+        app:layout_constraintTop_toBottomOf="@+id/price_min" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/nb_rooms_min"
@@ -119,11 +119,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:text="@string/nb_bedrooms_title"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nb_rooms_min"
-        tools:text="@string/nb_bedrooms_title" />
+        app:layout_constraintTop_toBottomOf="@+id/nb_rooms_min" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/nb_bedrooms_min"
@@ -155,11 +155,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:text="@string/entry_date"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms_min"
-        tools:text="@string/entry_date" />
+        app:layout_constraintTop_toBottomOf="@+id/nb_bedrooms_min" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/entry_date_from_layout"
@@ -205,11 +205,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:text="@string/sale_date"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/entry_date_from_layout"
-        tools:text="@string/sale_date" />
+        app:layout_constraintTop_toBottomOf="@+id/entry_date_from_layout" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/sale_date_from_layout"
@@ -249,35 +249,14 @@
             android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="invisible"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/item_search_list" />
-
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/filter_validation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="@string/validate_filtering"
-        app:layout_constraintEnd_toStartOf="@+id/reset_filter"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/list" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/reset_filter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/reset_filter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/filter_validation"
-        app:layout_constraintTop_toBottomOf="@+id/list" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sale_date_to_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,7 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
 import android.app.Application
-import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -9,21 +9,20 @@ import androidx.lifecycle.viewModelScope
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository
 import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.SearchRealEstateUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.FilterRealEstateUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.GetRealEstateSearchUseCase
-import com.suonk.oc_project9.domain.real_estate.filter.SortReaEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.search.SetSearchRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.search.GetSearchRealEstateUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetCurrentSortFilterParametersUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetSortingParametersUseCase
+import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.SetCurrentSortFilterParametersUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.EquatableCallback
 import com.suonk.oc_project9.utils.SingleLiveEvent
 import com.suonk.oc_project9.utils.sort.Sorting
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -31,17 +30,18 @@ import javax.inject.Inject
 @HiltViewModel
 class RealEstatesListViewModel @Inject constructor(
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase,
-    private val getRealEstateSearchUseCase: GetRealEstateSearchUseCase,
+    private val getSearchRealEstateUseCase: GetSearchRealEstateUseCase,
+    private val setSearchRealEstateUseCase: SetSearchRealEstateUseCase,
+
+    private val getCurrentSortFilterParametersUseCase: GetCurrentSortFilterParametersUseCase,
+    private val setCurrentSortFilterParametersUseCase: SetCurrentSortFilterParametersUseCase,
+
+    private val getSortingParametersUseCase: GetSortingParametersUseCase,
+
     private val searchRepository: SearchRepository,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
-    private val searchRealEstateUseCase: SearchRealEstateUseCase,
-    private val filterRealEstateUseCase: FilterRealEstateUseCase,
-    private val sortReaEstateUseCase: SortReaEstateUseCase,
     private val application: Application,
 ) : ViewModel() {
-
-    private val sortingMutableStateFlow = MutableStateFlow(Sorting.DATE_ASC)
-    private val filteringMutableStateFlow = MutableStateFlow(R.id.remove_filter)
 
     val toastMessageSingleLiveEvent = SingleLiveEvent<String>()
 
@@ -56,19 +56,25 @@ class RealEstatesListViewModel @Inject constructor(
     val realEstateLiveData: LiveData<List<RealEstatesListViewState>> = liveData(coroutineDispatcherProvider.io) {
         combine(
             getAllRealEstatesUseCase.invoke(),
-            sortingMutableStateFlow,
-            filteringMutableStateFlow,
-            getRealEstateSearchUseCase.invoke(),
+            getSortingParametersUseCase.invoke(),
+            getCurrentSortFilterParametersUseCase.invoke(),
+            getSearchRealEstateUseCase.invoke(),
             searchRepository.getCurrentFilterParametersFlow()
         ) { entities: List<RealEstateEntityWithPhotos>, sorting, filterId, search, filters ->
             val list = entities.asSequence().filter { realEstate ->
-                filters.all { it.isMatching(realEstate) }
+                filters.all {
+                    it.isMatching(realEstate)
+                }
             }.sortedWith(sorting.comparator).map {
                 transformEntityToViewState(it)
             }.filter {
                 when (filterId) {
                     R.id.remove_filter -> {
+                        println("Test")
                         it.id != 0L
+                    }
+                    R.id.apartment_filter -> {
+                        it.type.contains("Apartment")
                     }
                     R.id.house_filter -> {
                         it.type.contains("House")
@@ -86,7 +92,7 @@ class RealEstatesListViewModel @Inject constructor(
                         it.type.contains("Loft")
                     }
                     else -> {
-                        it.id != 0L
+                        false
                     }
                 }
             }.filter {
@@ -141,15 +147,17 @@ class RealEstatesListViewModel @Inject constructor(
     }
 
     fun onSearchQueryChanged(search: String) {
-        searchRealEstateUseCase.invoke(search)
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+            setSearchRealEstateUseCase.invoke(search)
+        }
     }
 
     fun onSortedOrFilterClicked(itemId: Int) {
-        viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val filterFlow = filterRealEstateUseCase.invoke(itemId).firstOrNull() ?: R.id.remove_filter // TODO Kenzy use unidirectionnal flows
-            val sortFlow = sortReaEstateUseCase.invoke(itemId).firstOrNull() ?: Sorting.DATE_ASC
-            filteringMutableStateFlow.tryEmit(filterFlow)
-            sortingMutableStateFlow.tryEmit(sortFlow)
+        println("itemId : $itemId")
+        if (itemId != R.id.filter_by && itemId != R.id.sort_by) {
+            viewModelScope.launch(coroutineDispatcherProvider.io) {
+                setCurrentSortFilterParametersUseCase.invoke(itemId)
+            }
         }
     }
 }
