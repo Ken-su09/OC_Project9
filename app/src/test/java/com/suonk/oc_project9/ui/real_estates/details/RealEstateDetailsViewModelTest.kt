@@ -1,6 +1,7 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.content.Context
+import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -28,7 +29,9 @@ import kotlinx.coroutines.flow.flowOf
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 import java.math.BigDecimal
+import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -149,6 +152,8 @@ class RealEstateDetailsViewModelTest {
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase = mockk()
     private val context: Context = mockk()
     private val navArgProducer: NavArgProducer = mockk()
+
+    private val mockUriPhoto_1 = mock(Uri::class.java)
 
     private val fixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
 
@@ -365,11 +370,7 @@ class RealEstateDetailsViewModelTest {
                 context.getString(R.string.fields_are_not_digits)
             }
             confirmVerified(
-                upsertNewRealEstateUseCase,
-                getRealEstateFlowByIdUseCase,
-                getNearbyPointsOfInterestUseCase,
-                context,
-                navArgProducer
+                upsertNewRealEstateUseCase, getRealEstateFlowByIdUseCase, getNearbyPointsOfInterestUseCase, context, navArgProducer
             )
         }
     }
@@ -444,6 +445,60 @@ class RealEstateDetailsViewModelTest {
 
     // TESTS PHOTO
 
+    @Test
+    fun `try to add a new photo`() = testCoroutineRule.runTest {
+        realEstateDetailsViewModel.onNewPhotoAdded(mockUriPhoto_1)
+
+        // WHEN
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
+
+            coVerify(exactly = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+            }
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                context,
+                navArgProducer
+            )
+        }
+    }
+
+    @Test
+    fun `try to delete a photo`() = testCoroutineRule.runTest {
+        realEstateDetailsViewModel.onPhotoDeleted(getDefaultRealEstateDetailsViewState().photos[2].uri)
+
+//        "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
+
+        // WHEN
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
+
+            coVerify(exactly = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+            }
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                context,
+                navArgProducer
+            )
+        }
+    }
+
 
     //region ================================================================ DETAILS ===============================================================
 
@@ -459,6 +514,33 @@ class RealEstateDetailsViewModelTest {
             numberBathroom = DEFAULT_NUMBER_BATHROOM_STRING,
             description = DEFAULT_DESCRIPTION,
             photos = getDefaultPhotoViewStates(),
+            city = DEFAULT_CITY,
+            postalCode = DEFAULT_POSTAL_CODE,
+            state = DEFAULT_STATE,
+            streetName = DEFAULT_STREET_NAME,
+            gridZone = DEFAULT_GRID_ZONE,
+            latitude = DEFAULT_LAT,
+            longitude = DEFAULT_LONG,
+            noPhoto = false,
+            entryDate = Instant.now(fixedClock),
+            saleDate = null,
+            isSold = false,
+            pointsOfInterest = arrayListOf(),
+        )
+    }
+
+    private fun getDefaultRealEstateDetailsViewStateAfterPhotoDeleted(): RealEstateDetailsViewState {
+        return RealEstateDetailsViewState(
+            id = DEFAULT_ID,
+            type = DEFAULT_TYPE,
+            typePosition = DEFAULT_TYPE_POSITION,
+            price = DEFAULT_PRICE_STRING,
+            livingSpace = DEFAULT_LIVING_SPACE_STRING,
+            numberRooms = DEFAULT_NUMBER_ROOM_STRING,
+            numberBedroom = DEFAULT_NUMBER_BEDROOM_STRING,
+            numberBathroom = DEFAULT_NUMBER_BATHROOM_STRING,
+            description = DEFAULT_DESCRIPTION,
+            photos = getDefaultPhotoViewStatesAfterDeletedPhoto(),
             city = DEFAULT_CITY,
             postalCode = DEFAULT_POSTAL_CODE,
             state = DEFAULT_STATE,
@@ -521,6 +603,15 @@ class RealEstateDetailsViewModelTest {
             DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {}),
             DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
+                EquatableCallback {})
+        )
+    }
+
+    private fun getDefaultPhotoViewStatesAfterDeletedPhoto(): List<DetailsPhotoViewState> {
+        return listOf(
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+                EquatableCallback {}),
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }

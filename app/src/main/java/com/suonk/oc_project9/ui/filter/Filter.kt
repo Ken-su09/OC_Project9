@@ -1,6 +1,5 @@
 package com.suonk.oc_project9.ui.filter
 
-import android.util.Log
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -11,14 +10,8 @@ sealed class Filter {
 
     data class LivingSpaceFilter(val min: Double?, val max: Double?) : Filter() {
         override fun isMatching(entity: RealEstateEntityWithPhotos): Boolean {
-//            Log.i("FilterWithMoreCriteria", "min : $min")
-//            Log.i("FilterWithMoreCriteria", "max : $max")
-//            Log.i("FilterWithMoreCriteria", "entity.realEstateEntity.livingSpace : ${entity.realEstateEntity.livingSpace}")
             return when {
                 min == null && max != null -> {
-//                    Log.i(
-//                        "FilterWithMoreCriteria", "entity.realEstateEntity.livingSpace < max : ${entity.realEstateEntity.livingSpace < max}"
-//                    )
                     entity.realEstateEntity.livingSpace < max
                 }
                 max == null && min != null -> {

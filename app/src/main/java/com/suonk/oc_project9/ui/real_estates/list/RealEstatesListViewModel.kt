@@ -70,7 +70,6 @@ class RealEstatesListViewModel @Inject constructor(
             }.filter {
                 when (filterId) {
                     R.id.remove_filter -> {
-                        println("Test")
                         it.id != 0L
                     }
                     R.id.apartment_filter -> {
@@ -92,7 +91,7 @@ class RealEstatesListViewModel @Inject constructor(
                         it.type.contains("Loft")
                     }
                     else -> {
-                        false
+                        it.id != 0L
                     }
                 }
             }.filter {
@@ -153,7 +152,6 @@ class RealEstatesListViewModel @Inject constructor(
     }
 
     fun onSortedOrFilterClicked(itemId: Int) {
-        println("itemId : $itemId")
         if (itemId != R.id.filter_by && itemId != R.id.sort_by) {
             viewModelScope.launch(coroutineDispatcherProvider.io) {
                 setCurrentSortFilterParametersUseCase.invoke(itemId)

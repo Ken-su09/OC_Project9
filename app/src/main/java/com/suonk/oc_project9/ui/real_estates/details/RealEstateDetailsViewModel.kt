@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.suonk.oc_project9.R
+import com.suonk.oc_project9.domain.photo.AddNewPhotoUseCase
+import com.suonk.oc_project9.domain.photo.DeletePhotoUseCase
+import com.suonk.oc_project9.domain.photo.GetPhotosListByIdUseCase
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
@@ -33,6 +36,9 @@ class RealEstateDetailsViewModel @Inject constructor(
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase,
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
+    private val getPhotosListByIdUseCase: GetPhotosListByIdUseCase,
+    private val addNewPhotoUseCase: AddNewPhotoUseCase,
+    private val deletePhotoUseCase: DeletePhotoUseCase,
     @ApplicationContext private val context: Context,
     private val navArgProducer: NavArgProducer,
     private val clock: Clock
@@ -49,10 +55,6 @@ class RealEstateDetailsViewModel @Inject constructor(
     fun onSoldRealEstateClick() {
         isSoldMutableStateFlow.update { !it }
     }
-
-    data class AggregatedPhoto(
-        val uri: String,
-    )
 
     val realEstateDetailsViewStateLiveData: LiveData<RealEstateDetailsViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(
@@ -91,6 +93,7 @@ class RealEstateDetailsViewModel @Inject constructor(
             )
         }.collect()
     }
+
 
     init {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
@@ -132,7 +135,6 @@ class RealEstateDetailsViewModel @Inject constructor(
                     lat = realEstateEntityWithPhotos.realEstateEntity.latitude, long = realEstateEntityWithPhotos.realEstateEntity.longitude
                 )
 
-//                val price = NumberFormat.getInstance(Locale.getDefault()).format(realEstateEntityWithPhotos.realEstateEntity.price)
                 val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
 
                 // Update mode
@@ -168,8 +170,17 @@ class RealEstateDetailsViewModel @Inject constructor(
                 )
                 isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
 
-                val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
-                photosMutableStateFlow.emit(photos)
+
+                val photos = getPhotosListByIdUseCase.invoke(id).firstOrNull()
+                val photoToEmit = photos?.map {
+                    AggregatedPhoto(it.id, it.photo)
+                }?.toSet()
+
+                //                val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
+
+                if (photoToEmit != null) {
+                    photosMutableStateFlow.emit(photoToEmit)
+                }
             }
         }
     }
@@ -284,20 +295,20 @@ class RealEstateDetailsViewModel @Inject constructor(
     //region ================================================================== PHOTO ==================================================================
 
     fun onNewPhotoAdded(photo: Uri) {
-        photosMutableStateFlow.update { list ->
-            if (list.contains(AggregatedPhoto(photo.toString()))) {
-                toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
-                list
-            } else {
-                list + AggregatedPhoto(photo.toString())
-            }
-        }
+//        photosMutableStateFlow.update { list ->
+//            if (list.contains(AggregatedPhoto(photo.toString()))) {
+//                toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
+//                list
+//            } else {
+//                list + AggregatedPhoto(photo.toString())
+//            }
+//        }
     }
 
-    private fun onPhotoDeleted(photo: String) {
-        photosMutableStateFlow.update {
-            it - AggregatedPhoto(photo)
-        }
+    fun onPhotoDeleted(photo: String) {
+//        photosMutableStateFlow.update {
+//            it - AggregatedPhoto(photo)
+//        }
     }
 
     //endregion
