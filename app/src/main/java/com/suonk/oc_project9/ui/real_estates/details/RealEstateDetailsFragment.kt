@@ -41,6 +41,8 @@ import com.suonk.oc_project9.databinding.FragmentRealEstateDetailsBinding
 import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestListAdapter
 import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListAdapter
 import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListFragmentDirections
+import com.suonk.oc_project9.utils.NativeText
+import com.suonk.oc_project9.utils.showToast
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
@@ -68,17 +70,8 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         viewModel.finishSavingSingleLiveEvent.observe(viewLifecycleOwner) {
             findNavController().navigate(RealEstateDetailsFragmentDirections.actionDetailsToList())
         }
-        viewModel.isFieldEmptySingleLiveEvent.observe(viewLifecycleOwner) {
-            it?.let { isError ->
-                if (isError) {
-                    Toast.makeText(requireContext(), requireContext().getString(R.string.field_empty_toast_msg), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
         viewModel.toastMessageSingleLiveEvent.observe(viewLifecycleOwner) {
-            it?.let { toastMessage ->
-                Toast.makeText(requireContext(), toastMessage, Toast.LENGTH_SHORT).show()
-            }
+            it.showToast(requireContext())
         }
     }
 
@@ -132,17 +125,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                             gridZone = binding.gridZone.text?.toString() ?: ""
                         )
 
-                        viewModel.isFieldEmptySingleLiveEvent.observe(viewLifecycleOwner) {
-                            it?.let { isError ->
-                                if (!isError) {
-                                    findNavController().navigate(RealEstateDetailsFragmentDirections.actionDetailsToList())
-                                } else {
-                                    Toast.makeText(
-                                        requireContext(), requireContext().getString(R.string.field_empty_toast_msg), Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        }
                         true
                     }
                     R.id.action_add_image -> {
@@ -281,7 +263,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let {
-                viewModel.onNewPhotoAdded(it)
+                viewModel.onNewPhotoAdded(it.toString())
             }
 
             imageUri?.let {
@@ -297,7 +279,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width / 10, bitmap.height / 10, true)
                 bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 
-                viewModel.onNewPhotoAdded(getImageUri(requireContext(), bitmap))
+                viewModel.onNewPhotoAdded(getImageUri(requireContext(), bitmap).toString())
             }
         }
     }

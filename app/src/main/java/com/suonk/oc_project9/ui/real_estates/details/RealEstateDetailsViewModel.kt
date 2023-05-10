@@ -16,10 +16,7 @@ import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
 import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
-import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
-import com.suonk.oc_project9.utils.EquatableCallback
-import com.suonk.oc_project9.utils.NavArgProducer
-import com.suonk.oc_project9.utils.SingleLiveEvent
+import com.suonk.oc_project9.utils.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -42,8 +39,7 @@ class RealEstateDetailsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
-    val isFieldEmptySingleLiveEvent = SingleLiveEvent<Boolean>()
-    val toastMessageSingleLiveEvent = SingleLiveEvent<String>()
+    val toastMessageSingleLiveEvent = SingleLiveEvent<NativeText>()
 
     private var realEstateDetailsViewStateMutableSharedFlow = MutableSharedFlow<RealEstateDetailsViewState>(replay = 1)
     private val photosMutableStateFlow = MutableStateFlow<Set<AggregatedPhoto>>(setOf())
@@ -57,7 +53,6 @@ class RealEstateDetailsViewModel @Inject constructor(
         combine(
             realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
         ) { detailsViewState, aggregatedPhotos, isSold ->
-
             emit(
                 RealEstateDetailsViewState(
                     id = detailsViewState.id,
@@ -71,11 +66,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                     description = detailsViewState.description,
                     photos = aggregatedPhotos.map {
                         DetailsPhotoViewState(it.uri, onDeleteCallback = EquatableCallback {
-//                            viewModelScope.launch(coroutineDispatcherProvider.io) {
-//                                deletePhotoUseCase.invoke(PhotoEntity(it.id, detailsViewState.id, it.uri))
-//                            }
                             onPhotoDeleted(it.uri)
-
                         })
                     },
                     city = detailsViewState.city,
@@ -178,12 +169,6 @@ class RealEstateDetailsViewModel @Inject constructor(
                 )
                 isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
 
-//                val photos = getPhotosListByIdUseCase.invoke(id).firstOrNull()
-//                val photoToEmit = photos?.map { AggregatedPhoto(it.photo) }?.toSet()
-//                if (photoToEmit != null) {
-//                    photosMutableStateFlow.emit(photoToEmit)
-//                }
-
                 val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
                 photosMutableStateFlow.tryEmit(photos)
             }
@@ -220,21 +205,18 @@ class RealEstateDetailsViewModel @Inject constructor(
 
             if (isFieldEmpty) {
                 withContext(coroutineDispatcherProvider.main) {
-                    toastMessageSingleLiveEvent.value = application.getString(R.string.field_empty_toast_msg)
+                    toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.field_empty_toast_msg))
                 }
             } else if (isFieldsAreNotDigits) {
                 withContext(coroutineDispatcherProvider.main) {
-                    toastMessageSingleLiveEvent.value = application.getString(R.string.fields_are_not_digits)
+                    toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.fields_are_not_digits))
                 }
             } else {
-                val photos = photosMutableStateFlow.replayCache.first().distinct()
+                val photos = photosMutableStateFlow.value
 
-                val entryDate =
-                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate ?: ZonedDateTime.now(clock).toInstant()
-
+                val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(clock).toInstant()
                 val saleDate = if (isSoldMutableStateFlow.value) {
-                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: ZonedDateTime.now(clock).toInstant()
-                        .toEpochMilli()
+                    realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(clock).toInstant().toEpochMilli()
                 } else {
                     null
                 }
@@ -286,14 +268,14 @@ class RealEstateDetailsViewModel @Inject constructor(
                         longitude = position.long,
                         agentInChargeId = 1L
                     ),
-                    photos = photos,
+                    photos = photos.toList(),
                 )
 
                 withContext(coroutineDispatcherProvider.main) {
-                    finishSavingSingleLiveEvent.value = Unit
+                    finishSavingSingleLiveEvent.setValue(Unit)
 
                     if (navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L) {
-                        toastMessageSingleLiveEvent.value = application.getString(R.string.new_real_estate_is_added)
+                        toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.new_real_estate_is_added))
                     }
                 }
             }
@@ -316,23 +298,14 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     //region ================================================================== PHOTO ==================================================================
 
-    fun onNewPhotoAdded(photo: Uri) {
-        photosMutableStateFlow.update { list ->
-            println("photo : $photo")
-            println("list : $list")
-
-            if (list.contains(AggregatedPhoto(photo.toString()))) {
-                toastMessageSingleLiveEvent.value = application.getString(R.string.image_already_in_list)
-                list
+    fun onNewPhotoAdded(photo: String) {
+        photosMutableStateFlow.update { set ->
+            if (set.contains(AggregatedPhoto(photo))) {
+                toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.image_already_in_list))
+                set
             } else {
-                println("AggregatedPhoto(photo.toString()) : ${AggregatedPhoto(photo.toString())}")
-
-                list + AggregatedPhoto(photo.toString())
+                set + AggregatedPhoto(photo)
             }
-        }
-
-        viewModelScope.launch(coroutineDispatcherProvider.io) {
-            println("photosMutableStateFlow : ${photosMutableStateFlow.firstOrNull()}")
         }
     }
 

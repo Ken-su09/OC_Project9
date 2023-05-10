@@ -141,7 +141,7 @@ class RealEstatesListViewModel @Inject constructor(
             saleDate = entity.realEstateEntity.saleDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")).orEmpty(),
             isSold = entity.realEstateEntity.saleDate != null,
             onClickedCallback = EquatableCallback {
-                realEstatesViewAction.value = RealEstatesViewAction.Navigate.Detail(entity.realEstateEntity.id)
+                realEstatesViewAction.setValue(RealEstatesViewAction.Navigate.Detail(entity.realEstateEntity.id))
             })
     }
 

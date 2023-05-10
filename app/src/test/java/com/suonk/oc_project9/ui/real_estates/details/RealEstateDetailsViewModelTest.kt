@@ -26,6 +26,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runCurrent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -129,6 +130,9 @@ class RealEstateDetailsViewModelTest {
         private const val WRONG_NUMBER_BEDROOM_STRING = "WRONG_NUMBER_BEDROOM_STRING"
         private const val WRONG_NUMBER_BATHROOM_STRING = "WRONG_NUMBER_BATHROOM_STRING"
 
+        private const val PHOTO_TO_ADD = "PHOTO_TO_ADD"
+        private const val PHOTO_ALREADY_ON_LIST = "This photo is already on the list"
+
         private fun realEstateTypeToSpinnerPosition(type: String): Int {
             val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
             return types.indexOf(type)
@@ -153,8 +157,6 @@ class RealEstateDetailsViewModelTest {
 
     private val application: Application = mockk()
     private val navArgProducer: NavArgProducer = mockk()
-
-    private val firstMockUriPhoto = mock(Uri::class.java)
 
     private val fixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
 
@@ -524,102 +526,56 @@ class RealEstateDetailsViewModelTest {
 
     // TESTS PHOTO
 
-//    @Test
-//    fun `try to add a new photo then update`() = testCoroutineRule.runTest {
-//        // GIVEN
-//        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
-//        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-//        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
-//        every {
-//            application.getString(
-//                R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
-//            )
-//        } returns DEFAULT_FULL_ADDRESS
-//        every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
-//        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application) } returns DEFAULT_POSITION
-//
-//        realEstateDetailsViewModel.onNewPhotoAdded(firstMockUriPhoto)
-//
-//        coJustRun {
-//            upsertNewRealEstateUseCase.invoke(
-//                realEstate = getDefaultRealEstateEntityToUpdate(),
-//                photos = getDefaultAggregatedPhotosToUpdate()
-//            )
-//        }
-//
-//        realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
-//            type = getDefaultRealEstateDetailsViewStateToUpdate().typePosition,
-//            price = getDefaultRealEstateDetailsViewStateToUpdate().price,
-//            livingSpace = getDefaultRealEstateDetailsViewStateToUpdate().livingSpace,
-//            numberRooms = getDefaultRealEstateDetailsViewStateToUpdate().numberRooms,
-//            numberBedroom = getDefaultRealEstateDetailsViewStateToUpdate().numberBedroom,
-//            numberBathroom = getDefaultRealEstateDetailsViewStateToUpdate().numberBathroom,
-//            description = getDefaultRealEstateDetailsViewStateToUpdate().description,
-//            postalCode = getDefaultRealEstateDetailsViewStateToUpdate().postalCode,
-//            state = getDefaultRealEstateDetailsViewStateToUpdate().state,
-//            city = getDefaultRealEstateDetailsViewStateToUpdate().city,
-//            streetName = getDefaultRealEstateDetailsViewStateToUpdate().streetName,
-//            gridZone = getDefaultRealEstateDetailsViewStateToUpdate().gridZone
-//        )
-//
-//        // WHEN
-//        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
-//            // THEN
-//            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
-//
-//            verify(atLeast = 1) {
-//                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
-//                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-//                application.getString(
-//                    R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
-//                )
-//                application.getString(R.string.real_estate_status_available)
-//            }
-//            coVerify {
-//                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application)
-//                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
-//                upsertNewRealEstateUseCase.invoke(
-//                    getDefaultRealEstateEntityToUpdate(), getDefaultAggregatedPhotosToUpdate()
-//                )
-//            }
-//            confirmVerified(
-//                upsertNewRealEstateUseCase,
-//                getRealEstateFlowByIdUseCase,
-//                getPositionFromFullAddressUseCase,
-//                getNearbyPointsOfInterestUseCase,
-//                application,
-//                navArgProducer
-//            )
-//        }
-//    }
-//
-//    @Test
-//    fun `try to delete a photo`() = testCoroutineRule.runTest {
-//        realEstateDetailsViewModel.onPhotoDeleted(getDefaultRealEstateDetailsViewState().photos[2].uri)
-//
-////        "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
-//
-//        // WHEN
-//        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
-//
-//            // THEN
-//            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
-//
-//            coVerify(exactly = 1) {
-//                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
-//                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-//                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
-//            }
-//            confirmVerified(
-//                upsertNewRealEstateUseCase,
-//                getRealEstateFlowByIdUseCase,
-//                getPositionFromFullAddressUseCase,
-//                getNearbyPointsOfInterestUseCase,
-//                application,
-//                navArgProducer
-//            )
-//        }
-//    }
+    @Test
+    fun `try to add a new photo`() = testCoroutineRule.runTest {
+        // GIVEN
+        runCurrent()
+
+        // WHEN
+        realEstateDetailsViewModel.onNewPhotoAdded(PHOTO_TO_ADD)
+
+        // THEN
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoAdded())
+        }
+    }
+
+    @Test
+    fun `try to add an existing photo`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { application.getString(R.string.image_already_in_list) } returns PHOTO_ALREADY_ON_LIST
+
+        runCurrent()
+
+        // WHEN
+        realEstateDetailsViewModel.onNewPhotoAdded(getDefaultRealEstateDetailsViewState().photos[2].uri)
+
+        // THEN
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
+
+            verify(exactly = 1) {
+                application.getString(R.string.image_already_in_list)
+            }
+        }
+    }
+
+    @Test
+    fun `try to delete a photo`() = testCoroutineRule.runTest {
+        // GIVEN
+        runCurrent()
+
+        // WHEN
+        realEstateDetailsViewModel.onPhotoDeleted(getDefaultRealEstateDetailsViewState().photos[2].uri)
+
+//        "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
+
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
+        }
+    }
 
 
     //region ================================================================ DETAILS ===============================================================
@@ -636,6 +592,33 @@ class RealEstateDetailsViewModelTest {
             numberBathroom = DEFAULT_NUMBER_BATHROOM_STRING,
             description = DEFAULT_DESCRIPTION,
             photos = getDefaultPhotoViewStates(),
+            city = DEFAULT_CITY,
+            postalCode = DEFAULT_POSTAL_CODE,
+            state = DEFAULT_STATE,
+            streetName = DEFAULT_STREET_NAME,
+            gridZone = DEFAULT_GRID_ZONE,
+            latitude = DEFAULT_LAT,
+            longitude = DEFAULT_LONG,
+            noPhoto = false,
+            entryDate = Instant.now(fixedClock),
+            saleDate = null,
+            isSold = false,
+            pointsOfInterest = arrayListOf(),
+        )
+    }
+
+    private fun getDefaultRealEstateDetailsViewStateAfterPhotoAdded(): RealEstateDetailsViewState {
+        return RealEstateDetailsViewState(
+            id = DEFAULT_ID,
+            type = DEFAULT_TYPE,
+            typePosition = DEFAULT_TYPE_POSITION,
+            price = DEFAULT_PRICE_STRING,
+            livingSpace = DEFAULT_LIVING_SPACE_STRING,
+            numberRooms = DEFAULT_NUMBER_ROOM_STRING,
+            numberBedroom = DEFAULT_NUMBER_BEDROOM_STRING,
+            numberBathroom = DEFAULT_NUMBER_BATHROOM_STRING,
+            description = DEFAULT_DESCRIPTION,
+            photos = getDefaultPhotoViewStatesToUpdate(),
             city = DEFAULT_CITY,
             postalCode = DEFAULT_POSTAL_CODE,
             state = DEFAULT_STATE,
@@ -959,7 +942,7 @@ class RealEstateDetailsViewModelTest {
             AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"),
             AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"),
             AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"),
-            AggregatedPhoto(uri = firstMockUriPhoto.toString())
+            AggregatedPhoto(uri = PHOTO_TO_ADD)
         )
     }
 

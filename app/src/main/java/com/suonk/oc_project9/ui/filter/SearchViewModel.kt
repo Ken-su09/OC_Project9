@@ -397,7 +397,7 @@ class SearchViewModel @Inject constructor(
 //                }
 //            }
 //        }
-        finishSavingSingleLiveEvent.value = Unit
+        finishSavingSingleLiveEvent.setValue(Unit)
     }
 
     private fun updateFilter(min: String?, max: String?, filterType: FilterType) {

@@ -19,34 +19,25 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Note that only one observer is going to be notified of changes.
  */
-class SingleLiveEvent<T> : MutableLiveData<T?>() {
-    private val mPending = AtomicBoolean(false)
+class SingleLiveEvent<T> : MutableLiveData<T>() {
+    private val pending = AtomicBoolean(false)
 
     @MainThread
-    override fun observe(owner: LifecycleOwner, observer: Observer<in T?>) {
+    override fun observe(owner: LifecycleOwner, observer: Observer<in T>) {
         if (hasActiveObservers()) {
             Log.w(TAG, "Multiple observers registered but only one will be notified of changes.")
         }
-        super.observe(owner,
-            Observer { t: T? ->
-                if (mPending.compareAndSet(true, false)) {
-                    observer.onChanged(t)
-                }
-            })
+        super.observe(owner) { t: T ->
+            if (pending.compareAndSet(true, false)) {
+                observer.onChanged(t)
+            }
+        }
     }
 
     @MainThread
-    override fun setValue(t: T?) {
-        mPending.set(true)
+    override fun setValue(t: T) {
+        pending.set(true)
         super.setValue(t)
-    }
-
-    /**
-     * Used for cases where T is Void, to make calls cleaner.
-     */
-    @MainThread
-    fun call() {
-        value = null
     }
 
     companion object {
