@@ -1,11 +1,15 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
+import com.suonk.oc_project9.domain.photo.AddNewPhotoUseCase
+import com.suonk.oc_project9.domain.photo.DeletePhotoUseCase
+import com.suonk.oc_project9.domain.photo.GetPhotosListByIdUseCase
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
@@ -31,7 +35,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import java.math.BigDecimal
-import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -150,7 +153,11 @@ class RealEstateDetailsViewModelTest {
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase = mockk()
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase = mockk()
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase = mockk()
-    private val context: Context = mockk()
+    private val addNewPhotoUseCase: AddNewPhotoUseCase = mockk()
+    private val deletePhotoUseCase: DeletePhotoUseCase = mockk()
+    private val getPhotosListByIdUseCase: GetPhotosListByIdUseCase = mockk()
+
+    private val application: Application = mockk()
     private val navArgProducer: NavArgProducer = mockk()
 
     private val mockUriPhoto_1 = mock(Uri::class.java)
@@ -163,7 +170,10 @@ class RealEstateDetailsViewModelTest {
         getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
         getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
-        context = context,
+        addNewPhotoUseCase = addNewPhotoUseCase,
+        deletePhotoUseCase = deletePhotoUseCase,
+        getPhotosListByIdUseCase = getPhotosListByIdUseCase,
+        application = application,
         navArgProducer = navArgProducer,
         clock = fixedClock
     )
@@ -193,7 +203,10 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                context,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
                 navArgProducer
             )
         }
@@ -219,7 +232,10 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                context,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
                 navArgProducer
             )
         }
@@ -234,13 +250,13 @@ class RealEstateDetailsViewModelTest {
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every {
-            context.getString(
+            application.getString(
                 R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
             )
         } returns DEFAULT_FULL_ADDRESS
-        every { context.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
-        every { context.getString(R.string.new_real_estate_is_added) } returns ADD_SUCCESSFUL
-        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, context) } returns DEFAULT_POSITION
+        every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
+        every { application.getString(R.string.new_real_estate_is_added) } returns ADD_SUCCESSFUL
+        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application) } returns DEFAULT_POSITION
 
         coJustRun {
             upsertNewRealEstateUseCase.invoke(
@@ -272,14 +288,14 @@ class RealEstateDetailsViewModelTest {
             verify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
-                context.getString(
+                application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
                 )
-                context.getString(R.string.real_estate_status_available)
-                context.getString(R.string.new_real_estate_is_added)
+                application.getString(R.string.real_estate_status_available)
+                application.getString(R.string.new_real_estate_is_added)
             }
             coVerify {
-                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, context)
+                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application)
                 upsertNewRealEstateUseCase.invoke(
                     getDefaultRealEstateEntityToAdd(), getDefaultAggregatedPhotosToAdd()
                 )
@@ -289,7 +305,10 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                context,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
                 navArgProducer
             )
         }
@@ -299,7 +318,7 @@ class RealEstateDetailsViewModelTest {
     fun `try to insert a real estate with empty fields`() = testCoroutineRule.runTest {
         // GIVEN
         every {
-            context.getString(R.string.field_empty_toast_msg)
+            application.getString(R.string.field_empty_toast_msg)
         } returns FIELD_EMPTY_TOAST_MSG
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultEmptyRealEstateDetailsViewState().typePosition,
@@ -325,10 +344,18 @@ class RealEstateDetailsViewModelTest {
             verify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-                context.getString(R.string.field_empty_toast_msg)
+                application.getString(R.string.field_empty_toast_msg)
             }
             confirmVerified(
-                upsertNewRealEstateUseCase, getRealEstateFlowByIdUseCase, context, navArgProducer
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
+                navArgProducer
             )
         }
     }
@@ -340,7 +367,7 @@ class RealEstateDetailsViewModelTest {
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every {
-            context.getString(R.string.fields_are_not_digits)
+            application.getString(R.string.fields_are_not_digits)
         } returns FIELD_ARE_NOT_DIGITS_MSG
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
@@ -367,10 +394,18 @@ class RealEstateDetailsViewModelTest {
             verify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
-                context.getString(R.string.fields_are_not_digits)
+                application.getString(R.string.fields_are_not_digits)
             }
             confirmVerified(
-                upsertNewRealEstateUseCase, getRealEstateFlowByIdUseCase, getNearbyPointsOfInterestUseCase, context, navArgProducer
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
+                navArgProducer
             )
         }
     }
@@ -384,12 +419,12 @@ class RealEstateDetailsViewModelTest {
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every {
-            context.getString(
+            application.getString(
                 R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
             )
         } returns DEFAULT_FULL_ADDRESS
-        every { context.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
-        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, context) } returns DEFAULT_POSITION
+        every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
+        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application) } returns DEFAULT_POSITION
 
         coJustRun {
             upsertNewRealEstateUseCase.invoke(
@@ -420,13 +455,13 @@ class RealEstateDetailsViewModelTest {
             verify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-                context.getString(
+                application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
                 )
-                context.getString(R.string.real_estate_status_available)
+                application.getString(R.string.real_estate_status_available)
             }
             coVerify {
-                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, context)
+                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
                 upsertNewRealEstateUseCase.invoke(
                     getDefaultRealEstateEntityToUpdate(), getDefaultAggregatedPhotos()
@@ -437,7 +472,10 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                context,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
                 navArgProducer
             )
         }
@@ -465,7 +503,10 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                context,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
                 navArgProducer
             )
         }
@@ -493,7 +534,10 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                context,
+                addNewPhotoUseCase,
+                deletePhotoUseCase,
+                getPhotosListByIdUseCase,
+                application,
                 navArgProducer
             )
         }
@@ -597,36 +641,33 @@ class RealEstateDetailsViewModelTest {
     }
 
     private fun getDefaultPhotoViewStates(): List<DetailsPhotoViewState> {
-        return listOf(
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+        return listOf(DetailsPhotoViewState(
+            uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+            EquatableCallback {}),
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
-                EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }
 
     private fun getDefaultPhotoViewStatesAfterDeletedPhoto(): List<DetailsPhotoViewState> {
-        return listOf(
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
-                EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+        return listOf(DetailsPhotoViewState(
+            uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+            EquatableCallback {}),
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }
 
-    private fun getDefaultAggregatedPhotos(): List<RealEstateDetailsViewModel.AggregatedPhoto> {
+    private fun getDefaultAggregatedPhotos(): List<AggregatedPhoto> {
         return listOf(
-            RealEstateDetailsViewModel.AggregatedPhoto(
-                uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"
-
-            ), RealEstateDetailsViewModel.AggregatedPhoto(
-                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"
-
-            ), RealEstateDetailsViewModel.AggregatedPhoto(
-                uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
-            )
+            AggregatedPhoto(id = 0, uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(id = 0, uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(id = 0, uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp")
         )
     }
 
@@ -746,7 +787,7 @@ class RealEstateDetailsViewModelTest {
         }
     }
 
-    private fun getDefaultAggregatedPhotosToAdd(): List<RealEstateDetailsViewModel.AggregatedPhoto> {
+    private fun getDefaultAggregatedPhotosToAdd(): List<AggregatedPhoto> {
         return listOf()
     }
 
@@ -838,11 +879,11 @@ class RealEstateDetailsViewModelTest {
         }
     }
 
-    private fun getDefaultAggregatedPhotosToUpdate(): List<RealEstateDetailsViewModel.AggregatedPhoto> {
+    private fun getDefaultAggregatedPhotosToUpdate(): List<AggregatedPhoto> {
         return listOf(
-            RealEstateDetailsViewModel.AggregatedPhoto("Photo 1"),
-            RealEstateDetailsViewModel.AggregatedPhoto("Photo 2"),
-            RealEstateDetailsViewModel.AggregatedPhoto("Photo 3"),
+            AggregatedPhoto(1, "Photo 1"),
+            AggregatedPhoto(1, "Photo 2"),
+            AggregatedPhoto(1, "Photo 3"),
         )
     }
 
