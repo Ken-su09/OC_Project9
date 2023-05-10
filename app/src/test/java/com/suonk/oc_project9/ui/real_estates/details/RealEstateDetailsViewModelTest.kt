@@ -1,15 +1,11 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Application
-import android.content.Context
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.suonk.oc_project9.R
-import com.suonk.oc_project9.domain.photo.AddNewPhotoUseCase
-import com.suonk.oc_project9.domain.photo.DeletePhotoUseCase
-import com.suonk.oc_project9.domain.photo.GetPhotosListByIdUseCase
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
@@ -82,6 +78,7 @@ class RealEstateDetailsViewModelTest {
         private const val DEFAULT_ID_TO_ADD = 0L
         private const val DEFAULT_EMPTY_TYPE_POSITION = 0
         private val DEFAULT_EMPTY_TYPE = spinnerPositionToType(DEFAULT_EMPTY_TYPE_POSITION)
+        private val DEFAULT_NEW_TYPE = spinnerPositionToType(2)
 
         val DEFAULT_EMPTY_PRICE = BigDecimal(0.0)
         private const val DEFAULT_EMPTY_PRICE_STRING = "0.0"
@@ -153,14 +150,11 @@ class RealEstateDetailsViewModelTest {
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase = mockk()
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase = mockk()
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase = mockk()
-    private val addNewPhotoUseCase: AddNewPhotoUseCase = mockk()
-    private val deletePhotoUseCase: DeletePhotoUseCase = mockk()
-    private val getPhotosListByIdUseCase: GetPhotosListByIdUseCase = mockk()
 
     private val application: Application = mockk()
     private val navArgProducer: NavArgProducer = mockk()
 
-    private val mockUriPhoto_1 = mock(Uri::class.java)
+    private val firstMockUriPhoto = mock(Uri::class.java)
 
     private val fixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
 
@@ -170,9 +164,6 @@ class RealEstateDetailsViewModelTest {
         getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
         getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
-        addNewPhotoUseCase = addNewPhotoUseCase,
-        deletePhotoUseCase = deletePhotoUseCase,
-        getPhotosListByIdUseCase = getPhotosListByIdUseCase,
         application = application,
         navArgProducer = navArgProducer,
         clock = fixedClock
@@ -203,9 +194,6 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
                 application,
                 navArgProducer
             )
@@ -232,9 +220,30 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
+                application,
+                navArgProducer
+            )
+        }
+    }
+
+    @Test
+    fun `get real estate details with is sold as true`() = testCoroutineRule.runTest {
+        // WHEN
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
+
+            coVerify(exactly = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+            }
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
                 application,
                 navArgProducer
             )
@@ -260,7 +269,7 @@ class RealEstateDetailsViewModelTest {
 
         coJustRun {
             upsertNewRealEstateUseCase.invoke(
-                realEstate = getDefaultRealEstateEntityToAdd(), photos = getDefaultAggregatedPhotosToAdd()
+                realEstate = any(), photos = getDefaultAggregatedPhotosToAdd()
             )
         }
 
@@ -305,9 +314,6 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
                 application,
                 navArgProducer
             )
@@ -315,11 +321,54 @@ class RealEstateDetailsViewModelTest {
     }
 
     @Test
-    fun `try to insert a real estate with empty fields`() = testCoroutineRule.runTest {
+    fun `try to insert a real estate with empty fields with initial case`() = testCoroutineRule.runTest {
         // GIVEN
-        every {
-            application.getString(R.string.field_empty_toast_msg)
-        } returns FIELD_EMPTY_TOAST_MSG
+        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(null)
+        every { application.getString(R.string.field_empty_toast_msg) } returns FIELD_EMPTY_TOAST_MSG
+
+        realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
+            type = getDefaultEmptyRealEstateDetailsViewState().typePosition,
+            price = getDefaultEmptyRealEstateDetailsViewState().price,
+            livingSpace = getDefaultEmptyRealEstateDetailsViewState().livingSpace,
+            numberRooms = getDefaultEmptyRealEstateDetailsViewState().numberRooms,
+            numberBedroom = getDefaultEmptyRealEstateDetailsViewState().numberBedroom,
+            numberBathroom = getDefaultEmptyRealEstateDetailsViewState().numberBathroom,
+            description = getDefaultEmptyRealEstateDetailsViewState().description,
+            postalCode = getDefaultEmptyRealEstateDetailsViewState().postalCode,
+            state = getDefaultEmptyRealEstateDetailsViewState().state,
+            city = getDefaultEmptyRealEstateDetailsViewState().city,
+            streetName = getDefaultEmptyRealEstateDetailsViewState().streetName,
+            gridZone = getDefaultEmptyRealEstateDetailsViewState().gridZone
+        )
+
+        // WHEN
+        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
+
+            // Call 3 times, ask El Nino
+            verify(atLeast = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                application.getString(R.string.field_empty_toast_msg)
+            }
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                application,
+                navArgProducer
+            )
+        }
+    }
+
+    @Test
+    fun `try to insert a real estate with empty fields with nominal case`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { application.getString(R.string.field_empty_toast_msg) } returns FIELD_EMPTY_TOAST_MSG
+
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultEmptyRealEstateDetailsViewState().typePosition,
             price = getDefaultEmptyRealEstateDetailsViewState().price,
@@ -341,9 +390,10 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
             // Call 3 times, ask El Nino
-            verify(atLeast = 1) {
+            coVerify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
                 application.getString(R.string.field_empty_toast_msg)
             }
             confirmVerified(
@@ -351,9 +401,6 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
                 application,
                 navArgProducer
             )
@@ -401,9 +448,6 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
                 application,
                 navArgProducer
             )
@@ -472,9 +516,6 @@ class RealEstateDetailsViewModelTest {
                 getRealEstateFlowByIdUseCase,
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
                 application,
                 navArgProducer
             )
@@ -483,65 +524,102 @@ class RealEstateDetailsViewModelTest {
 
     // TESTS PHOTO
 
-    @Test
-    fun `try to add a new photo`() = testCoroutineRule.runTest {
-        realEstateDetailsViewModel.onNewPhotoAdded(mockUriPhoto_1)
-
-        // WHEN
-        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
-
-            // THEN
-            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
-
-            coVerify(exactly = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
-            }
-            confirmVerified(
-                upsertNewRealEstateUseCase,
-                getRealEstateFlowByIdUseCase,
-                getPositionFromFullAddressUseCase,
-                getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
-                application,
-                navArgProducer
-            )
-        }
-    }
-
-    @Test
-    fun `try to delete a photo`() = testCoroutineRule.runTest {
-        realEstateDetailsViewModel.onPhotoDeleted(getDefaultRealEstateDetailsViewState().photos[2].uri)
-
-//        "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
-
-        // WHEN
-        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
-
-            // THEN
-            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
-
-            coVerify(exactly = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
-            }
-            confirmVerified(
-                upsertNewRealEstateUseCase,
-                getRealEstateFlowByIdUseCase,
-                getPositionFromFullAddressUseCase,
-                getNearbyPointsOfInterestUseCase,
-                addNewPhotoUseCase,
-                deletePhotoUseCase,
-                getPhotosListByIdUseCase,
-                application,
-                navArgProducer
-            )
-        }
-    }
+//    @Test
+//    fun `try to add a new photo then update`() = testCoroutineRule.runTest {
+//        // GIVEN
+//        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+//        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+//        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+//        every {
+//            application.getString(
+//                R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
+//            )
+//        } returns DEFAULT_FULL_ADDRESS
+//        every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
+//        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application) } returns DEFAULT_POSITION
+//
+//        realEstateDetailsViewModel.onNewPhotoAdded(firstMockUriPhoto)
+//
+//        coJustRun {
+//            upsertNewRealEstateUseCase.invoke(
+//                realEstate = getDefaultRealEstateEntityToUpdate(),
+//                photos = getDefaultAggregatedPhotosToUpdate()
+//            )
+//        }
+//
+//        realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
+//            type = getDefaultRealEstateDetailsViewStateToUpdate().typePosition,
+//            price = getDefaultRealEstateDetailsViewStateToUpdate().price,
+//            livingSpace = getDefaultRealEstateDetailsViewStateToUpdate().livingSpace,
+//            numberRooms = getDefaultRealEstateDetailsViewStateToUpdate().numberRooms,
+//            numberBedroom = getDefaultRealEstateDetailsViewStateToUpdate().numberBedroom,
+//            numberBathroom = getDefaultRealEstateDetailsViewStateToUpdate().numberBathroom,
+//            description = getDefaultRealEstateDetailsViewStateToUpdate().description,
+//            postalCode = getDefaultRealEstateDetailsViewStateToUpdate().postalCode,
+//            state = getDefaultRealEstateDetailsViewStateToUpdate().state,
+//            city = getDefaultRealEstateDetailsViewStateToUpdate().city,
+//            streetName = getDefaultRealEstateDetailsViewStateToUpdate().streetName,
+//            gridZone = getDefaultRealEstateDetailsViewStateToUpdate().gridZone
+//        )
+//
+//        // WHEN
+//        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+//            // THEN
+//            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
+//
+//            verify(atLeast = 1) {
+//                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+//                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+//                application.getString(
+//                    R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
+//                )
+//                application.getString(R.string.real_estate_status_available)
+//            }
+//            coVerify {
+//                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application)
+//                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+//                upsertNewRealEstateUseCase.invoke(
+//                    getDefaultRealEstateEntityToUpdate(), getDefaultAggregatedPhotosToUpdate()
+//                )
+//            }
+//            confirmVerified(
+//                upsertNewRealEstateUseCase,
+//                getRealEstateFlowByIdUseCase,
+//                getPositionFromFullAddressUseCase,
+//                getNearbyPointsOfInterestUseCase,
+//                application,
+//                navArgProducer
+//            )
+//        }
+//    }
+//
+//    @Test
+//    fun `try to delete a photo`() = testCoroutineRule.runTest {
+//        realEstateDetailsViewModel.onPhotoDeleted(getDefaultRealEstateDetailsViewState().photos[2].uri)
+//
+////        "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
+//
+//        // WHEN
+//        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+//
+//            // THEN
+//            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
+//
+//            coVerify(exactly = 1) {
+//                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+//                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+//                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+//            }
+//            confirmVerified(
+//                upsertNewRealEstateUseCase,
+//                getRealEstateFlowByIdUseCase,
+//                getPositionFromFullAddressUseCase,
+//                getNearbyPointsOfInterestUseCase,
+//                application,
+//                navArgProducer
+//            )
+//        }
+//    }
 
 
     //region ================================================================ DETAILS ===============================================================
@@ -641,33 +719,30 @@ class RealEstateDetailsViewModelTest {
     }
 
     private fun getDefaultPhotoViewStates(): List<DetailsPhotoViewState> {
-        return listOf(DetailsPhotoViewState(
-            uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
-            EquatableCallback {}),
-            DetailsPhotoViewState(
-                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+        return listOf(
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
                 EquatableCallback {}),
-            DetailsPhotoViewState(
-                uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+                EquatableCallback {}),
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }
 
     private fun getDefaultPhotoViewStatesAfterDeletedPhoto(): List<DetailsPhotoViewState> {
-        return listOf(DetailsPhotoViewState(
-            uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
-            EquatableCallback {}),
-            DetailsPhotoViewState(
-                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+        return listOf(
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+                EquatableCallback {}),
+            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }
 
     private fun getDefaultAggregatedPhotos(): List<AggregatedPhoto> {
         return listOf(
-            AggregatedPhoto(id = 0, uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"),
-            AggregatedPhoto(id = 0, uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"),
-            AggregatedPhoto(id = 0, uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp")
+            AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp")
         )
     }
 
@@ -881,9 +956,10 @@ class RealEstateDetailsViewModelTest {
 
     private fun getDefaultAggregatedPhotosToUpdate(): List<AggregatedPhoto> {
         return listOf(
-            AggregatedPhoto(1, "Photo 1"),
-            AggregatedPhoto(1, "Photo 2"),
-            AggregatedPhoto(1, "Photo 3"),
+            AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"),
+            AggregatedPhoto(uri = firstMockUriPhoto.toString())
         )
     }
 

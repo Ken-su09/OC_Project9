@@ -36,9 +36,6 @@ class RealEstateDetailsViewModel @Inject constructor(
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase,
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
-    private val getPhotosListByIdUseCase: GetPhotosListByIdUseCase,
-    private val addNewPhotoUseCase: AddNewPhotoUseCase,
-    private val deletePhotoUseCase: DeletePhotoUseCase,
     private val application: Application,
     private val navArgProducer: NavArgProducer,
     private val clock: Clock
@@ -74,9 +71,11 @@ class RealEstateDetailsViewModel @Inject constructor(
                     description = detailsViewState.description,
                     photos = aggregatedPhotos.map {
                         DetailsPhotoViewState(it.uri, onDeleteCallback = EquatableCallback {
-                            viewModelScope.launch(coroutineDispatcherProvider.io) {
-                                deletePhotoUseCase.invoke(PhotoEntity(it.id, detailsViewState.id, it.uri))
-                            }
+//                            viewModelScope.launch(coroutineDispatcherProvider.io) {
+//                                deletePhotoUseCase.invoke(PhotoEntity(it.id, detailsViewState.id, it.uri))
+//                            }
+                            onPhotoDeleted(it.uri)
+
                         })
                     },
                     city = detailsViewState.city,
@@ -153,9 +152,14 @@ class RealEstateDetailsViewModel @Inject constructor(
                         description = realEstateEntityWithPhotos.realEstateEntity.description,
                         photos = realEstateEntityWithPhotos.photos.map { photoEntity ->
                             DetailsPhotoViewState(uri = photoEntity.photo, onDeleteCallback = EquatableCallback {
-                                viewModelScope.launch(coroutineDispatcherProvider.io) {
-                                    deletePhotoUseCase.invoke(PhotoEntity(photoEntity.id, realEstateEntityWithPhotos.realEstateEntity.id, photoEntity.photo))
-                                }
+                                onPhotoDeleted(photoEntity.photo)
+//                                viewModelScope.launch(coroutineDispatcherProvider.io) {
+//                                    deletePhotoUseCase.invoke(
+//                                        PhotoEntity(
+//                                            photoEntity.id, realEstateEntityWithPhotos.realEstateEntity.id, photoEntity.photo
+//                                        )
+//                                    )
+//                                }
                             })
                         }.distinct(),
                         city = realEstateEntityWithPhotos.realEstateEntity.city,
@@ -174,17 +178,14 @@ class RealEstateDetailsViewModel @Inject constructor(
                 )
                 isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
 
+//                val photos = getPhotosListByIdUseCase.invoke(id).firstOrNull()
+//                val photoToEmit = photos?.map { AggregatedPhoto(it.photo) }?.toSet()
+//                if (photoToEmit != null) {
+//                    photosMutableStateFlow.emit(photoToEmit)
+//                }
 
-                val photos = getPhotosListByIdUseCase.invoke(id).firstOrNull()
-                val photoToEmit = photos?.map {
-                    AggregatedPhoto(it.id, it.photo)
-                }?.toSet()
-                if (photoToEmit != null) {
-                    photosMutableStateFlow.emit(photoToEmit)
-                }
-
-                //                val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
-
+                val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
+                photosMutableStateFlow.tryEmit(photos)
             }
         }
     }
@@ -228,10 +229,12 @@ class RealEstateDetailsViewModel @Inject constructor(
             } else {
                 val photos = photosMutableStateFlow.replayCache.first().distinct()
 
-                val entryDate = realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate ?: ZonedDateTime.now(clock).toInstant()
+                val entryDate =
+                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().entryDate ?: ZonedDateTime.now(clock).toInstant()
 
                 val saleDate = if (isSoldMutableStateFlow.value) {
-                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: ZonedDateTime.now(clock).toInstant().toEpochMilli()
+                    realEstateDetailsViewStateMutableSharedFlow.replayCache.first().saleDate ?: ZonedDateTime.now(clock).toInstant()
+                        .toEpochMilli()
                 } else {
                     null
                 }
@@ -247,12 +250,24 @@ class RealEstateDetailsViewModel @Inject constructor(
                     ), application
                 )
 
+                val bigDecimalPrice = if (price.contains(",")) {
+                    BigDecimal(price.replace(",", "").toDouble())
+                } else {
+                    BigDecimal(price.toDouble())
+                }
+
+                val livingSpaceToTransform = if (livingSpace.contains(",")) {
+                    livingSpace.replace(",", "").toDouble()
+                } else {
+                    livingSpace.toDouble()
+                }
+
                 upsertNewRealEstateUseCase.invoke(
                     realEstate = RealEstateEntity(
                         id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
                         type = spinnerPositionToType(type),
-                        price = BigDecimal(price.toDouble()),
-                        livingSpace = livingSpace.toDouble(),
+                        price = bigDecimalPrice,
+                        livingSpace = livingSpaceToTransform,
                         numberRooms = numberRooms.toInt(),
                         numberBedroom = numberBedroom.toInt(),
                         numberBathroom = numberBathroom.toInt(),
@@ -302,20 +317,29 @@ class RealEstateDetailsViewModel @Inject constructor(
     //region ================================================================== PHOTO ==================================================================
 
     fun onNewPhotoAdded(photo: Uri) {
-//        photosMutableStateFlow.update { list ->
-//            if (list.contains(AggregatedPhoto(photo.toString()))) {
-//                toastMessageSingleLiveEvent.value = context.getString(R.string.image_already_in_list)
-//                list
-//            } else {
-//                list + AggregatedPhoto(photo.toString())
-//            }
-//        }
+        photosMutableStateFlow.update { list ->
+            println("photo : $photo")
+            println("list : $list")
+
+            if (list.contains(AggregatedPhoto(photo.toString()))) {
+                toastMessageSingleLiveEvent.value = application.getString(R.string.image_already_in_list)
+                list
+            } else {
+                println("AggregatedPhoto(photo.toString()) : ${AggregatedPhoto(photo.toString())}")
+
+                list + AggregatedPhoto(photo.toString())
+            }
+        }
+
+        viewModelScope.launch(coroutineDispatcherProvider.io) {
+            println("photosMutableStateFlow : ${photosMutableStateFlow.firstOrNull()}")
+        }
     }
 
     fun onPhotoDeleted(photo: String) {
-//        photosMutableStateFlow.update {
-//            it - AggregatedPhoto(photo)
-//        }
+        photosMutableStateFlow.update {
+            it - AggregatedPhoto(photo)
+        }
     }
 
     //endregion

@@ -12,7 +12,5 @@ class PhotoRepositoryImpl @Inject constructor(private val dao: PhotoDao) : Photo
     override suspend fun insertPhoto(photo: PhotoEntity) = dao.insertPhoto(photo)
     override suspend fun deletePhoto(photo: PhotoEntity) = dao.deletePhoto(photo)
 
-    override fun getListOfPhotosByRealEstateId(id: Long) {
-        dao.getListOfPhotosByRealEstateId(id)
-    }
+    override fun getListOfPhotosByRealEstateId(id: Long) = dao.getListOfPhotosByRealEstateId(id)
 }

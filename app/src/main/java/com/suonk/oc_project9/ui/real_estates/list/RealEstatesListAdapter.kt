@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -13,7 +14,7 @@ import com.suonk.oc_project9.databinding.ItemRealEstatesListBinding
 import com.suonk.oc_project9.ui.real_estates.details.DetailsSliderAdapter
 import kotlin.math.abs
 
-class RealEstatesListAdapter: ListAdapter<RealEstatesListViewState, RealEstatesListAdapter.ViewHolder>(RealEstatesViewStateComparator) {
+class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstatesListAdapter.ViewHolder>(RealEstatesViewStateComparator) {
 
     private val viewPool = RecyclerView.RecycledViewPool()
 
@@ -45,6 +46,7 @@ class RealEstatesListAdapter: ListAdapter<RealEstatesListViewState, RealEstatesL
             binding.iconIsSold.isVisible = estate.isSold
 
             val listSliderAdapter = ListSliderAdapter()
+            Log.i("CheckPhoto", "estate.photos : ${estate.photos}")
             listSliderAdapter.submitList(estate.photos)
             binding.imagesRecyclerView.setRecycledViewPool(viewPool)
             binding.imagesRecyclerView.adapter = listSliderAdapter

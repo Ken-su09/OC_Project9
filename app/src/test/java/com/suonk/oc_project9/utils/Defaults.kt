@@ -3,6 +3,7 @@ package com.suonk.oc_project9.utils
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.ui.real_estates.details.AggregatedPhoto
 import com.suonk.oc_project9.ui.real_estates.details.DetailsPhotoViewState
 import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModel
 import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_CITY
@@ -105,15 +106,15 @@ object Defaults {
         )
     }
 
-    fun getDefaultAggregatedPhotos(): List<RealEstateDetailsViewModel.AggregatedPhoto> {
+    fun getDefaultAggregatedPhotos(): List<AggregatedPhoto> {
         return listOf(
-            RealEstateDetailsViewModel.AggregatedPhoto(
+            AggregatedPhoto(
                 uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp"
 
-            ), RealEstateDetailsViewModel.AggregatedPhoto(
+            ), AggregatedPhoto(
                 uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"
 
-            ), RealEstateDetailsViewModel.AggregatedPhoto(
+            ), AggregatedPhoto(
                 uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
             )
         )
