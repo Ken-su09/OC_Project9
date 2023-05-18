@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class CurrentPositionRepositoryImpl @Inject constructor(
-    private val locationProviderClient: FusedLocationProviderClient, private val myLooper: Looper
+    private val locationProviderClient: FusedLocationProviderClient
 ) : CurrentPositionRepository {
 
     private val positionFlow = MutableStateFlow(Position(0.0, 0.0))
@@ -41,7 +41,7 @@ class CurrentPositionRepositoryImpl @Inject constructor(
             }
         }
         locationCallback?.let {
-            locationProviderClient.requestLocationUpdates(locationRequest, it, myLooper)
+            locationProviderClient.requestLocationUpdates(locationRequest, it, Looper.myLooper())
         }
     }
 

@@ -1,9 +1,11 @@
 package com.suonk.oc_project9.di
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.google.android.gms.location.LocationServices
 import com.suonk.oc_project9.api.PlacesApiHolder
 import com.suonk.oc_project9.api.PlacesApiService
 import com.suonk.oc_project9.model.database.AppDatabase
@@ -180,4 +182,9 @@ class DataModule {
     @Provides
     @Singleton
     fun providePhotoDao(database: AppDatabase) = database.photoDao()
+
+    @Provides
+    @Singleton
+    fun provideFusedLocationProviderClient(application: Application) = LocationServices.getFusedLocationProviderClient(application)
+
 }
