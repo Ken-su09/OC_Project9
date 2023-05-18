@@ -9,6 +9,9 @@
     <string name="map">Map</string>
     <string name="real_estate">Real Estates</string>
 
+    <string name="gps_disabled_msg">Your GPS is disabled, do you want to enable it?</string>
+    <string name="positive_button">Yes</string>
+
     <string name="drawer_opened">Open</string>
     <string name="drawer_closed">Close</string>
 
@@ -113,4 +116,7 @@
     <string name="start_time_h">%1$s h %2$d</string>
     <string name="real_estate_status_available">Available</string>
     <string name="real_estate_status_not_available">Not Available</string>
+    <string name="points_of_interest">Points of Interest</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

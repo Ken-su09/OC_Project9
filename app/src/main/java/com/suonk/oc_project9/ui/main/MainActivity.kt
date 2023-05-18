@@ -1,8 +1,10 @@
 package com.suonk.oc_project9.ui.main
 
 import android.Manifest
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,6 +13,8 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -18,6 +22,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.ActivityMainBinding
+import com.suonk.oc_project9.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -30,6 +35,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
     private lateinit var binding: ActivityMainBinding
+
+    private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +53,21 @@ class MainActivity : AppCompatActivity() {
         setupActionBar(binding)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.onStop()
+    }
+
     //region ================================================================ TOOLBAR ===============================================================
 
     private fun setupActionBar(binding: ActivityMainBinding) {
@@ -55,6 +77,38 @@ class MainActivity : AppCompatActivity() {
         }
 
         supportActionBar?.title = ""
+    }
+
+    //endregion
+
+    //region ========================================= GOOGLE MAPS ==========================================
+
+    private fun alertDialogGpsIsDisabled() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(getString(R.string.gps_disabled_msg)).setCancelable(false)
+            .setPositiveButton(getString(R.string.positive_button)) { dialog: DialogInterface?, id: Int ->
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivityForResult(intent, Constants.PERMISSIONS_REQUEST_ENABLE_GPS)
+            }.create().show()
+    }
+
+    fun isMapsEnabled() {
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            alertDialogGpsIsDisabled()
+        }
+    }
+
+    private fun getLocationPermission() {
+        viewModel.getPermissionsLiveData().observe(this) { isPermissionsEnabled ->
+            if (!isPermissionsEnabled) {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
+                )
+            } else {
+                supportFragmentManager.beginTransaction().replace(R.id.fragment_container, MapsFragment.newInstance()).commit()
+            }
+        }
     }
 
     //endregion

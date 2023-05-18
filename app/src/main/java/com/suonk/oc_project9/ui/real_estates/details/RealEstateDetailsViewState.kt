@@ -1,6 +1,7 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
+import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestViewState
 import java.time.Instant
 
 data class RealEstateDetailsViewState(
@@ -25,5 +26,5 @@ data class RealEstateDetailsViewState(
     val entryDate: Instant?,
     val saleDate: Long?,
     val isSold: Boolean,
-    val pointsOfInterest: List<PointOfInterest>
+    val pointsOfInterestViewState: List<PointOfInterestViewState>
 )

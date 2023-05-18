@@ -28,6 +28,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
@@ -52,7 +54,6 @@ import kotlin.math.abs
 class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details) {
 
     private val binding by viewBinding(FragmentRealEstateDetailsBinding::bind)
-
     private val viewModel by viewModels<RealEstateDetailsViewModel>()
 
     private var isUpdatingFromViewState = false
@@ -103,10 +104,18 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                 return when (menuItem.itemId) {
                     R.id.action_change_map -> {
                         binding.map.isVisible = !binding.map.isVisible
+                        binding.mainLayout.isVisible = !binding.mainLayout.isVisible
+                        if (binding.pointOfInterestList.isVisible) {
+                            binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
+                        }
                         true
                     }
                     R.id.action_show_point_of_interest -> {
                         binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
+                        binding.mainLayout.isVisible = !binding.mainLayout.isVisible
+                        if (binding.map.isVisible) {
+                            binding.map.isVisible = !binding.map.isVisible
+                        }
                         true
                     }
                     R.id.action_save_real_estate -> {
@@ -124,7 +133,6 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
                             streetName = binding.streetName.text?.toString() ?: "",
                             gridZone = binding.gridZone.text?.toString() ?: ""
                         )
-
                         true
                     }
                     R.id.action_add_image -> {
@@ -179,8 +187,9 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
             isUpdatingFromViewState = false
 
             val listAdapter = PointOfInterestListAdapter()
-            listAdapter.submitList(realEstate.pointsOfInterest)
+            listAdapter.submitList(realEstate.pointsOfInterestViewState)
 
+            binding.pointOfInterestList.addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.HORIZONTAL))
             binding.pointOfInterestList.adapter = listAdapter
         }
     }
@@ -200,13 +209,7 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         }
 
         binding.images.setPageTransformer(compositePageTransformer)
-        binding.images.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageScrolled(
-                position: Int, positionOffset: Float, positionOffsetPixels: Int
-            ) {
-                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-            }
-        })
+        binding.images.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {})
     }
 
     private fun setupSpinners() {

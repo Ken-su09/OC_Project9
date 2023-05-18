@@ -20,9 +20,7 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(
         ItemRealEstatesListBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
+            LayoutInflater.from(parent.context), parent, false
         )
     )
 
@@ -30,8 +28,7 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
         holder.onBind(getItem(position), viewPool)
     }
 
-    class ViewHolder(private val binding: ItemRealEstatesListBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(private val binding: ItemRealEstatesListBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun onBind(estate: RealEstatesListViewState, viewPool: RecyclerView.RecycledViewPool) {
             binding.address.text = estate.address
@@ -46,21 +43,20 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
             binding.iconIsSold.isVisible = estate.isSold
 
             val listSliderAdapter = ListSliderAdapter()
-            Log.i("CheckPhoto", "estate.photos : ${estate.photos}")
             listSliderAdapter.submitList(estate.photos)
-            binding.imagesRecyclerView.setRecycledViewPool(viewPool)
-            binding.imagesRecyclerView.adapter = listSliderAdapter
-            binding.imagesRecyclerView.clipToPadding = false
-            binding.imagesRecyclerView.clipChildren = false
+            binding.images.adapter = listSliderAdapter
+            binding.images.clipToPadding = false
+            binding.images.clipChildren = false
 
-//            val compositePageTransformer = CompositePageTransformer()
-//            compositePageTransformer.addTransformer(MarginPageTransformer(30))
-//            compositePageTransformer.addTransformer { page, position ->
-//                val r = 1 - abs(position)
-//                page.scaleY = 0.85f + r * 0.25f
-//            }
-//
-//            binding.imagesRecyclerView.setPageTransformer(compositePageTransformer)
+            val compositePageTransformer = CompositePageTransformer()
+            compositePageTransformer.addTransformer(MarginPageTransformer(30))
+            compositePageTransformer.addTransformer { page, position ->
+                val r = 1 - abs(position)
+                page.scaleY = 0.85f + r * 0.25f
+            }
+
+            binding.images.setPageTransformer(compositePageTransformer)
+            binding.images.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {})
 
             itemView.setOnClickListener {
                 estate.onClickedCallback()
@@ -70,13 +66,11 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
 
     object RealEstatesViewStateComparator : DiffUtil.ItemCallback<RealEstatesListViewState>() {
         override fun areItemsTheSame(
-            oldItem: RealEstatesListViewState,
-            newItem: RealEstatesListViewState
+            oldItem: RealEstatesListViewState, newItem: RealEstatesListViewState
         ): Boolean = oldItem.id == newItem.id
 
         override fun areContentsTheSame(
-            oldItem: RealEstatesListViewState,
-            newItem: RealEstatesListViewState
+            oldItem: RealEstatesListViewState, newItem: RealEstatesListViewState
         ): Boolean = oldItem == newItem
     }
 }

@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.model.database.data
 
+import android.util.Log
 import com.suonk.oc_project9.api.PlacesApiService
 import com.suonk.oc_project9.domain.PlacesRepository
 import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
@@ -20,12 +21,12 @@ class PlacesRepositoryImpl @Inject constructor(private val apiService: PlacesApi
             null
         }
 
-        return response?.results?.mapNotNull { nearbyPlaceResult ->
+        return response?.results?.map { nearbyPlaceResult ->
             PointOfInterest(
-                id = nearbyPlaceResult.placeId ?: return@mapNotNull null,
+                id = nearbyPlaceResult.placeId ?: nearbyPlaceResult.name,
                 name = nearbyPlaceResult.name,
                 address = nearbyPlaceResult.vicinity,
-                icon = nearbyPlaceResult.icon,
+                icon = nearbyPlaceResult.photos?.get(0)?.photoReference ?: "",
                 types = nearbyPlaceResult.types
             )
         }?.takeIf {

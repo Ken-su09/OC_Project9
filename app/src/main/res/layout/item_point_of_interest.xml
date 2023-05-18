@@ -13,24 +13,24 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@+id/distance"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/image"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Le Zinc" />
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/distance"
+        android:id="@+id/types"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="4dp"
-        android:textAlignment="textEnd"
-        android:textColor="@color/grey"
-        android:textSize="16sp"
+        android:layout_margin="8dp"
+        android:textColor="@color/black"
+        android:textSize="15sp"
         app:layout_constraintEnd_toStartOf="@+id/image"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="120m" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/name"
+        tools:text="lodging, point_of_interest, establishment" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/address"
@@ -39,8 +39,9 @@
         android:layout_margin="8dp"
         android:textColor="@color/grey"
         android:textSize="15sp"
+        app:layout_constraintEnd_toStartOf="@+id/image"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/name"
+        app:layout_constraintTop_toBottomOf="@+id/types"
         tools:text="12 rue du Faubourg Poissonière" />
 
     <androidx.appcompat.widget.AppCompatImageView

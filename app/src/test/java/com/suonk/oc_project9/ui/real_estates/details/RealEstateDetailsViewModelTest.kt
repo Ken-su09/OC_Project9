@@ -1,7 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Application
-import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -14,10 +13,7 @@ import com.suonk.oc_project9.model.database.data.entities.places.Position
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
-import com.suonk.oc_project9.utils.EquatableCallback
-import com.suonk.oc_project9.utils.NavArgProducer
-import com.suonk.oc_project9.utils.TestCoroutineRule
-import com.suonk.oc_project9.utils.observeForTesting
+import com.suonk.oc_project9.utils.*
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
@@ -30,7 +26,6 @@ import kotlinx.coroutines.test.runCurrent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -75,6 +70,7 @@ class RealEstateDetailsViewModelTest {
         const val DEFAULT_NUMBER_BATHROOM = 2
         const val DEFAULT_NUMBER_BATHROOM_STRING = "2"
         const val DEFAULT_TIMESTAMP_LONG = 1_000_000_000L // 09/09/2001 - 01:46:40
+        const val SALE_DATE_DEFAULT_TIMESTAMP_LONG = 2_000_000_000L // 09/09/2001 - 01:46:40
 
         private const val DEFAULT_ID_TO_ADD = 0L
         private const val DEFAULT_EMPTY_TYPE_POSITION = 0
@@ -158,7 +154,8 @@ class RealEstateDetailsViewModelTest {
     private val application: Application = mockk()
     private val navArgProducer: NavArgProducer = mockk()
 
-    private val fixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
+    private val entryFixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
+    private val saleFixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
 
     private val realEstateDetailsViewModel = RealEstateDetailsViewModel(
         upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
@@ -168,7 +165,8 @@ class RealEstateDetailsViewModelTest {
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
         application = application,
         navArgProducer = navArgProducer,
-        clock = fixedClock
+        entryClock = entryFixedClock,
+        saleClock = saleFixedClock
     )
 
     @Before
@@ -247,7 +245,9 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                navArgProducer,
+                entryFixedClock,
+                saleFixedClock
             )
         }
     }
@@ -303,7 +303,7 @@ class RealEstateDetailsViewModelTest {
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
                 )
                 application.getString(R.string.real_estate_status_available)
-                application.getString(R.string.new_real_estate_is_added)
+                NativeText.Resource(R.string.new_real_estate_is_added)
             }
             coVerify {
                 getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application)
@@ -317,7 +317,9 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                navArgProducer,
+                entryFixedClock,
+                saleFixedClock
             )
         }
     }
@@ -353,7 +355,7 @@ class RealEstateDetailsViewModelTest {
             verify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
-                application.getString(R.string.field_empty_toast_msg)
+                NativeText.Resource(R.string.field_empty_toast_msg)
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -361,7 +363,9 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                navArgProducer,
+                entryFixedClock,
+                saleFixedClock
             )
         }
     }
@@ -396,7 +400,7 @@ class RealEstateDetailsViewModelTest {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
-                application.getString(R.string.field_empty_toast_msg)
+                NativeText.Resource(R.string.field_empty_toast_msg)
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -404,7 +408,9 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                navArgProducer,
+                entryFixedClock,
+                saleFixedClock
             )
         }
     }
@@ -443,7 +449,7 @@ class RealEstateDetailsViewModelTest {
             verify(atLeast = 1) {
                 navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
-                application.getString(R.string.fields_are_not_digits)
+                NativeText.Resource(R.string.fields_are_not_digits)
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -451,7 +457,9 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                navArgProducer,
+                entryFixedClock,
+                saleFixedClock
             )
         }
     }
@@ -473,9 +481,7 @@ class RealEstateDetailsViewModelTest {
         coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application) } returns DEFAULT_POSITION
 
         coJustRun {
-            upsertNewRealEstateUseCase.invoke(
-                realEstate = getDefaultRealEstateEntityToUpdate(), photos = getDefaultAggregatedPhotos()
-            )
+            upsertNewRealEstateUseCase.invoke(realEstate = getDefaultRealEstateEntityToUpdate(), photos = getDefaultAggregatedPhotos())
         }
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
@@ -519,10 +525,86 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                navArgProducer,
+                entryFixedClock,
+                saleFixedClock
             )
         }
     }
+
+//    @Test
+//    fun `try on sold real estate click after nominal case then update`() = testCoroutineRule.runTest {
+//        // GIVEN
+//        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+//        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+//        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+//        every {
+//            application.getString(
+//                R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
+//            )
+//        } returns DEFAULT_FULL_ADDRESS
+//        every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
+//        coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application) } returns DEFAULT_POSITION
+//
+//        coJustRun {
+//            upsertNewRealEstateUseCase.invoke(
+//                realEstate = getDefaultRealEstateEntityToUpdateAfterOnSoldClicked(), photos = getDefaultAggregatedPhotos()
+//            )
+//        }
+//
+//        // WHEN
+//        realEstateDetailsViewModel.onSoldRealEstateClick()
+//
+//        runCurrent()
+//
+//        realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
+//            type = getDefaultRealEstateDetailsViewStateToUpdate().typePosition,
+//            price = getDefaultRealEstateDetailsViewStateToUpdate().price,
+//            livingSpace = getDefaultRealEstateDetailsViewStateToUpdate().livingSpace,
+//            numberRooms = getDefaultRealEstateDetailsViewStateToUpdate().numberRooms,
+//            numberBedroom = getDefaultRealEstateDetailsViewStateToUpdate().numberBedroom,
+//            numberBathroom = getDefaultRealEstateDetailsViewStateToUpdate().numberBathroom,
+//            description = getDefaultRealEstateDetailsViewStateToUpdate().description,
+//            postalCode = getDefaultRealEstateDetailsViewStateToUpdate().postalCode,
+//            state = getDefaultRealEstateDetailsViewStateToUpdate().state,
+//            city = getDefaultRealEstateDetailsViewStateToUpdate().city,
+//            streetName = getDefaultRealEstateDetailsViewStateToUpdate().streetName,
+//            gridZone = getDefaultRealEstateDetailsViewStateToUpdate().gridZone
+//        )
+//
+//        realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
+//            // THEN
+//            assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
+//
+//            runCurrent()
+//
+//            verify(atLeast = 1) {
+//                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+//                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+//                application.getString(
+//                    R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
+//                )
+//                application.getString(R.string.real_estate_status_not_available)
+//            }
+//            coVerify {
+//                getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS, application)
+//                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+//                upsertNewRealEstateUseCase.invoke(
+//                    getDefaultRealEstateEntityToUpdateAfterOnSoldClicked(), getDefaultAggregatedPhotos()
+//                )
+//            }
+//            confirmVerified(
+//                upsertNewRealEstateUseCase,
+//                getRealEstateFlowByIdUseCase,
+//                getPositionFromFullAddressUseCase,
+//                getNearbyPointsOfInterestUseCase,
+//                application,
+//                navArgProducer,
+//                entryFixedClock,
+//                saleFixedClock
+//            )
+//        }
+//    }
 
     // TESTS PHOTO
 
@@ -537,14 +619,27 @@ class RealEstateDetailsViewModelTest {
         // THEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoAdded())
+
+            coVerify(atLeast = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+            }
+
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                application,
+                navArgProducer
+            )
         }
     }
 
     @Test
     fun `try to add an existing photo`() = testCoroutineRule.runTest {
         // GIVEN
-        every { application.getString(R.string.image_already_in_list) } returns PHOTO_ALREADY_ON_LIST
-
         runCurrent()
 
         // WHEN
@@ -554,9 +649,21 @@ class RealEstateDetailsViewModelTest {
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
-            verify(exactly = 1) {
-                application.getString(R.string.image_already_in_list)
+            coVerify(atLeast = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+                NativeText.Resource(R.string.image_already_in_list)
             }
+
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                application,
+                navArgProducer
+            )
         }
     }
 
@@ -574,6 +681,22 @@ class RealEstateDetailsViewModelTest {
 
             // THEN
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
+
+            coVerify(atLeast = 1) {
+                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+                NativeText.Resource(R.string.image_already_in_list)
+            }
+
+            confirmVerified(
+                upsertNewRealEstateUseCase,
+                getRealEstateFlowByIdUseCase,
+                getPositionFromFullAddressUseCase,
+                getNearbyPointsOfInterestUseCase,
+                application,
+                navArgProducer
+            )
         }
     }
 
@@ -600,7 +723,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(fixedClock),
+            entryDate = Instant.now(entryFixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),
@@ -627,7 +750,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(fixedClock),
+            entryDate = Instant.now(entryFixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),
@@ -654,9 +777,36 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(fixedClock),
+            entryDate = Instant.now(entryFixedClock),
             saleDate = null,
             isSold = false,
+            pointsOfInterest = arrayListOf(),
+        )
+    }
+
+    private fun getDefaultRealEstateDetailsViewStateAfterOnSoldClicked(): RealEstateDetailsViewState {
+        return RealEstateDetailsViewState(
+            id = DEFAULT_ID,
+            type = DEFAULT_TYPE,
+            typePosition = DEFAULT_TYPE_POSITION,
+            price = DEFAULT_PRICE_STRING,
+            livingSpace = DEFAULT_LIVING_SPACE_STRING,
+            numberRooms = DEFAULT_NUMBER_ROOM_STRING,
+            numberBedroom = DEFAULT_NUMBER_BEDROOM_STRING,
+            numberBathroom = DEFAULT_NUMBER_BATHROOM_STRING,
+            description = DEFAULT_DESCRIPTION,
+            photos = getDefaultPhotoViewStatesAfterDeletedPhoto(),
+            city = DEFAULT_CITY,
+            postalCode = DEFAULT_POSTAL_CODE,
+            state = DEFAULT_STATE,
+            streetName = DEFAULT_STREET_NAME,
+            gridZone = DEFAULT_GRID_ZONE,
+            latitude = DEFAULT_LAT,
+            longitude = DEFAULT_LONG,
+            noPhoto = false,
+            entryDate = Instant.now(entryFixedClock),
+            saleDate = SALE_DATE_DEFAULT_TIMESTAMP_LONG,
+            isSold = true,
             pointsOfInterest = arrayListOf(),
         )
     }
@@ -681,7 +831,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(fixedClock),
+            entryDate = LocalDateTime.now(entryFixedClock),
             saleDate = null,
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
@@ -749,7 +899,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_EMPTY_STREET_NAME,
             gridZone = DEFAULT_EMPTY_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(fixedClock),
+            entryDate = LocalDateTime.now(entryFixedClock),
             saleDate = null,
             latitude = DEFAULT_EMPTY_LATITUDE,
             longitude = DEFAULT_EMPTY_LONGITUDE,
@@ -804,7 +954,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(fixedClock),
+            entryDate = LocalDateTime.now(entryFixedClock),
             saleDate = null,
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
@@ -832,7 +982,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(fixedClock),
+            entryDate = Instant.now(entryFixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),
@@ -869,7 +1019,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(fixedClock),
+            entryDate = Instant.now(entryFixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),
@@ -896,8 +1046,32 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(fixedClock),
+            entryDate = LocalDateTime.now(entryFixedClock),
             saleDate = null,
+            latitude = DEFAULT_LAT,
+            longitude = DEFAULT_LONG,
+            agentInChargeId = AGENT_ID,
+        )
+    }
+
+    private fun getDefaultRealEstateEntityToUpdateAfterOnSoldClicked(): RealEstateEntity {
+        return RealEstateEntity(
+            id = DEFAULT_ID,
+            type = NEW_TYPE,
+            price = NEW_PRICE,
+            livingSpace = NEW_LIVING_SPACE,
+            numberRooms = NEW_NUMBER_ROOM,
+            numberBedroom = NEW_NUMBER_BEDROOM,
+            numberBathroom = NEW_NUMBER_BATHROOM,
+            description = NEW_DESCRIPTION,
+            postalCode = DEFAULT_POSTAL_CODE,
+            state = DEFAULT_STATE,
+            city = DEFAULT_CITY,
+            streetName = DEFAULT_STREET_NAME,
+            gridZone = DEFAULT_GRID_ZONE,
+            status = DEFAULT_STATUS_AVAILABLE,
+            entryDate = LocalDateTime.now(entryFixedClock),
+            saleDate = LocalDateTime.now(saleFixedClock),
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             agentInChargeId = AGENT_ID,
@@ -924,7 +1098,7 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(fixedClock),
+            entryDate = Instant.now(entryFixedClock),
             saleDate = null,
             isSold = false,
             pointsOfInterest = arrayListOf(),

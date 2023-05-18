@@ -6,30 +6,33 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/action_is_sold"
+            android:checkable="false"
             android:icon="@drawable/ic_sold"
             android:title="@string/toolbar_is_sold"
-            app:showAsAction="always" />
+            app:showAsAction="ifRoom" />
         <item
             android:id="@+id/action_change_map"
+            android:checkable="false"
             android:icon="@drawable/ic_map"
             android:title="@string/toolbar_change_map"
-            android:checkable="false"
             app:showAsAction="ifRoom|collapseActionView" />
         <item
             android:id="@+id/action_add_image"
-            android:icon="@drawable/ic_add_image"
             android:checkable="false"
+            android:icon="@drawable/ic_add_image"
             android:title="@string/toolbar_add_image"
-            app:showAsAction="ifRoom|collapseActionView" />
+            app:showAsAction="ifRoom" />
         <item
             android:id="@+id/action_show_point_of_interest"
+            android:checkable="false"
             android:icon="@drawable/ic_area"
-            android:title="Point of Interest"
-            app:showAsAction="ifRoom|collapseActionView" />
+            android:title="@string/points_of_interest"
+            app:showAsAction="ifRoom" />
         <item
             android:id="@+id/action_save_real_estate"
+            android:checkable="false"
             android:icon="@drawable/ic_save"
             android:title="@string/toolbar_save_real_estate"
-            app:showAsAction="always" />
+            app:showAsAction="ifRoom" />
     </group>
 </menu>

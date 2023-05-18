@@ -9,6 +9,9 @@
     <string name="map">Map</string>
     <string name="real_estate">Immobiliers</string>
 
+    <string name="gps_disabled_msg">Votre GPS est désactivé, voulez-vous le réactiver ?</string>
+    <string name="positive_button">Oui</string>
+
     <string name="drawer_opened">Ouvrir</string>
     <string name="drawer_closed">Fermer</string>
 
@@ -110,6 +113,7 @@
     <string name="start_time_date_picker">%2$d.%1$d.%3$d</string>
     <string name="start_time_date_picker_0">%2$d.0%1$d.%3$d</string>
     <string name="start_time_h">%1$s h %2$d</string>
-    <string name="real_estate_status_available">Available</string>
-    <string name="real_estate_status_not_available">Not Available</string>
+    <string name="real_estate_status_available">Disponible</string>
+    <string name="real_estate_status_not_available">Indisponible</string>
+    <string name="points_of_interest">Points d\'intérêts</string>
 </resources>

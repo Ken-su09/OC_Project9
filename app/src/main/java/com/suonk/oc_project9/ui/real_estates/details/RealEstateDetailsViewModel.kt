@@ -1,21 +1,18 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Application
-import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.suonk.oc_project9.R
-import com.suonk.oc_project9.domain.photo.AddNewPhotoUseCase
-import com.suonk.oc_project9.domain.photo.DeletePhotoUseCase
-import com.suonk.oc_project9.domain.photo.GetPhotosListByIdUseCase
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
 import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
-import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
+import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestViewState
 import com.suonk.oc_project9.utils.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -35,7 +32,8 @@ class RealEstateDetailsViewModel @Inject constructor(
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
     private val application: Application,
     private val navArgProducer: NavArgProducer,
-    private val clock: Clock
+    private val entryClock: Clock,
+    private val saleClock: Clock,
 ) : ViewModel() {
 
     val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
@@ -80,7 +78,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                     entryDate = detailsViewState.entryDate,
                     saleDate = detailsViewState.saleDate,
                     isSold = isSold,
-                    pointsOfInterest = detailsViewState.pointsOfInterest
+                    pointsOfInterestViewState = detailsViewState.pointsOfInterestViewState
                 )
             )
         }.collect()
@@ -118,14 +116,20 @@ class RealEstateDetailsViewModel @Inject constructor(
                         entryDate = null,
                         saleDate = null,
                         isSold = false,
-                        pointsOfInterest = emptyList()
+                        pointsOfInterestViewState = emptyList()
                     )
                 )
                 isSoldMutableStateFlow.emit(false)
             } else {
-                val pointsOfInterest = getNearbyPointsOfInterestUseCase.invoke(
+                val pointsOfInterestViewState = getNearbyPointsOfInterestUseCase.invoke(
                     lat = realEstateEntityWithPhotos.realEstateEntity.latitude, long = realEstateEntityWithPhotos.realEstateEntity.longitude
-                )
+                ).map {
+                    PointOfInterestViewState(
+                        id = it.id ?: it.name, name = it.name, address = it.address, icon = it.icon, types = it.types.toString()
+                    )
+                }
+
+                Log.i("GetPointsOfInterest", "pointsOfInterest : ${pointsOfInterestViewState}")
 
                 val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
 
@@ -144,13 +148,6 @@ class RealEstateDetailsViewModel @Inject constructor(
                         photos = realEstateEntityWithPhotos.photos.map { photoEntity ->
                             DetailsPhotoViewState(uri = photoEntity.photo, onDeleteCallback = EquatableCallback {
                                 onPhotoDeleted(photoEntity.photo)
-//                                viewModelScope.launch(coroutineDispatcherProvider.io) {
-//                                    deletePhotoUseCase.invoke(
-//                                        PhotoEntity(
-//                                            photoEntity.id, realEstateEntityWithPhotos.realEstateEntity.id, photoEntity.photo
-//                                        )
-//                                    )
-//                                }
                             })
                         }.distinct(),
                         city = realEstateEntityWithPhotos.realEstateEntity.city,
@@ -164,7 +161,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         entryDate = fromLocalDateToInstant(realEstateEntityWithPhotos.realEstateEntity.entryDate),
                         saleDate = fromLocalDateToLongWithNullable(realEstateEntityWithPhotos.realEstateEntity.saleDate),
                         isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null,
-                        pointsOfInterest = pointsOfInterest
+                        pointsOfInterestViewState = pointsOfInterestViewState
                     )
                 )
                 isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
@@ -214,23 +211,24 @@ class RealEstateDetailsViewModel @Inject constructor(
             } else {
                 val photos = photosMutableStateFlow.value
 
-                val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(clock).toInstant()
+                val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(entryClock).toInstant()
+
                 val saleDate = if (isSoldMutableStateFlow.value) {
-                    realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(clock).toInstant().toEpochMilli()
+                    realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(saleClock).toInstant().toEpochMilli()
                 } else {
                     null
                 }
 
-                val position = getPositionFromFullAddressUseCase.invoke(
-                    application.getString(
-                        R.string.full_address,
-                        gridZone,
-                        streetName,
-                        city,
-                        state,
-                        postalCode,
-                    ), application
+                val fullAddress = application.getString(
+                    R.string.full_address,
+                    gridZone,
+                    streetName,
+                    city,
+                    state,
+                    postalCode,
                 )
+
+                val position = getPositionFromFullAddressUseCase.invoke(fullAddress, application)
 
                 val bigDecimalPrice = if (price.contains(",")) {
                     BigDecimal(price.replace(",", "").toDouble())
