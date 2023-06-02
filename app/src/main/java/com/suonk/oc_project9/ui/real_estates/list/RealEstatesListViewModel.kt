@@ -14,13 +14,13 @@ import com.suonk.oc_project9.domain.real_estate.filter_sort_search.search.GetSea
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetCurrentSortFilterParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetSortingParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.SetCurrentSortFilterParametersUseCase
+import com.suonk.oc_project9.domain.real_estate.id.SetCurrentRealEstateIdUseCase
+import com.suonk.oc_project9.model.database.data.CurrentRealEstateIdRepositoryImpl
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.EquatableCallback
 import com.suonk.oc_project9.utils.SingleLiveEvent
-import com.suonk.oc_project9.utils.sort.Sorting
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -36,6 +36,8 @@ class RealEstatesListViewModel @Inject constructor(
     private val getCurrentSortFilterParametersUseCase: GetCurrentSortFilterParametersUseCase,
     private val setCurrentSortFilterParametersUseCase: SetCurrentSortFilterParametersUseCase,
 
+    private val setCurrentRealEstateIdUseCase: SetCurrentRealEstateIdUseCase,
+
     private val getSortingParametersUseCase: GetSortingParametersUseCase,
 
     private val searchRepository: SearchRepository,
@@ -44,14 +46,6 @@ class RealEstatesListViewModel @Inject constructor(
 ) : ViewModel() {
 
     val toastMessageSingleLiveEvent = SingleLiveEvent<String>()
-
-    val realEstatesViewAction = SingleLiveEvent<RealEstatesViewAction>()
-
-    sealed class RealEstatesViewAction {
-        sealed class Navigate : RealEstatesViewAction() {
-            data class Detail(val realEstateId: Long) : Navigate()
-        }
-    }
 
     val realEstateLiveData: LiveData<List<RealEstatesListViewState>> = liveData(coroutineDispatcherProvider.io) {
         combine(
@@ -141,7 +135,7 @@ class RealEstatesListViewModel @Inject constructor(
             saleDate = entity.realEstateEntity.saleDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")).orEmpty(),
             isSold = entity.realEstateEntity.saleDate != null,
             onClickedCallback = EquatableCallback {
-                realEstatesViewAction.setValue(RealEstatesViewAction.Navigate.Detail(entity.realEstateEntity.id))
+                setCurrentRealEstateIdUseCase.invoke(entity.realEstateEntity.id)
             })
     }
 
