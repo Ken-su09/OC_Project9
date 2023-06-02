@@ -12,6 +12,8 @@ import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_p
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetSortingParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.SetCurrentSortFilterParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetAllRealEstatesUseCase
+import com.suonk.oc_project9.domain.real_estate.id.SetCurrentRealEstateIdUseCase
+import com.suonk.oc_project9.model.database.data.CurrentRealEstateIdRepositoryImpl
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
@@ -45,6 +47,8 @@ class RealEstatesListViewModelTest {
     private val getCurrentSortFilterParametersUseCase: GetCurrentSortFilterParametersUseCase = mockk()
     private val setCurrentSortFilterParametersUseCase: SetCurrentSortFilterParametersUseCase = mockk()
 
+    private val setCurrentRealEstateIdUseCase: SetCurrentRealEstateIdUseCase = mockk()
+
     private val getSortingParametersUseCase: GetSortingParametersUseCase = mockk()
 
     private val searchRepository: SearchRepository = mockk()
@@ -57,6 +61,9 @@ class RealEstatesListViewModelTest {
 
         getCurrentSortFilterParametersUseCase = getCurrentSortFilterParametersUseCase,
         setCurrentSortFilterParametersUseCase = setCurrentSortFilterParametersUseCase,
+
+        setCurrentRealEstateIdUseCase = setCurrentRealEstateIdUseCase,
+
         getSortingParametersUseCase = getSortingParametersUseCase,
 
         searchRepository = searchRepository,

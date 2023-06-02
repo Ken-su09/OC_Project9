@@ -8,29 +8,25 @@ import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
+import com.suonk.oc_project9.domain.real_estate.id.GetCurrentRealEstateIdUseCase
 import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
+import com.suonk.oc_project9.model.database.data.CurrentRealEstateIdRepositoryImpl
 import com.suonk.oc_project9.model.database.data.entities.places.Position
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
+import com.suonk.oc_project9.ui.filter.Filter
 import com.suonk.oc_project9.utils.*
-import io.mockk.coEvery
-import io.mockk.coJustRun
-import io.mockk.coVerify
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
-import java.time.Clock
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.*
 
 class RealEstateDetailsViewModelTest {
 
@@ -147,31 +143,35 @@ class RealEstateDetailsViewModelTest {
     val testCoroutineRule = TestCoroutineRule()
 
     private val upsertNewRealEstateUseCase: UpsertNewRealEstateUseCase = mockk()
+
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase = mockk()
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase = mockk()
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase = mockk()
 
-    private val application: Application = mockk()
-    private val navArgProducer: NavArgProducer = mockk()
+    private val getCurrentRealEstateIdUseCase: GetCurrentRealEstateIdUseCase = mockk()
 
-    private val entryFixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
-    private val saleFixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
+    private val application: Application = mockk()
+
+    private val fixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
 
     private val realEstateDetailsViewModel = RealEstateDetailsViewModel(
         upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
         getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
         getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
         getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+        getCurrentRealEstateIdUseCase = getCurrentRealEstateIdUseCase,
+
         coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
         application = application,
-        navArgProducer = navArgProducer,
-        entryClock = entryFixedClock,
-        saleClock = saleFixedClock
+        fixedClock = fixedClock
     )
 
     @Before
     fun setup() {
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+        every { getCurrentRealEstateIdUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
     }
@@ -185,7 +185,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
             coVerify(exactly = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
             }
@@ -195,7 +195,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -203,7 +203,7 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `initial case`() = testCoroutineRule.runTest {
         // GIVEN
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+        every { getCurrentRealEstateIdUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(null)
 
         // WHEN
@@ -212,7 +212,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
 
             verify(exactly = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
             }
             confirmVerified(
@@ -221,7 +221,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -235,7 +235,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
             coVerify(exactly = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
             }
@@ -245,9 +245,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer,
-                entryFixedClock,
-                saleFixedClock
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -257,7 +255,8 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to insert a new real estate`() = testCoroutineRule.runTest {
         // GIVEN
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID_TO_ADD
+        every { getCurrentRealEstateIdUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
+
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every {
@@ -297,7 +296,7 @@ class RealEstateDetailsViewModelTest {
 
             // Call 3 times, ask El Nino
             verify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
                 application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
@@ -317,17 +316,16 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer,
-                entryFixedClock,
-                saleFixedClock
-            )
+                getCurrentRealEstateIdUseCase,
+
+                )
         }
     }
 
     @Test
     fun `try to insert a real estate with empty fields with initial case`() = testCoroutineRule.runTest {
         // GIVEN
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+        every { getCurrentRealEstateIdUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(null)
         every { application.getString(R.string.field_empty_toast_msg) } returns FIELD_EMPTY_TOAST_MSG
 
@@ -353,7 +351,7 @@ class RealEstateDetailsViewModelTest {
 
             // Call 3 times, ask El Nino
             verify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 NativeText.Resource(R.string.field_empty_toast_msg)
             }
@@ -363,10 +361,9 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer,
-                entryFixedClock,
-                saleFixedClock
-            )
+                getCurrentRealEstateIdUseCase,
+
+                )
         }
     }
 
@@ -397,7 +394,7 @@ class RealEstateDetailsViewModelTest {
 
             // Call 3 times, ask El Nino
             coVerify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
                 NativeText.Resource(R.string.field_empty_toast_msg)
@@ -408,9 +405,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer,
-                entryFixedClock,
-                saleFixedClock
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -418,7 +413,7 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to insert a real estate with wrong data`() = testCoroutineRule.runTest {
         // GIVEN
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID_TO_ADD
+        every { getCurrentRealEstateIdUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every {
@@ -447,7 +442,7 @@ class RealEstateDetailsViewModelTest {
 
             // Call 3 times, ask El Nino
             verify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
                 NativeText.Resource(R.string.fields_are_not_digits)
             }
@@ -457,9 +452,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer,
-                entryFixedClock,
-                saleFixedClock
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -469,7 +462,7 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to update an existing real estate`() = testCoroutineRule.runTest {
         // GIVEN
-        every { navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId } returns DEFAULT_ID
+        every { getCurrentRealEstateIdUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
         coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every {
@@ -505,7 +498,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
             verify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
@@ -525,9 +518,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer,
-                entryFixedClock,
-                saleFixedClock
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -621,7 +612,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoAdded())
 
             coVerify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
             }
@@ -632,8 +623,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
-            )
+                getCurrentRealEstateIdUseCase            )
         }
     }
 
@@ -650,7 +640,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
             coVerify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
                 NativeText.Resource(R.string.image_already_in_list)
@@ -662,7 +652,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -683,7 +673,7 @@ class RealEstateDetailsViewModelTest {
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewStateAfterPhotoDeleted())
 
             coVerify(atLeast = 1) {
-                navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+                getCurrentRealEstateIdUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
                 NativeText.Resource(R.string.image_already_in_list)
@@ -695,7 +685,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                navArgProducer
+                getCurrentRealEstateIdUseCase
             )
         }
     }
@@ -723,10 +713,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = emptyList(),
         )
     }
 
@@ -750,10 +740,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = emptyList(),
         )
     }
 
@@ -777,10 +767,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = emptyList(),
         )
     }
 
@@ -804,10 +794,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = SALE_DATE_DEFAULT_TIMESTAMP_LONG,
             isSold = true,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = emptyList(),
         )
     }
 
@@ -831,7 +821,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(entryFixedClock),
+            entryDate = LocalDateTime.now(fixedClock),
             saleDate = null,
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
@@ -899,7 +889,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_EMPTY_STREET_NAME,
             gridZone = DEFAULT_EMPTY_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(entryFixedClock),
+            entryDate = LocalDateTime.now(fixedClock),
             saleDate = null,
             latitude = DEFAULT_EMPTY_LATITUDE,
             longitude = DEFAULT_EMPTY_LONGITUDE,
@@ -930,7 +920,7 @@ class RealEstateDetailsViewModelTest {
             entryDate = null,
             saleDate = null,
             isSold = false,
-            pointsOfInterest = emptyList(),
+            pointsOfInterestViewState = emptyList(),
         )
     }
 
@@ -954,7 +944,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(entryFixedClock),
+            entryDate = LocalDateTime.now(fixedClock),
             saleDate = null,
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
@@ -982,10 +972,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = arrayListOf(),
         )
     }
 
@@ -1019,10 +1009,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = arrayListOf(),
         )
     }
 
@@ -1046,7 +1036,7 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(entryFixedClock),
+            entryDate = LocalDateTime.now(fixedClock),
             saleDate = null,
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
@@ -1070,8 +1060,8 @@ class RealEstateDetailsViewModelTest {
             streetName = DEFAULT_STREET_NAME,
             gridZone = DEFAULT_GRID_ZONE,
             status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(entryFixedClock),
-            saleDate = LocalDateTime.now(saleFixedClock),
+            entryDate = LocalDateTime.now(fixedClock),
+            saleDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(SALE_DATE_DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC),
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             agentInChargeId = AGENT_ID,
@@ -1098,10 +1088,10 @@ class RealEstateDetailsViewModelTest {
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             noPhoto = false,
-            entryDate = Instant.now(entryFixedClock),
+            entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterest = arrayListOf(),
+            pointsOfInterestViewState = arrayListOf(),
         )
     }
 

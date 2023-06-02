@@ -62,7 +62,7 @@ object Defaults {
             entryDate = null,
             saleDate = null,
             isSold = false,
-            pointsOfInterest = emptyList(),
+            pointsOfInterestViewState = emptyList(),
         )
     }
 
