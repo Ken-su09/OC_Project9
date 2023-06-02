@@ -6,8 +6,9 @@
     <string name="real_estate_price">%1$s$</string>
     <string name="price_value">€</string>
 
-    <string name="map">Map</string>
     <string name="real_estate">Immobiliers</string>
+    <string name="map">Carte</string>
+    <string name="loan_simulator">Simulateur de prêt</string>
 
     <string name="gps_disabled_msg">Votre GPS est désactivé, voulez-vous le réactiver ?</string>
     <string name="positive_button">Oui</string>
@@ -116,4 +117,8 @@
     <string name="real_estate_status_available">Disponible</string>
     <string name="real_estate_status_not_available">Indisponible</string>
     <string name="points_of_interest">Points d\'intérêts</string>
+    <string name="money_needed">How much money do you need ?</string>
+    <string name="months_needed_title">How many months do you need ?</string>
+    <string name="calculate_button_text">Calculate</string>
+    <string name="interest_rate">Interest Rate</string>
 </resources>

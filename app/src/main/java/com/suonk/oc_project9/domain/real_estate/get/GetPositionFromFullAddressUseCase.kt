@@ -9,10 +9,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GetPositionFromFullAddressUseCase @Inject constructor() {
+class GetPositionFromFullAddressUseCase @Inject constructor(
+
+) {
 
     fun invoke(fullAddress: String, context: Context): Position {
-        Log.i("GetPointsOfInterest", "fullAddress : $fullAddress")
         var latitude = 0.0
         var longitude = 0.0
 

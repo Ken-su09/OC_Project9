@@ -20,8 +20,11 @@ class CurrentPositionRepositoryImpl @Inject constructor(
 
     private val positionFlow = MutableStateFlow(Position(0.0, 0.0))
 
-    private val locationRequest = LocationRequest.create().setInterval(120000).setFastestInterval(120000)
-        .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+    private val locationRequest = LocationRequest.create().apply {
+        interval = 120000 // 10 seconds
+        fastestInterval = 120000 // 5 seconds
+        priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+    }
 
     private var locationCallback: LocationCallback? = null
 

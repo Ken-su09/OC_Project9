@@ -17,9 +17,6 @@
             android:title="@string/sort_by"
             app:showAsAction="ifRoom">
             <menu>
-                <item
-                    android:title="@string/sort_by"
-                    app:showAsAction="collapseActionView" />
                 <group android:checkableBehavior="single">
                     <item
                         android:id="@+id/sort_by_date_asc"
@@ -68,7 +65,7 @@
                     android:id="@+id/remove_filter"
                     android:title="@string/remove_filter"
                     app:showAsAction="collapseActionView" />
-                <group android:checkableBehavior="none">
+                <group android:checkableBehavior="single">
                     <item
                         android:id="@+id/apartment_filter"
                         android:title="@string/apartement_filter"
