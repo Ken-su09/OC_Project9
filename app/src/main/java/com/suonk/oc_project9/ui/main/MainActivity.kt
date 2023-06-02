@@ -17,50 +17,58 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
+import androidx.fragment.app.Fragment
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.ActivityMainBinding
+import com.suonk.oc_project9.ui.real_estates.details.DetailsActivity
+import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsFragment
+import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListFragment
 import com.suonk.oc_project9.utils.Constants
+import com.suonk.oc_project9.utils.Event.Companion.observeEvent
+import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private companion object {
+    private val binding by viewBinding { ActivityMainBinding.inflate(it) }
+
+    companion object {
         private const val STORAGE_PERMISSION_CODE = 100
         private const val TAG = "PERMISSION_TAG"
     }
-
-    private lateinit var navController: NavController
-    private lateinit var binding: ActivityMainBinding
 
     private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-
-        requestPermission()
-    }
-
-    private fun displayUi() {
         setContentView(binding.root)
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        navController = navHostFragment.navController
 
-        setupActionBar(binding)
+        if (savedInstanceState == null) {
+            // Activity is being recreated
+            replaceFragment(R.id.fragment_container, RealEstatesListFragment(), "RealEstatesListFragment")
+        }
+
+        viewModel.mainViewAction.observeEvent(this) { action ->
+            when (action) {
+                is MainViewModel.MainViewAction.Navigate.Detail -> {
+                    startActivity(Intent(this@MainActivity, DetailsActivity::class.java))
+                }
+            }
+        }
+
+        if (resources.getBoolean(R.bool.isTablet)) {
+            replaceFragment(R.id.fragment_container_details, RealEstateDetailsFragment(), "RealEstateDetailsFragment")
+        }
+
+//        requestPermission()
+        isMapsEnabled()
+        getLocationPermission()
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.onResume()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.onStart()
+        viewModel.onResume(resources.getBoolean(R.bool.isTablet))
     }
 
     override fun onStop() {
@@ -68,31 +76,18 @@ class MainActivity : AppCompatActivity() {
         viewModel.onStop()
     }
 
-    //region ================================================================ TOOLBAR ===============================================================
-
-    private fun setupActionBar(binding: ActivityMainBinding) {
-        binding.toolbar.apply {
-            setSupportActionBar(this)
-            setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.light_grey))
-        }
-
-        supportActionBar?.title = ""
-    }
-
-    //endregion
-
     //region ========================================= GOOGLE MAPS ==========================================
 
     private fun alertDialogGpsIsDisabled() {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(getString(R.string.gps_disabled_msg)).setCancelable(false)
-            .setPositiveButton(getString(R.string.positive_button)) { dialog: DialogInterface?, id: Int ->
+            .setPositiveButton(getString(R.string.positive_button)) { _: DialogInterface?, id: Int ->
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivityForResult(intent, Constants.PERMISSIONS_REQUEST_ENABLE_GPS)
             }.create().show()
     }
 
-    fun isMapsEnabled() {
+    private fun isMapsEnabled() {
         val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             alertDialogGpsIsDisabled()
@@ -106,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                     this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
                 )
             } else {
-                supportFragmentManager.beginTransaction().replace(R.id.fragment_container, MapsFragment.newInstance()).commit()
+                replaceFragment(R.id.fragment_container, RealEstatesListFragment(), "RealEstatesListFragment")
             }
         }
     }
@@ -143,7 +138,6 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == STORAGE_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                displayUi()
             } else {
                 Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
                 requestPermission()
@@ -154,7 +148,6 @@ class MainActivity : AppCompatActivity() {
     private val storageActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
-                displayUi()
             } else {
                 Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
                 requestPermission()
@@ -166,4 +159,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     //endregion
+
+    private fun replaceFragment(fragmentContainerId: Int, fragment: Fragment, tag: String) {
+        supportFragmentManager.beginTransaction().replace(fragmentContainerId, fragment, tag).addToBackStack(null).commit()
+    }
 }

@@ -39,7 +39,7 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
             binding.entryDate.text = estate.entryDate
 
             binding.saleDate.text = estate.saleDate
-            binding.saleDate.isVisible = estate.isSold
+//            binding.saleDate.isVisible = estate.isSold
             binding.iconIsSold.isVisible = estate.isSold
 
             val listSliderAdapter = ListSliderAdapter()

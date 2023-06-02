@@ -1,15 +1,7 @@
 package com.suonk.oc_project9.di
 
-import com.suonk.oc_project9.domain.CurrentPositionRepository
-import com.suonk.oc_project9.domain.PhotoRepository
-import com.suonk.oc_project9.domain.PlacesRepository
-import com.suonk.oc_project9.domain.RealEstateRepository
-import com.suonk.oc_project9.domain.SearchRepository
-import com.suonk.oc_project9.model.database.data.CurrentPositionRepositoryImpl
-import com.suonk.oc_project9.model.database.data.PhotoRepositoryImpl
-import com.suonk.oc_project9.model.database.data.PlacesRepositoryImpl
-import com.suonk.oc_project9.model.database.data.RealEstateRepositoryImpl
-import com.suonk.oc_project9.model.database.data.SearchRepositoryImpl
+import com.suonk.oc_project9.domain.*
+import com.suonk.oc_project9.model.database.data.*
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -39,4 +31,12 @@ abstract class DataBindingsModule {
     @Binds
     @Singleton
     abstract fun bindCurrentPositionRepositoryImpl(impl: CurrentPositionRepositoryImpl): CurrentPositionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCurrentRealEstateIdRepositoryImpl(impl: CurrentRealEstateIdRepositoryImpl): CurrentRealEstateIdRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindLoanSimulatorRepositoryImpl(impl: LoanSimulatorRepositoryImpl): LoanSimulatorRepository
 }

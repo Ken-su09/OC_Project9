@@ -16,18 +16,17 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
-import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.CompositePageTransformer
@@ -40,10 +39,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.AddNewPhotoBuilderBottomBinding
 import com.suonk.oc_project9.databinding.FragmentRealEstateDetailsBinding
+import com.suonk.oc_project9.ui.filter.SearchBottomSheetDialogFragment
+import com.suonk.oc_project9.ui.main.MainActivity
+import com.suonk.oc_project9.ui.map.MapFragment
 import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestListAdapter
-import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListAdapter
-import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListFragmentDirections
-import com.suonk.oc_project9.utils.NativeText
+import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListFragment
 import com.suonk.oc_project9.utils.showToast
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,7 +69,11 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         setupRealEstateDetails()
 
         viewModel.finishSavingSingleLiveEvent.observe(viewLifecycleOwner) {
-            findNavController().navigate(RealEstateDetailsFragmentDirections.actionDetailsToList())
+            if (requireActivity() is MainActivity) {
+                requireActivity().supportFragmentManager.beginTransaction().replace(R.id.fragment_container, RealEstatesListFragment(), tag)
+                    .addToBackStack(null)
+                    .commit()
+            }
         }
         viewModel.toastMessageSingleLiveEvent.observe(viewLifecycleOwner) {
             it.showToast(requireContext())
@@ -94,61 +98,51 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region ================================================================ TOOLBAR ===============================================================
 
     private fun setupToolbar() {
-        val menuHost: MenuHost = requireActivity()
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.details_toolbar_menu, menu)
-            }
+        binding.toolbar.inflateMenu(R.menu.details_toolbar_menu)
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_change_map -> {
-                        binding.map.isVisible = !binding.map.isVisible
-                        binding.mainLayout.isVisible = !binding.mainLayout.isVisible
-                        if (binding.pointOfInterestList.isVisible) {
-                            binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
-                        }
-                        true
-                    }
-                    R.id.action_show_point_of_interest -> {
+        binding.toolbar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.action_change_map -> {
+                    binding.map.isVisible = !binding.map.isVisible
+                    binding.mainLayout.isVisible = !binding.mainLayout.isVisible
+                    if (binding.pointOfInterestList.isVisible) {
                         binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
-                        binding.mainLayout.isVisible = !binding.mainLayout.isVisible
-                        if (binding.map.isVisible) {
-                            binding.map.isVisible = !binding.map.isVisible
-                        }
-                        true
-                    }
-                    R.id.action_save_real_estate -> {
-                        viewModel.onSaveRealEstateButtonClicked(
-                            type = binding.typeContent.selectedItemPosition,
-                            price = binding.price.text?.toString() ?: "0.0",
-                            livingSpace = binding.livingSpace.text?.toString() ?: "0.0",
-                            numberRooms = binding.nbRooms.text?.toString() ?: "0",
-                            numberBedroom = binding.nbBedrooms.text?.toString() ?: "0",
-                            numberBathroom = binding.nbBathrooms.text?.toString() ?: "0",
-                            description = binding.description.text?.toString() ?: "",
-                            postalCode = binding.postalCode.text?.toString() ?: "",
-                            state = binding.state.text?.toString() ?: "",
-                            city = binding.cityBorough.text?.toString() ?: "",
-                            streetName = binding.streetName.text?.toString() ?: "",
-                            gridZone = binding.gridZone.text?.toString() ?: ""
-                        )
-                        true
-                    }
-                    R.id.action_add_image -> {
-                        addNewImage()
-                        true
-                    }
-                    R.id.action_is_sold -> {
-                        viewModel.onSoldRealEstateClick()
-                        true
-                    }
-                    else -> {
-                        false
                     }
                 }
+                R.id.action_show_point_of_interest -> {
+                    binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
+                    binding.mainLayout.isVisible = !binding.mainLayout.isVisible
+                    if (binding.map.isVisible) {
+                        binding.map.isVisible = !binding.map.isVisible
+                    }
+                }
+                R.id.action_save_real_estate -> {
+                    viewModel.onSaveRealEstateButtonClicked(
+                        type = binding.typeContent.selectedItemPosition,
+                        price = binding.price.text?.toString() ?: "0.0",
+                        livingSpace = binding.livingSpace.text?.toString() ?: "0.0",
+                        numberRooms = binding.nbRooms.text?.toString() ?: "0",
+                        numberBedroom = binding.nbBedrooms.text?.toString() ?: "0",
+                        numberBathroom = binding.nbBathrooms.text?.toString() ?: "0",
+                        description = binding.description.text?.toString() ?: "",
+                        postalCode = binding.postalCode.text?.toString() ?: "",
+                        state = binding.state.text?.toString() ?: "",
+                        city = binding.cityBorough.text?.toString() ?: "",
+                        streetName = binding.streetName.text?.toString() ?: "",
+                        gridZone = binding.gridZone.text?.toString() ?: ""
+                    )
+                }
+                R.id.action_add_image -> {
+                    addNewImage()
+                }
+                R.id.action_is_sold -> {
+                    viewModel.onSoldRealEstateClick()
+                }
+                else -> {
+                }
             }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+            true
+        }
     }
 
     //endregion

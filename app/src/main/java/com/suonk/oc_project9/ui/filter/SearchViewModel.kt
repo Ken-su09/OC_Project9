@@ -232,9 +232,6 @@ class SearchViewModel @Inject constructor(
         val castedLivingSpaceMin = livingSpaceMin?.toDoubleOrNull()
         val castedLivingSpaceMax = livingSpaceMax?.toDoubleOrNull()
 
-        Log.i("FilterWithMoreCriteria", "castedLivingSpaceMin : $castedLivingSpaceMin")
-        Log.i("FilterWithMoreCriteria", "castedLivingSpaceMax : $castedLivingSpaceMax")
-
         toggleFilterUseCase.invoke(
             FilterQuery.LivingSpaceFilter(
                 min = FilterQuery.SearchParam.Update(castedLivingSpaceMin), max = FilterQuery.SearchParam.Update(castedLivingSpaceMax)

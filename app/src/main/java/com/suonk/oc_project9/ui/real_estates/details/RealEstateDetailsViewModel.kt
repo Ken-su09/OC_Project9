@@ -1,7 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -10,10 +9,14 @@ import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
+import com.suonk.oc_project9.domain.real_estate.id.GetCurrentRealEstateIdUseCase
 import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestViewState
-import com.suonk.oc_project9.utils.*
+import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
+import com.suonk.oc_project9.utils.EquatableCallback
+import com.suonk.oc_project9.utils.NativeText
+import com.suonk.oc_project9.utils.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -26,14 +29,17 @@ import javax.inject.Inject
 @HiltViewModel
 class RealEstateDetailsViewModel @Inject constructor(
     private val upsertNewRealEstateUseCase: UpsertNewRealEstateUseCase,
+
     private val getRealEstateFlowByIdUseCase: GetRealEstateFlowByIdUseCase,
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase,
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase,
+
+    private val getCurrentRealEstateIdUseCase: GetCurrentRealEstateIdUseCase,
+
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
+
     private val application: Application,
-    private val navArgProducer: NavArgProducer,
-    private val entryClock: Clock,
-    private val saleClock: Clock,
+    private val fixedClock: Clock
 ) : ViewModel() {
 
     val finishSavingSingleLiveEvent = SingleLiveEvent<Unit>()
@@ -84,90 +90,90 @@ class RealEstateDetailsViewModel @Inject constructor(
         }.collect()
     }
 
-
     init {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId
+            getCurrentRealEstateIdUseCase.invoke().collect { id ->
+                val realEstateEntityWithPhotos = id?.let { getRealEstateFlowByIdUseCase.invoke(it).firstOrNull() }
 
-            val realEstateEntityWithPhotos = getRealEstateFlowByIdUseCase.invoke(id).firstOrNull()
+                if (realEstateEntityWithPhotos == null) {
+                    // Create mode
+                    realEstateDetailsViewStateMutableSharedFlow.tryEmit(
+                        RealEstateDetailsViewState(
+                            id = 0,
+                            type = spinnerPositionToType(0),
+                            typePosition = 0,
+                            price = "0.0",
+                            livingSpace = "0.0",
+                            numberRooms = "0",
+                            numberBedroom = "0",
+                            numberBathroom = "0",
+                            description = "",
+                            photos = arrayListOf(),
+                            city = "",
+                            postalCode = "",
+                            state = "",
+                            streetName = "",
+                            gridZone = "",
+                            latitude = 0.0,
+                            longitude = 0.0,
+                            noPhoto = true,
+                            entryDate = null,
+                            saleDate = null,
+                            isSold = false,
+                            pointsOfInterestViewState = emptyList()
+                        )
+                    )
+                    isSoldMutableStateFlow.emit(false)
+                } else {
+                    val pointsOfInterestViewState = getNearbyPointsOfInterestUseCase.invoke(
+                        lat = realEstateEntityWithPhotos.realEstateEntity.latitude,
+                        long = realEstateEntityWithPhotos.realEstateEntity.longitude
+                    ).map {
+                        PointOfInterestViewState(
+                            id = it.id ?: it.name, name = it.name, address = it.address, icon = it.icon, types = it.types.toString()
+                        )
+                    }
 
-            if (realEstateEntityWithPhotos == null) {
-                // Create mode
-                realEstateDetailsViewStateMutableSharedFlow.tryEmit(
-                    RealEstateDetailsViewState(
-                        id = 0,
-                        type = spinnerPositionToType(0),
-                        typePosition = 0,
-                        price = "0.0",
-                        livingSpace = "0.0",
-                        numberRooms = "0",
-                        numberBedroom = "0",
-                        numberBathroom = "0",
-                        description = "",
-                        photos = arrayListOf(),
-                        city = "",
-                        postalCode = "",
-                        state = "",
-                        streetName = "",
-                        gridZone = "",
-                        latitude = 0.0,
-                        longitude = 0.0,
-                        noPhoto = true,
-                        entryDate = null,
-                        saleDate = null,
-                        isSold = false,
-                        pointsOfInterestViewState = emptyList()
+//                    Log.i("GetPointsOfInterest", "pointsOfInterest : ${pointsOfInterestViewState}")
+
+                    val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
+
+                    // Update mode
+                    realEstateDetailsViewStateMutableSharedFlow.tryEmit(
+                        RealEstateDetailsViewState(
+                            id = realEstateEntityWithPhotos.realEstateEntity.id,
+                            type = realEstateEntityWithPhotos.realEstateEntity.type,
+                            typePosition = realEstateTypeToSpinnerPosition(realEstateEntityWithPhotos.realEstateEntity.type),
+                            price = price,
+                            livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace.toString(),
+                            numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms.toString(),
+                            numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom.toString(),
+                            numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom.toString(),
+                            description = realEstateEntityWithPhotos.realEstateEntity.description,
+                            photos = realEstateEntityWithPhotos.photos.map { photoEntity ->
+                                DetailsPhotoViewState(uri = photoEntity.photo, onDeleteCallback = EquatableCallback {
+                                    onPhotoDeleted(photoEntity.photo)
+                                })
+                            }.distinct(),
+                            city = realEstateEntityWithPhotos.realEstateEntity.city,
+                            postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
+                            state = realEstateEntityWithPhotos.realEstateEntity.state,
+                            streetName = realEstateEntityWithPhotos.realEstateEntity.streetName,
+                            gridZone = realEstateEntityWithPhotos.realEstateEntity.gridZone,
+                            latitude = realEstateEntityWithPhotos.realEstateEntity.latitude,
+                            longitude = realEstateEntityWithPhotos.realEstateEntity.longitude,
+                            noPhoto = realEstateEntityWithPhotos.photos.isEmpty() && realEstateEntityWithPhotos.realEstateEntity.saleDate == null,
+                            entryDate = fromLocalDateToInstant(realEstateEntityWithPhotos.realEstateEntity.entryDate),
+                            saleDate = fromLocalDateToLongWithNullable(realEstateEntityWithPhotos.realEstateEntity.saleDate),
+                            isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null,
+                            pointsOfInterestViewState = pointsOfInterestViewState
+                        )
                     )
-                )
-                isSoldMutableStateFlow.emit(false)
-            } else {
-                val pointsOfInterestViewState = getNearbyPointsOfInterestUseCase.invoke(
-                    lat = realEstateEntityWithPhotos.realEstateEntity.latitude, long = realEstateEntityWithPhotos.realEstateEntity.longitude
-                ).map {
-                    PointOfInterestViewState(
-                        id = it.id ?: it.name, name = it.name, address = it.address, icon = it.icon, types = it.types.toString()
-                    )
+                    isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
+
+                    val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
+                    photosMutableStateFlow.tryEmit(photos)
                 }
-
-                Log.i("GetPointsOfInterest", "pointsOfInterest : ${pointsOfInterestViewState}")
-
-                val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
-
-                // Update mode
-                realEstateDetailsViewStateMutableSharedFlow.tryEmit(
-                    RealEstateDetailsViewState(
-                        id = realEstateEntityWithPhotos.realEstateEntity.id,
-                        type = realEstateEntityWithPhotos.realEstateEntity.type,
-                        typePosition = realEstateTypeToSpinnerPosition(realEstateEntityWithPhotos.realEstateEntity.type),
-                        price = price,
-                        livingSpace = realEstateEntityWithPhotos.realEstateEntity.livingSpace.toString(),
-                        numberRooms = realEstateEntityWithPhotos.realEstateEntity.numberRooms.toString(),
-                        numberBedroom = realEstateEntityWithPhotos.realEstateEntity.numberBedroom.toString(),
-                        numberBathroom = realEstateEntityWithPhotos.realEstateEntity.numberBathroom.toString(),
-                        description = realEstateEntityWithPhotos.realEstateEntity.description,
-                        photos = realEstateEntityWithPhotos.photos.map { photoEntity ->
-                            DetailsPhotoViewState(uri = photoEntity.photo, onDeleteCallback = EquatableCallback {
-                                onPhotoDeleted(photoEntity.photo)
-                            })
-                        }.distinct(),
-                        city = realEstateEntityWithPhotos.realEstateEntity.city,
-                        postalCode = realEstateEntityWithPhotos.realEstateEntity.postalCode,
-                        state = realEstateEntityWithPhotos.realEstateEntity.state,
-                        streetName = realEstateEntityWithPhotos.realEstateEntity.streetName,
-                        gridZone = realEstateEntityWithPhotos.realEstateEntity.gridZone,
-                        latitude = realEstateEntityWithPhotos.realEstateEntity.latitude,
-                        longitude = realEstateEntityWithPhotos.realEstateEntity.longitude,
-                        noPhoto = realEstateEntityWithPhotos.photos.isEmpty() && realEstateEntityWithPhotos.realEstateEntity.saleDate == null,
-                        entryDate = fromLocalDateToInstant(realEstateEntityWithPhotos.realEstateEntity.entryDate),
-                        saleDate = fromLocalDateToLongWithNullable(realEstateEntityWithPhotos.realEstateEntity.saleDate),
-                        isSold = realEstateEntityWithPhotos.realEstateEntity.saleDate != null,
-                        pointsOfInterestViewState = pointsOfInterestViewState
-                    )
-                )
-                isSoldMutableStateFlow.emit(realEstateEntityWithPhotos.realEstateEntity.saleDate != null)
-
-                val photos = realEstateEntityWithPhotos.photos.map { photoEntity -> AggregatedPhoto(uri = photoEntity.photo) }.toSet()
-                photosMutableStateFlow.tryEmit(photos)
             }
         }
     }
@@ -211,10 +217,10 @@ class RealEstateDetailsViewModel @Inject constructor(
             } else {
                 val photos = photosMutableStateFlow.value
 
-                val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(entryClock).toInstant()
+                val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(fixedClock).toInstant()
 
                 val saleDate = if (isSoldMutableStateFlow.value) {
-                    realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(saleClock).toInstant().toEpochMilli()
+                    realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(fixedClock).toInstant().toEpochMilli()
                 } else {
                     null
                 }
@@ -244,7 +250,7 @@ class RealEstateDetailsViewModel @Inject constructor(
 
                 upsertNewRealEstateUseCase.invoke(
                     realEstate = RealEstateEntity(
-                        id = navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId,
+                        id = 0L,
                         type = spinnerPositionToType(type),
                         price = bigDecimalPrice,
                         livingSpace = livingSpaceToTransform,
@@ -272,9 +278,9 @@ class RealEstateDetailsViewModel @Inject constructor(
                 withContext(coroutineDispatcherProvider.main) {
                     finishSavingSingleLiveEvent.setValue(Unit)
 
-                    if (navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L) {
-                        toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.new_real_estate_is_added))
-                    }
+//                    if (navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L) {
+                    toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.new_real_estate_is_added))
+//                    }
                 }
             }
         }

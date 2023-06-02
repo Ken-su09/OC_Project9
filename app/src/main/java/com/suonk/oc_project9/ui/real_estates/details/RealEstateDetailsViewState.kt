@@ -1,6 +1,5 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
-import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
 import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestViewState
 import java.time.Instant
 

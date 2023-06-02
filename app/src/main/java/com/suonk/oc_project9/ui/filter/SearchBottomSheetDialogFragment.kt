@@ -4,11 +4,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.FilterRealEstateBottomSheetBinding
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsFragmentDirections
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 
