@@ -35,8 +35,4 @@ abstract class DataBindingsModule {
     @Binds
     @Singleton
     abstract fun bindCurrentRealEstateIdRepositoryImpl(impl: CurrentRealEstateIdRepositoryImpl): CurrentRealEstateIdRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindLoanSimulatorRepositoryImpl(impl: LoanSimulatorRepositoryImpl): LoanSimulatorRepository
 }

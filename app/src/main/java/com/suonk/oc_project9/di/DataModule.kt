@@ -2,6 +2,7 @@ package com.suonk.oc_project9.di
 
 import android.app.Application
 import android.content.Context
+import android.location.Geocoder
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -186,5 +187,9 @@ class DataModule {
     @Provides
     @Singleton
     fun provideFusedLocationProviderClient(application: Application) = LocationServices.getFusedLocationProviderClient(application)
+
+    @Provides
+    @Singleton
+    fun provideGeocoder(application: Application) = Geocoder(application)
 
 }
