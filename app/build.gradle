@@ -36,6 +36,9 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
         freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
     }
+//    testOptions {
+//        unitTests.returnDefaultValues = true
+//    }
     buildFeatures {
         viewBinding true
     }
@@ -91,19 +94,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
 
-    // Data Visualisation
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
-
-    // ModernStorage
-    implementation 'com.google.modernstorage:modernstorage-permissions:1.0.0-alpha06'
-    implementation 'com.google.modernstorage:modernstorage-storage:1.0.0-alpha06'
-    implementation 'com.google.modernstorage:modernstorage-bom:1.0.0-alpha06'
-    implementation 'com.google.modernstorage:modernstorage-permissions'
-    implementation 'com.google.modernstorage:modernstorage-storage'
-    implementation 'com.google.modernstorage:modernstorage-photopicker'
-    implementation 'com.squareup.okio:okio'
-
-    // Test
+    // Unit tests
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.hamcrest:hamcrest-library:2.2'
 
@@ -117,7 +108,7 @@ dependencies {
     testAnnotationProcessor 'com.google.dagger:hilt-android-compiler:2.38.1'
     testImplementation 'androidx.test:rules:1.5.0'
 
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.0'
     testImplementation("org.junit.vintage:junit-vintage-engine:5.8.2")
 
     testImplementation("io.mockk:mockk:1.13.3")
@@ -125,18 +116,20 @@ dependencies {
     testImplementation "io.mockk:mockk-agent:1.13.3"
     testImplementation 'com.willowtreeapps.assertk:assertk-jvm:0.25'
 
+    testImplementation 'app.cash.turbine:turbine:0.13.0'
+
+    // UI Tests
+
     androidTestImplementation 'androidx.test:rules:1.5.0'
 
-    // Unit tests
-
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
     androidTestImplementation 'com.google.dagger:hilt-android-testing:2.38.1'
-    androidTestImplementation 'androidx.arch.core:core-testing:2.1.0'
+    androidTestImplementation 'androidx.arch.core:core-testing:2.2.0'
     androidTestAnnotationProcessor 'com.google.dagger:hilt-android-compiler:2.38.1'
     androidTestUtil 'androidx.test:orchestrator:1.4.2'
 
-    debugImplementation "androidx.fragment:fragment-testing:1.5.4"
+    debugImplementation "androidx.fragment:fragment-testing:1.6.0"
 }
 
