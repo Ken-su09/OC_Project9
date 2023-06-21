@@ -527,6 +527,7 @@ class SearchViewModel @Inject constructor(
 //                    )
 //                }
             }
+            else -> {}
         }
     }
 

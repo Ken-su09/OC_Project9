@@ -16,8 +16,6 @@ import kotlin.math.abs
 
 class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstatesListAdapter.ViewHolder>(RealEstatesViewStateComparator) {
 
-    private val viewPool = RecyclerView.RecycledViewPool()
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(
         ItemRealEstatesListBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -25,12 +23,12 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
     )
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.onBind(getItem(position), viewPool)
+        holder.onBind(getItem(position))
     }
 
     class ViewHolder(private val binding: ItemRealEstatesListBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun onBind(estate: RealEstatesListViewState, viewPool: RecyclerView.RecycledViewPool) {
+        fun onBind(estate: RealEstatesListViewState) {
             binding.address.text = estate.address
             binding.type.text = estate.type
             binding.nbRooms.text = estate.numberRooms
@@ -39,7 +37,6 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
             binding.entryDate.text = estate.entryDate
 
             binding.saleDate.text = estate.saleDate
-//            binding.saleDate.isVisible = estate.isSold
             binding.iconIsSold.isVisible = estate.isSold
 
             val listSliderAdapter = ListSliderAdapter()
@@ -58,7 +55,7 @@ class RealEstatesListAdapter : ListAdapter<RealEstatesListViewState, RealEstates
             binding.images.setPageTransformer(compositePageTransformer)
             binding.images.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {})
 
-            itemView.setOnClickListener {
+            binding.imagesLayout.setOnClickListener {
                 estate.onClickedCallback()
             }
         }

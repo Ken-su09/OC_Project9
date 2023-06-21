@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.details.point_of_interest
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -33,8 +34,6 @@ class PointOfInterestListAdapter : ListAdapter<PointOfInterestViewState, PointOf
             binding.name.text = pointOfInterest.name
             binding.types.text = pointOfInterest.types
             binding.address.text = pointOfInterest.address
-
-            Glide.with(binding.image).load(pointOfInterest.icon).into(binding.image)
         }
     }
 

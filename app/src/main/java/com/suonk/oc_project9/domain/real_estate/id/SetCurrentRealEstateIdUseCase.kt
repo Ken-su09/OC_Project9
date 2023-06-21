@@ -7,7 +7,7 @@ import javax.inject.Singleton
 @Singleton
 class SetCurrentRealEstateIdUseCase @Inject constructor(private val currentRealEstateIdRepository: CurrentRealEstateIdRepository) {
 
-    fun invoke(id: Long) {
+    fun invoke(id: Long?) {
         currentRealEstateIdRepository.setCurrentRealEstateIdFlow(id)
     }
 }

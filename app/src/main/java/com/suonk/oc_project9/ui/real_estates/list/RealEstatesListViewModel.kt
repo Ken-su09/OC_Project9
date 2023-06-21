@@ -101,15 +101,11 @@ class RealEstatesListViewModel @Inject constructor(
         }.collect()
     }
 
-    private fun checkIfTwoFieldsAreFilled(firstField: String, secondField: String): Boolean {
-        return !(firstField.isNotBlank() && firstField.isNotEmpty() && secondField.isEmpty() || secondField.isBlank() || secondField.isNotBlank() && secondField.isNotEmpty() && firstField.isEmpty() || firstField.isBlank())
-    }
-
     private fun transformEntityToViewState(entity: RealEstateEntityWithPhotos): RealEstatesListViewState {
         return RealEstatesListViewState(id = entity.realEstateEntity.id,
             type = entity.realEstateEntity.type,
             price = application.getString(
-                R.string.real_estate_price, entity.realEstateEntity.price
+                R.string.string_arg_with_currency, entity.realEstateEntity.price
             ),
             priceValue = entity.realEstateEntity.price,
             numberRooms = application.getString(
