@@ -5,10 +5,9 @@ import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class SetMoneyLoanUseCase @Inject constructor(private val loanSimulatorRepository: LoanSimulatorRepository) {
 
     fun invoke(moneyValue: BigDecimal) {
-        loanSimulatorRepository.setMoneyValueFlow(moneyValue = moneyValue)
+        loanSimulatorRepository.setMoneyLoan(moneyValue)
     }
 }
