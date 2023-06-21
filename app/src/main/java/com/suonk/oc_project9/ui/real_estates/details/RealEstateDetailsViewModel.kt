@@ -9,7 +9,7 @@ import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.places.GetNearbyPointsOfInterestUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUseCase
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
-import com.suonk.oc_project9.domain.real_estate.id.GetCurrentRealEstateIdUseCase
+import com.suonk.oc_project9.domain.real_estate.id.GetCurrentRealEstateAsStateFlowUseCase
 import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestViewState
@@ -34,7 +34,7 @@ class RealEstateDetailsViewModel @Inject constructor(
     private val getPositionFromFullAddressUseCase: GetPositionFromFullAddressUseCase,
     private val getNearbyPointsOfInterestUseCase: GetNearbyPointsOfInterestUseCase,
 
-    private val getCurrentRealEstateIdUseCase: GetCurrentRealEstateIdUseCase,
+    private val getCurrentRealEstateAsStateFlowUseCase: GetCurrentRealEstateAsStateFlowUseCase,
 
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
 
@@ -57,6 +57,7 @@ class RealEstateDetailsViewModel @Inject constructor(
         combine(
             realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
         ) { detailsViewState, aggregatedPhotos, isSold ->
+
             emit(
                 RealEstateDetailsViewState(
                     id = detailsViewState.id,
@@ -92,9 +93,9 @@ class RealEstateDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            getCurrentRealEstateIdUseCase.invoke().collect { id ->
-                val realEstateEntityWithPhotos = id?.let { getRealEstateFlowByIdUseCase.invoke(it).firstOrNull() }
+            getCurrentRealEstateAsStateFlowUseCase.invoke().collect { id ->
 
+                val realEstateEntityWithPhotos = id?.let { getRealEstateFlowByIdUseCase.invoke(it).firstOrNull() }
                 if (realEstateEntityWithPhotos == null) {
                     // Create mode
                     realEstateDetailsViewStateMutableSharedFlow.tryEmit(
@@ -130,11 +131,9 @@ class RealEstateDetailsViewModel @Inject constructor(
                         long = realEstateEntityWithPhotos.realEstateEntity.longitude
                     ).map {
                         PointOfInterestViewState(
-                            id = it.id ?: it.name, name = it.name, address = it.address, icon = it.icon, types = it.types.toString()
+                            id = it.id ?: it.name, name = it.name, address = it.address, types = it.types.toString()
                         )
                     }
-
-//                    Log.i("GetPointsOfInterest", "pointsOfInterest : ${pointsOfInterestViewState}")
 
                     val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
 
@@ -193,94 +192,100 @@ class RealEstateDetailsViewModel @Inject constructor(
         gridZone: String
     ) {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
-            val isFieldEmpty = isEmptyOrBlank(price) || isEmptyOrBlank(livingSpace) || isEmptyOrBlank(numberRooms) || isEmptyOrBlank(
-                numberBedroom
-            ) || isEmptyOrBlank(
-                numberBathroom
-            ) || isEmptyOrBlank(description) || isEmptyOrBlank(postalCode) || isEmptyOrBlank(
-                city
-            ) || isEmptyOrBlank(streetName) || isEmptyOrBlank(
-                gridZone
-            )
-
-            val isFieldsAreNotDigits =
-                price.toDoubleOrNull() == null && livingSpace.toDoubleOrNull() == null && numberRooms.toDoubleOrNull() == null && numberBedroom.toDoubleOrNull() == null
-
-            if (isFieldEmpty) {
-                withContext(coroutineDispatcherProvider.main) {
-                    toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.field_empty_toast_msg))
-                }
-            } else if (isFieldsAreNotDigits) {
-                withContext(coroutineDispatcherProvider.main) {
-                    toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.fields_are_not_digits))
-                }
-            } else {
-                val photos = photosMutableStateFlow.value
-
-                val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(fixedClock).toInstant()
-
-                val saleDate = if (isSoldMutableStateFlow.value) {
-                    realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(fixedClock).toInstant().toEpochMilli()
-                } else {
-                    null
-                }
-
-                val fullAddress = application.getString(
-                    R.string.full_address,
-                    gridZone,
-                    streetName,
-                    city,
-                    state,
-                    postalCode,
+            getCurrentRealEstateAsStateFlowUseCase.invoke().collect { id ->
+                val isFieldEmpty = isEmptyOrBlank(price) || isEmptyOrBlank(livingSpace) || isEmptyOrBlank(numberRooms) || isEmptyOrBlank(
+                    numberBedroom
+                ) || isEmptyOrBlank(
+                    numberBathroom
+                ) || isEmptyOrBlank(description) || isEmptyOrBlank(postalCode) || isEmptyOrBlank(
+                    city
+                ) || isEmptyOrBlank(streetName) || isEmptyOrBlank(
+                    gridZone
                 )
 
-                val position = getPositionFromFullAddressUseCase.invoke(fullAddress, application)
+                val isFieldsAreNotDigits =
+                    price.toDoubleOrNull() == null && livingSpace.toDoubleOrNull() == null && numberRooms.toDoubleOrNull() == null && numberBedroom.toDoubleOrNull() == null
 
-                val bigDecimalPrice = if (price.contains(",")) {
-                    BigDecimal(price.replace(",", "").toDouble())
+                if (isFieldEmpty) {
+                    withContext(coroutineDispatcherProvider.main) {
+                        toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.field_empty_toast_msg))
+                    }
+                } else if (isFieldsAreNotDigits) {
+                    withContext(coroutineDispatcherProvider.main) {
+                        toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.fields_are_not_digits))
+                    }
                 } else {
-                    BigDecimal(price.toDouble())
-                }
+                    val photos = photosMutableStateFlow.value
 
-                val livingSpaceToTransform = if (livingSpace.contains(",")) {
-                    livingSpace.replace(",", "").toDouble()
-                } else {
-                    livingSpace.toDouble()
-                }
+                    val entryDate =
+                        realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(fixedClock).toInstant()
 
-                upsertNewRealEstateUseCase.invoke(
-                    realEstate = RealEstateEntity(
-                        id = 0L,
-                        type = spinnerPositionToType(type),
-                        price = bigDecimalPrice,
-                        livingSpace = livingSpaceToTransform,
-                        numberRooms = numberRooms.toInt(),
-                        numberBedroom = numberBedroom.toInt(),
-                        numberBathroom = numberBathroom.toInt(),
-                        description = description,
-                        postalCode = postalCode,
-                        state = state,
-                        city = city,
-                        streetName = streetName,
-                        gridZone = gridZone,
-                        status = if (saleDate == null) application.getString(R.string.real_estate_status_available) else application.getString(
-                            R.string.real_estate_status_not_available
+                    val saleDate = if (isSoldMutableStateFlow.value) {
+                        realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(fixedClock).toInstant()
+                            .toEpochMilli()
+                    } else {
+                        null
+                    }
+
+                    val fullAddress = application.getString(
+                        R.string.full_address,
+                        gridZone,
+                        streetName,
+                        city,
+                        state,
+                        postalCode,
+                    )
+
+                    val position = getPositionFromFullAddressUseCase.invoke(fullAddress)
+
+                    val bigDecimalPrice = if (price.contains(",")) {
+                        BigDecimal(price.replace(",", "").toDouble())
+                    } else {
+                        BigDecimal(price.toDouble())
+                    }
+
+                    val livingSpaceToTransform = if (livingSpace.contains(",")) {
+                        livingSpace.replace(",", "").toDouble()
+                    } else {
+                        livingSpace.toDouble()
+                    }
+
+                    upsertNewRealEstateUseCase.invoke(
+                        realEstate = RealEstateEntity(
+                            id = id ?: 0L,
+                            type = spinnerPositionToType(type),
+                            price = bigDecimalPrice,
+                            livingSpace = livingSpaceToTransform,
+                            numberRooms = numberRooms.toInt(),
+                            numberBedroom = numberBedroom.toInt(),
+                            numberBathroom = numberBathroom.toInt(),
+                            description = description,
+                            postalCode = postalCode,
+                            state = state,
+                            city = city,
+                            streetName = streetName,
+                            gridZone = gridZone,
+                            status = if (saleDate == null) application.getString(R.string.real_estate_status_available) else application.getString(
+                                R.string.real_estate_status_not_available
+                            ),
+                            entryDate = fromInstantToLocalDate(entryDate),
+                            saleDate = fromLongToLocalDateWithNullable(saleDate),
+                            latitude = position.lat,
+                            longitude = position.long,
+                            agentInChargeId = 1L
                         ),
-                        entryDate = fromInstantToLocalDate(entryDate),
-                        saleDate = fromLongToLocalDateWithNullable(saleDate),
-                        latitude = position.lat,
-                        longitude = position.long,
-                        agentInChargeId = 1L
-                    ),
-                    photos = photos.toList(),
-                )
+                        photos = photos.toList(),
+                    )
 
-                withContext(coroutineDispatcherProvider.main) {
-                    finishSavingSingleLiveEvent.setValue(Unit)
+                    withContext(coroutineDispatcherProvider.main) {
+                        finishSavingSingleLiveEvent.setValue(Unit)
 
-//                    if (navArgProducer.getNavArgs(RealEstateDetailsFragmentArgs::class).realEstateId == 0L) {
-                    toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.new_real_estate_is_added))
-//                    }
+                        if (id != null && id != 0L) {
+                            toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.new_real_estate_is_added))
+                        } else {
+                            toastMessageSingleLiveEvent.setValue(NativeText.Resource(R.string.new_real_estate_is_updated))
+                        }
+                    }
                 }
             }
         }

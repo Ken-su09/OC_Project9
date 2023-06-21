@@ -1,26 +1,19 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
-import android.app.Activity
-import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
-import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.SearchView
+import androidx.core.content.FileProvider
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
@@ -36,18 +29,16 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.suonk.oc_project9.BuildConfig
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.databinding.AddNewPhotoBuilderBottomBinding
 import com.suonk.oc_project9.databinding.FragmentRealEstateDetailsBinding
-import com.suonk.oc_project9.ui.filter.SearchBottomSheetDialogFragment
 import com.suonk.oc_project9.ui.main.MainActivity
-import com.suonk.oc_project9.ui.map.MapFragment
 import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestListAdapter
-import com.suonk.oc_project9.ui.real_estates.list.RealEstatesListFragment
 import com.suonk.oc_project9.utils.showToast
 import com.suonk.oc_project9.utils.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -59,6 +50,14 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     private var isUpdatingFromViewState = false
     private var imageUri: Uri? = null
 
+    private val takePictureCallback = registerForActivityResult(ActivityResultContracts.TakePicture()) { successful ->
+        if (successful) {
+            imageUri?.let {
+                viewModel.onNewPhotoAdded(it.toString())
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -69,11 +68,8 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
         setupRealEstateDetails()
 
         viewModel.finishSavingSingleLiveEvent.observe(viewLifecycleOwner) {
-            if (requireActivity() is MainActivity) {
-                requireActivity().supportFragmentManager.beginTransaction().replace(R.id.fragment_container, RealEstatesListFragment(), tag)
-                    .addToBackStack(null)
-                    .commit()
-            }
+            startActivity(Intent(requireActivity(), MainActivity::class.java))
+            requireActivity().finish()
         }
         viewModel.toastMessageSingleLiveEvent.observe(viewLifecycleOwner) {
             it.showToast(requireContext())
@@ -98,51 +94,63 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     //region ================================================================ TOOLBAR ===============================================================
 
     private fun setupToolbar() {
-        binding.toolbar.inflateMenu(R.menu.details_toolbar_menu)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.details_toolbar_menu, menu)
+            }
 
-        binding.toolbar.setOnMenuItemClickListener {
-            when (it.itemId) {
-                R.id.action_change_map -> {
-                    binding.map.isVisible = !binding.map.isVisible
-                    binding.mainLayout.isVisible = !binding.mainLayout.isVisible
-                    if (binding.pointOfInterestList.isVisible) {
-                        binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    android.R.id.home -> {
+                        startActivity(Intent(requireActivity(), MainActivity::class.java))
+                        true
                     }
-                }
-                R.id.action_show_point_of_interest -> {
-                    binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
-                    binding.mainLayout.isVisible = !binding.mainLayout.isVisible
-                    if (binding.map.isVisible) {
+                    R.id.action_change_map -> {
                         binding.map.isVisible = !binding.map.isVisible
+                        if (binding.pointOfInterestList.isVisible) {
+                            binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
+                        }
+                        true
                     }
-                }
-                R.id.action_save_real_estate -> {
-                    viewModel.onSaveRealEstateButtonClicked(
-                        type = binding.typeContent.selectedItemPosition,
-                        price = binding.price.text?.toString() ?: "0.0",
-                        livingSpace = binding.livingSpace.text?.toString() ?: "0.0",
-                        numberRooms = binding.nbRooms.text?.toString() ?: "0",
-                        numberBedroom = binding.nbBedrooms.text?.toString() ?: "0",
-                        numberBathroom = binding.nbBathrooms.text?.toString() ?: "0",
-                        description = binding.description.text?.toString() ?: "",
-                        postalCode = binding.postalCode.text?.toString() ?: "",
-                        state = binding.state.text?.toString() ?: "",
-                        city = binding.cityBorough.text?.toString() ?: "",
-                        streetName = binding.streetName.text?.toString() ?: "",
-                        gridZone = binding.gridZone.text?.toString() ?: ""
-                    )
-                }
-                R.id.action_add_image -> {
-                    addNewImage()
-                }
-                R.id.action_is_sold -> {
-                    viewModel.onSoldRealEstateClick()
-                }
-                else -> {
+                    R.id.action_show_point_of_interest -> {
+                        binding.pointOfInterestList.isVisible = !binding.pointOfInterestList.isVisible
+                        if (binding.map.isVisible) {
+                            binding.map.isVisible = !binding.map.isVisible
+                        }
+                        true
+                    }
+                    R.id.action_save_real_estate -> {
+                        viewModel.onSaveRealEstateButtonClicked(
+                            type = binding.typeContent.selectedItemPosition,
+                            price = binding.price.text?.toString() ?: "0.0",
+                            livingSpace = binding.livingSpace.text?.toString() ?: "0.0",
+                            numberRooms = binding.nbRooms.text?.toString() ?: "0",
+                            numberBedroom = binding.nbBedrooms.text?.toString() ?: "0",
+                            numberBathroom = binding.nbBathrooms.text?.toString() ?: "0",
+                            description = binding.description.text?.toString() ?: "",
+                            postalCode = binding.postalCode.text?.toString() ?: "",
+                            state = binding.state.text?.toString() ?: "",
+                            city = binding.cityBorough.text?.toString() ?: "",
+                            streetName = binding.streetName.text?.toString() ?: "",
+                            gridZone = binding.gridZone.text?.toString() ?: ""
+                        )
+                        true
+                    }
+                    R.id.action_add_image -> {
+                        addNewImage()
+                        true
+                    }
+                    R.id.action_is_sold -> {
+                        viewModel.onSoldRealEstateClick()
+                        true
+                    }
+                    else -> {
+                        false
+                    }
                 }
             }
-            true
-        }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     //endregion
@@ -243,71 +251,18 @@ class RealEstateDetailsFragment : Fragment(R.layout.fragment_real_estate_details
     }
 
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
-        resultLauncher.launch(intent)
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, 1)
     }
 
     private fun openCamera() {
-        val values = ContentValues()
-        values.put(MediaStore.Images.Media.TITLE, "")
-        values.put(MediaStore.Images.Media.DESCRIPTION, "")
-        imageUri = requireActivity().contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-        resultLauncher.launch(cameraIntent)
-    }
+        imageUri = FileProvider.getUriForFile(
+            requireContext(), BuildConfig.APPLICATION_ID + ".provider", File.createTempFile(
+                "JPEG_", ".jpg", requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            )
+        )
 
-    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let {
-                viewModel.onNewPhotoAdded(it.toString())
-            }
-
-            imageUri?.let {
-                val matrix = Matrix()
-                val exif = ExifInterface(getRealPathFromUri(requireContext(), it))
-                val rotation = exif.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL
-                )
-                val rotationInDegrees = exifToDegrees(rotation)
-                matrix.postRotate(rotationInDegrees.toFloat())
-
-                var bitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, it)
-                bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width / 10, bitmap.height / 10, true)
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-
-                viewModel.onNewPhotoAdded(getImageUri(requireContext(), bitmap).toString())
-            }
-        }
-    }
-
-    private fun getRealPathFromUri(context: Context, contentUri: Uri): String {
-        var cursor: Cursor? = null
-        try {
-            val proj = arrayOf(MediaStore.Images.Media.DATA)
-            cursor = context.contentResolver.query(contentUri, proj, null, null, null)
-            val columnIndex = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            cursor?.moveToFirst()
-            return cursor?.getString(columnIndex!!)!!
-        } finally {
-            cursor?.close()
-        }
-    }
-
-    private fun exifToDegrees(exifOrientation: Int): Int {
-        return when (exifOrientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> 90
-            ExifInterface.ORIENTATION_ROTATE_180 -> 180
-            ExifInterface.ORIENTATION_ROTATE_270 -> 270
-            else -> 0
-        }
-    }
-
-    private fun getImageUri(context: Context, bitmap: Bitmap): Uri {
-        val bytes = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
-        return Uri.parse(path)
+        takePictureCallback.launch(imageUri)
     }
 
     //endregion

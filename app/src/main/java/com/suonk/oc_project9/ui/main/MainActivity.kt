@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.suonk.oc_project9.R
@@ -32,27 +33,41 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val binding by viewBinding { ActivityMainBinding.inflate(it) }
+    private val viewModel by viewModels<MainViewModel>()
 
-    companion object {
+    private companion object {
         private const val STORAGE_PERMISSION_CODE = 100
         private const val TAG = "PERMISSION_TAG"
     }
-
-    private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        if (savedInstanceState == null) {
-            // Activity is being recreated
-            replaceFragment(R.id.fragment_container, RealEstatesListFragment(), "RealEstatesListFragment")
-        }
+//        if (savedInstanceState == null) {
+//            // Activity is being recreated
+//        }
+
+        requestPermission()
+        isMapsEnabled()
+        getLocationPermission()
+    }
+
+    private fun displayUi() {
+        isMapsEnabled()
+        getLocationPermission()
+
+        replaceFragment(R.id.fragment_container, RealEstatesListFragment(), "RealEstatesListFragment")
 
         viewModel.mainViewAction.observeEvent(this) { action ->
+            Log.i("TryToCollect", "MainActivity action : $action")
+
             when (action) {
-                is MainViewModel.MainViewAction.Navigate.Detail -> {
+                is MainViewAction.Navigate.Detail -> {
+                    Log.i("TryToCollect", "MainViewAction.Navigate.Detail : $action")
+
                     startActivity(Intent(this@MainActivity, DetailsActivity::class.java))
+                    finish()
                 }
             }
         }
@@ -60,10 +75,6 @@ class MainActivity : AppCompatActivity() {
         if (resources.getBoolean(R.bool.isTablet)) {
             replaceFragment(R.id.fragment_container_details, RealEstateDetailsFragment(), "RealEstateDetailsFragment")
         }
-
-//        requestPermission()
-        isMapsEnabled()
-        getLocationPermission()
     }
 
     override fun onResume() {
@@ -76,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.onStop()
     }
 
-    //region ========================================= GOOGLE MAPS ==========================================
+    //region ============================================================= GOOGLE MAPS ==============================================================
 
     private fun alertDialogGpsIsDisabled() {
         val builder = AlertDialog.Builder(this)
@@ -138,6 +149,7 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == STORAGE_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                displayUi()
             } else {
                 Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
                 requestPermission()
@@ -148,6 +160,7 @@ class MainActivity : AppCompatActivity() {
     private val storageActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
+                displayUi()
             } else {
                 Toast.makeText(this, getString(R.string.storage_permission_toast), Toast.LENGTH_LONG).show()
                 requestPermission()
