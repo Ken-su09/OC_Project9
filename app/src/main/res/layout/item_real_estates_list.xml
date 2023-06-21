@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/images_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="32dp"
@@ -12,8 +11,12 @@
     card_view:cardElevation="2dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/images_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/list_item_background_selector"
+        android:clickable="true"
+        android:focusable="true">
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/images"

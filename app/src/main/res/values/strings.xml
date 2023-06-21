@@ -3,7 +3,8 @@
 
     <string name="number_rooms">%1$d Rooms • %2$d Bedrooms • %3$d Bathrooms</string>
     <string name="square_meter">%1$f m²</string>
-    <string name="real_estate_price">%1$s$</string>
+    <string name="string_arg_with_currency">%1$s$</string>
+    <string name="string_arg_with_currency_1">%1$f$</string>
     <string name="price_value">$</string>
 
     <string name="real_estate">Real Estates</string>
@@ -73,6 +74,7 @@
     <string name="toolbar_change_map">Change map</string>
     <string name="toolbar_is_sold">Is Sold</string>
 
+    <string name="fields_should_not_be_equal_to_zero">Fields should not be zero</string>
     <string name="fields_are_not_digits">Fields should be digits</string>
     <string name="field_empty_toast_msg">Fields can not be empty</string>
     <string name="two_fields_filled_toast_msg">Two fields should be filled</string>
@@ -81,6 +83,7 @@
     <string name="add_image_from_url">Add image from URL</string>
     <string name="image_already_in_list">This photo is already on the list</string>
     <string name="new_real_estate_is_added">A Real Estate was successfully added</string>
+    <string name="new_real_estate_is_updated">A Real Estate was successfully updated</string>
     <string name="storage_permission_toast">You need those permissions to use this app at its full potential</string>
     <string name="square_metre">m²</string>
     <string name="add_more_criteria">Add More Criteria +</string>
@@ -122,4 +125,9 @@
     <string name="months_needed_title">How many months do you need ?</string>
     <string name="calculate_button_text">Calculate</string>
     <string name="interest_rate">Interest Rate</string>
+    <string name="total_payment_title">Total Payment</string>
+    <string name="monthly_payment_title">Monthly Payment</string>
+    <string name="total_interest_title">Total Interest</string>
+    <string name="you_will_pay">You Will Pay</string>
+    <string name="per_month">Per Month</string>
 </resources>

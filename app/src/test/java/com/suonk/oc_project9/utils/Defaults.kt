@@ -1,37 +1,6 @@
 package com.suonk.oc_project9.utils
 
-import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
-import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
-import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.ui.real_estates.details.AggregatedPhoto
-import com.suonk.oc_project9.ui.real_estates.details.DetailsPhotoViewState
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModel
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_CITY
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_DESCRIPTION
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_GRID_ZONE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_ID
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_LAT
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_LIVING_SPACE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_LIVING_SPACE_STRING
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_LONG
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_NUMBER_BATHROOM
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_NUMBER_BATHROOM_STRING
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_NUMBER_BEDROOM
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_NUMBER_BEDROOM_STRING
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_NUMBER_ROOM
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_NUMBER_ROOM_STRING
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_POSTAL_CODE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_PRICE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_PRICE_STRING
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_STATE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_STATUS_AVAILABLE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_STREET_NAME
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_TIMESTAMP_LONG
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_TYPE
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewModelTest.Companion.DEFAULT_TYPE_POSITION
-import com.suonk.oc_project9.ui.real_estates.details.RealEstateDetailsViewState
-import java.math.BigDecimal
-import java.time.*
 
 object Defaults {
 
@@ -39,72 +8,8 @@ object Defaults {
 
     //region ================================================================= EMPTY ================================================================
 
-    fun getDefaultEmptyRealEstateDetailsViewState(): RealEstateDetailsViewState {
-        return RealEstateDetailsViewState(
-            id = getDefaultEmptyRealEstateEntity().id,
-            type = getDefaultEmptyRealEstateEntity().type,
-            typePosition = 0,
-            price = "0.0",
-            livingSpace = "0.0",
-            numberRooms = "0",
-            numberBedroom = "0",
-            numberBathroom = "0",
-            description = "",
-            arrayListOf(),
-            city = "",
-            postalCode = "",
-            state = "",
-            streetName = "",
-            gridZone = "",
-            latitude = 0.0,
-            longitude = 0.0,
-            noPhoto = true,
-            entryDate = null,
-            saleDate = null,
-            isSold = false,
-            pointsOfInterestViewState = emptyList(),
-        )
-    }
-
-    private fun getDefaultEmptyRealEstateEntity(): RealEstateEntity {
-        val fixedClock = Clock.fixed(Instant.EPOCH.plusMillis(DEFAULT_TIMESTAMP_LONG), ZoneId.systemDefault())
-
-        return RealEstateEntity(
-            id = 0L,
-            type = "",
-            price = BigDecimal(0.0),
-            livingSpace = 0.0,
-            numberRooms = 0,
-            numberBedroom = 0,
-            numberBathroom = 0,
-            description = "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "Available",
-            LocalDateTime.now(fixedClock),
-            null,
-            0.0,
-            0.0,
-            1L,
-        )
-    }
-
     //endregion
 
-
-    fun getDefaultPhotoViewStates(): List<DetailsPhotoViewState> {
-        return listOf(
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
-                EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
-                EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
-                EquatableCallback {})
-        )
-    }
 
     fun getDefaultAggregatedPhotos(): List<AggregatedPhoto> {
         return listOf(

@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@color/white">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/name"
@@ -12,7 +13,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:textColor="@color/black"
+        android:textColor="?android:attr/textColor"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/image"
@@ -25,7 +26,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:textColor="@color/black"
+        android:textColor="?android:attr/textColor"
         android:textSize="15sp"
         app:layout_constraintEnd_toStartOf="@+id/image"
         app:layout_constraintStart_toStartOf="parent"
@@ -54,6 +55,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_room" />
+        app:srcCompat="@drawable/ic_point_of_interest" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

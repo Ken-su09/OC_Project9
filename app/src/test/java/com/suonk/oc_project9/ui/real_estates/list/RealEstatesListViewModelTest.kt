@@ -74,10 +74,10 @@ class RealEstatesListViewModelTest {
     @Before
     fun setup() {
         every {
-            application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
+            application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
         } returns FIRST_DEFAULT_PRICE_STRING
         every {
-            application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+            application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
         } returns SECOND_DEFAULT_PRICE_STRING
 
         every {
@@ -144,8 +144,8 @@ class RealEstatesListViewModelTest {
                 getSearchRealEstateUseCase.invoke()
                 getSortingParametersUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -227,7 +227,7 @@ class RealEstatesListViewModelTest {
         }
     }
 
-    // FILTER
+    //region FILTER
 
     @Test
     fun `get all real estates with filter by type penthouse`() = testCoroutineRule.runTest {
@@ -255,8 +255,78 @@ class RealEstatesListViewModelTest {
                 getSortingParametersUseCase.invoke()
                 getCurrentSortFilterParametersUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
+                application.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                application.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                application.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                application.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                application.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                application.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
+                searchRepository,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                application
+            )
+        }
+    }
+
+    @Test
+    fun `get all real estates with filter by type apartment`() = testCoroutineRule.runTest  {
+        // GIVEN
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.apartment_filter)
+
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.apartment_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.apartment_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getDefaultRealEstatesListViewStatesFilterByApartment())
+
+            verify {
+                getSearchRealEstateUseCase.invoke()
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+                setCurrentSortFilterParametersUseCase.invoke(R.id.apartment_filter)
+                getSortingParametersUseCase.invoke()
+                getCurrentSortFilterParametersUseCase.invoke()
+
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -340,8 +410,8 @@ class RealEstatesListViewModelTest {
                 getSortingParametersUseCase.invoke()
                 getSearchRealEstateUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -410,8 +480,215 @@ class RealEstatesListViewModelTest {
                 getSortingParametersUseCase.invoke()
                 getSearchRealEstateUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
+                application.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                application.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                application.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                application.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                application.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                application.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
+                searchRepository,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                application
+            )
+        }
+    }
+
+    @Test
+    fun `get all real estates with filter by type house should be empty`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.house_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.house_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.house_filter)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getEmptyDefaultRealEstatesListViewStates())
+
+            verify {
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+                setCurrentSortFilterParametersUseCase.invoke(R.id.house_filter)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
+
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
+                application.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                application.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                application.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                application.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                application.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                application.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
+                searchRepository,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                application
+            )
+        }
+    }
+
+    @Test
+    fun `get all real estates with filter by type duplex should be empty`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.duplex_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.duplex_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.duplex_filter)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getEmptyDefaultRealEstatesListViewStates())
+
+            verify {
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+                setCurrentSortFilterParametersUseCase.invoke(R.id.duplex_filter)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
+
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
+                application.getString(
+                    R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
+                )
+                application.getString(
+                    R.string.number_rooms, SECOND_DEFAULT_NUMBER_ROOM, SECOND_DEFAULT_NUMBER_BEDROOM, SECOND_DEFAULT_NUMBER_BATHROOM
+                )
+
+                application.getString(R.string.square_meter, FIRST_DEFAULT_LIVING_SPACE)
+                application.getString(R.string.square_meter, SECOND_DEFAULT_LIVING_SPACE)
+
+                application.getString(
+                    R.string.full_address,
+                    FIRST_DEFAULT_GRID_ZONE,
+                    FIRST_DEFAULT_STREET_NAME,
+                    FIRST_DEFAULT_CITY,
+                    FIRST_DEFAULT_STATE,
+                    FIRST_DEFAULT_POSTAL_CODE
+                )
+                application.getString(
+                    R.string.full_address,
+                    SECOND_DEFAULT_GRID_ZONE,
+                    SECOND_DEFAULT_STREET_NAME,
+                    SECOND_DEFAULT_CITY,
+                    SECOND_DEFAULT_STATE,
+                    SECOND_DEFAULT_POSTAL_CODE
+                )
+            }
+
+            confirmVerified(
+                getAllRealEstatesUseCase,
+                getSearchRealEstateUseCase,
+                setSearchRealEstateUseCase,
+                getCurrentSortFilterParametersUseCase,
+                setCurrentSortFilterParametersUseCase,
+                getSortingParametersUseCase,
+                searchRepository,
+                testCoroutineRule.getTestCoroutineDispatcherProvider(),
+                application
+            )
+        }
+    }
+
+    @Test
+    fun `get all real estates with filter by type flat should be empty`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { getAllRealEstatesUseCase.invoke() } returns flowOf(getAllDefaultRealEstatesWithPhotos())
+        every { getSearchRealEstateUseCase.invoke() } returns flowOf(DEFAULT_EMPTY_SEARCH)
+        every { searchRepository.getCurrentFilterParametersFlow() } returns emptyListOfFiltersFlow.asStateFlow()
+        justRun { setCurrentSortFilterParametersUseCase.invoke(R.id.flat_filter) }
+        every { getCurrentSortFilterParametersUseCase.invoke() } returns flowOf(R.id.flat_filter)
+        every { getSortingParametersUseCase.invoke() } returns flowOf(DEFAULT_SORTING)
+
+        realEstatesListViewModel.onSortedOrFilterClicked(R.id.flat_filter)
+
+        // WHEN
+        realEstatesListViewModel.realEstateLiveData.observeForTesting(this) {
+            // THEN
+            assertThat(it.value).isEqualTo(getEmptyDefaultRealEstatesListViewStates())
+
+            verify {
+                getAllRealEstatesUseCase.invoke()
+                searchRepository.getCurrentFilterParametersFlow()
+                setCurrentSortFilterParametersUseCase.invoke(R.id.flat_filter)
+                getCurrentSortFilterParametersUseCase.invoke()
+                getSortingParametersUseCase.invoke()
+                getSearchRealEstateUseCase.invoke()
+
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -478,8 +755,8 @@ class RealEstatesListViewModelTest {
                 getSearchRealEstateUseCase.invoke()
 
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -545,8 +822,8 @@ class RealEstatesListViewModelTest {
                 getSearchRealEstateUseCase.invoke()
 
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -614,8 +891,8 @@ class RealEstatesListViewModelTest {
                 getSearchRealEstateUseCase.invoke()
 
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -657,7 +934,9 @@ class RealEstatesListViewModelTest {
         }
     }
 
-    // SORT
+    //endregion
+
+    //region SORT
 
     @Test
     fun `get all real estates with sort by price asc`() = testCoroutineRule.runTest {
@@ -684,8 +963,8 @@ class RealEstatesListViewModelTest {
                 getSortingParametersUseCase.invoke()
                 getSearchRealEstateUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -728,7 +1007,9 @@ class RealEstatesListViewModelTest {
         }
     }
 
-    // SEARCH
+    // endregion
+
+    //region SEARCH
 
     @Test
     fun `get all real estates with user click on space in search bar`() = testCoroutineRule.runTest {
@@ -757,8 +1038,8 @@ class RealEstatesListViewModelTest {
                 setSearchRealEstateUseCase.invoke(DEFAULT_EMPTY_SEARCH_WITH_SPACE)
                 getSearchRealEstateUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -828,8 +1109,8 @@ class RealEstatesListViewModelTest {
                 getSortingParametersUseCase.invoke()
                 getCurrentSortFilterParametersUseCase.invoke()
 
-                application.getString(R.string.real_estate_price, FIRST_DEFAULT_PRICE)
-                application.getString(R.string.real_estate_price, SECOND_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, FIRST_DEFAULT_PRICE)
+                application.getString(R.string.string_arg_with_currency, SECOND_DEFAULT_PRICE)
                 application.getString(
                     R.string.number_rooms, FIRST_DEFAULT_NUMBER_ROOM, FIRST_DEFAULT_NUMBER_BEDROOM, FIRST_DEFAULT_NUMBER_BATHROOM
                 )
@@ -872,6 +1153,8 @@ class RealEstatesListViewModelTest {
         }
     }
 
+    //endregion
+
     //region ================================================================ DEFAULT ===============================================================
 
     private fun getAllDefaultRealEstatesWithPhotos(): List<RealEstateEntityWithPhotos> {
@@ -888,6 +1171,10 @@ class RealEstatesListViewModelTest {
 
     private fun getDefaultRealEstatesListViewStatesFilterByPenthouse(): List<RealEstatesListViewState> {
         return listOf(getDefaultFirstRealEstatesListViewState())
+    }
+
+    private fun getDefaultRealEstatesListViewStatesFilterByApartment(): List<RealEstatesListViewState> {
+        return listOf(getDefaultSecondRealEstatesListViewState())
     }
 
     private fun getDefaultRealEstatesListViewStatesSortedByPriceAsc(): List<RealEstatesListViewState> {
@@ -1026,38 +1313,6 @@ class RealEstatesListViewModelTest {
         return getDefaultFirstPhotoEntities().map { ListPhotoViewState(it.photo) }
     }
 
-    // THIRD
-
-    private fun getDefaultThirdRealEstateEntity(): RealEstateEntityWithPhotos {
-        return RealEstateEntityWithPhotos(
-            RealEstateEntity(
-                3L,
-                "Duplex",
-                BigDecimal(15995000.0),
-                11756.9652,
-                11,
-                3,
-                3,
-                "",
-                "11357",
-                "NY",
-                "Whitestone",
-                "25th Ave",
-                "156-0-156-34",
-                "Available",
-                LocalDateTime.now(),
-                null,
-                40.775070,
-                -73.806640,
-                2L
-            ), arrayListOf(
-                PhotoEntity(
-                    0, 3L, "https://photonet.hotpads.com/search/listingPhoto/Postlets/1efkb7qsyr3d4/0002_1812003620_medium.jpg"
-                )
-            )
-        )
-    }
-
     //endregion
 
     companion object {
@@ -1161,15 +1416,5 @@ class RealEstatesListViewModelTest {
         private val PRICE_ASC_SORTING = Sorting.PRICE_ASC
 
         private const val NON_SENSE_FILTER_ID = -100000
-
-        private fun realEstateTypeToSpinnerPosition(type: String): Int {
-            val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
-            return types.indexOf(type)
-        }
-
-        private fun spinnerPositionToType(position: Int): String {
-            val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
-            return types[position]
-        }
     }
 }

@@ -3,7 +3,8 @@
 
     <string name="number_rooms">%1$d Pièces • %2$d Chambres • %3$d Salles de bain</string>
     <string name="square_meter">%1$f m²</string>
-    <string name="real_estate_price">%1$s$</string>
+    <string name="string_arg_with_currency">%1$s€</string>
+    <string name="string_arg_with_currency_1">%1$f$</string>
     <string name="price_value">€</string>
 
     <string name="real_estate">Immobiliers</string>
@@ -72,6 +73,7 @@
     <string name="toolbar_change_map">Changer carte</string>
     <string name="toolbar_is_sold">Est vendu</string>
 
+    <string name="fields_should_not_be_equal_to_zero">Les champs doivent être à zéro</string>
     <string name="fields_are_not_digits">Les champs doivent être des nombres</string>
     <string name="field_empty_toast_msg">Les champs ne peuvent être vides</string>
     <string name="two_fields_filled_toast_msg">Les deux champs doivent être remplis</string>
@@ -80,6 +82,7 @@
     <string name="add_image_from_url">Add image from URL</string>
     <string name="image_already_in_list">Cette photo est déjà dans la liste</string>
     <string name="new_real_estate_is_added">Un bien immobilier a été ajouté avec succès</string>
+    <string name="new_real_estate_is_updated">Un bien immobilier a été mis à jour avec succès</string>
     <string name="storage_permission_toast">Vous avez besoin de ces permissions pour utiliser cette application à son plein potentiel</string>
 
     <string name="square_metre">m²</string>
@@ -117,8 +120,13 @@
     <string name="real_estate_status_available">Disponible</string>
     <string name="real_estate_status_not_available">Indisponible</string>
     <string name="points_of_interest">Points d\'intérêts</string>
-    <string name="money_needed">How much money do you need ?</string>
-    <string name="months_needed_title">How many months do you need ?</string>
-    <string name="calculate_button_text">Calculate</string>
-    <string name="interest_rate">Interest Rate</string>
+    <string name="money_needed">De combien d\'argents avez-vous besoin ?</string>
+    <string name="months_needed_title">De combien de mois avez-vous besoin ?</string>
+    <string name="calculate_button_text">Calculer</string>
+    <string name="interest_rate">Taux d\'intérêt</string>
+    <string name="total_payment_title">Paiement Total</string>
+    <string name="monthly_payment_title">Paiement Mensuel</string>
+    <string name="total_interest_title">Taux d\'intérêt total</string>
+    <string name="you_will_pay">Vous Paierez</string>
+    <string name="per_month">Par Mois</string>
 </resources>
