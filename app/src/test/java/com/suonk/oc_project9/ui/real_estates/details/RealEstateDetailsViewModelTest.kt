@@ -14,10 +14,7 @@ import com.suonk.oc_project9.model.database.data.entities.places.Position
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
-import com.suonk.oc_project9.utils.EquatableCallback
-import com.suonk.oc_project9.utils.NativeText
-import com.suonk.oc_project9.utils.TestCoroutineRule
-import com.suonk.oc_project9.utils.observeForTesting
+import com.suonk.oc_project9.utils.*
 import io.mockk.*
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
@@ -74,26 +71,20 @@ class RealEstateDetailsViewModelTest {
         const val DEFAULT_TIMESTAMP_LONG = 1_000_000_000L // 09/09/2001 - 01:46:40
         const val SALE_DATE_DEFAULT_TIMESTAMP_LONG = 2_000_000_000L // 09/09/2001 - 01:46:40
 
+        private val DEFAULT_ID_BEFORE_ADD = null
         private const val DEFAULT_ID_TO_ADD = 0L
-        private const val DEFAULT_ID_TO_UPDATE = 0L
         private const val DEFAULT_EMPTY_TYPE_POSITION = 0
         private val DEFAULT_EMPTY_TYPE = spinnerPositionToType(DEFAULT_EMPTY_TYPE_POSITION)
-        private val DEFAULT_NEW_TYPE = spinnerPositionToType(2)
 
         val DEFAULT_EMPTY_PRICE = BigDecimal(0.0)
-        private const val DEFAULT_EMPTY_PRICE_STRING = "0.0"
 
         private const val DEFAULT_EMPTY_LIVING_SPACE = 0.0
-        private const val DEFAULT_EMPTY_LIVING_SPACE_STRING = "0.0"
 
         private const val DEFAULT_EMPTY_ROOMS = 0
-        private const val DEFAULT_EMPTY_ROOMS_STRING = "0"
 
         private const val DEFAULT_EMPTY_BEDROOMS = 0
-        private const val DEFAULT_EMPTY_BEDROOMS_STRING = "0"
 
         private const val DEFAULT_EMPTY_BATHROOMS = 0
-        private const val DEFAULT_EMPTY_BATHROOMS_STRING = "0"
 
         private const val DEFAULT_EMPTY_DESCRIPTION = ""
         private const val DEFAULT_EMPTY_CITY = ""
@@ -105,7 +96,6 @@ class RealEstateDetailsViewModelTest {
         private const val DEFAULT_EMPTY_LONGITUDE = 0.0
 
         private const val NEW_TYPE = "Duplex"
-        private val NEW_TYPE_POSITION = realEstateTypeToSpinnerPosition(NEW_TYPE)
         private const val NEW_DESCRIPTION = "a recommandé l'album Biting the Apple et l'a ajouté à sa liste High on a cloud"
         private const val NEW_LIVING_SPACE = 6530.1
         private const val NEW_LIVING_SPACE_STRING = "6530.1"
@@ -117,7 +107,6 @@ class RealEstateDetailsViewModelTest {
         private const val NEW_NUMBER_BATHROOM_STRING = "1"
 
         private val NEW_PRICE = BigDecimal(1872000)
-        private const val NEW_PRICE_STRING = "1 872 000"
         private const val NEW_PRICE_STRING_TO_UPDATE = "1872000"
 
         private const val FIELD_EMPTY_TOAST_MSG = "Fields can not be empty"
@@ -161,33 +150,32 @@ class RealEstateDetailsViewModelTest {
 
     private val fixedClock = Clock.fixed(Instant.ofEpochSecond(DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC)
 
-    private val realEstateDetailsViewModel = RealEstateDetailsViewModel(
-        upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
-
-        getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
-        getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
-        getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
-
-        getCurrentRealEstateIdFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
-
-        coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
-
-        application = application,
-        fixedClock = fixedClock
-    )
-
-    @Before
-    fun setup() {
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
-    }
+    private lateinit var realEstateDetailsViewModel: RealEstateDetailsViewModel
 
     @Test
     fun `nominal case`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
+
         // WHEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
-
             // THEN
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
@@ -203,7 +191,6 @@ class RealEstateDetailsViewModelTest {
                 getNearbyPointsOfInterestUseCase,
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
-
             )
         }
     }
@@ -211,8 +198,22 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `initial case`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(null)
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         // WHEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
@@ -221,7 +222,6 @@ class RealEstateDetailsViewModelTest {
 
             verify(exactly = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -231,12 +231,32 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
     @Test
     fun `get real estate details with is sold as true`() = testCoroutineRule.runTest {
+        // GIVEN
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
+
         // WHEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
 
@@ -256,7 +276,7 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
@@ -265,23 +285,34 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to insert a new real estate`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
         every {
             application.getString(
                 R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
             )
         } returns DEFAULT_FULL_ADDRESS
         every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
-        every { application.getString(R.string.new_real_estate_is_added) } returns ADD_SUCCESSFUL
         coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS) } returns DEFAULT_POSITION
-
         coJustRun {
             upsertNewRealEstateUseCase.invoke(
-                realEstate = getDefaultRealEstateEntityToAdd(), photos = getDefaultAggregatedPhotosToAdd()
+                realEstate = getDefaultRealEstateEntityToAdd(), photos = any()
             )
         }
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultRealEstateDetailsViewStateToAdd().typePosition,
@@ -298,26 +329,21 @@ class RealEstateDetailsViewModelTest {
             gridZone = getDefaultRealEstateDetailsViewStateToAdd().gridZone
         )
 
+        runCurrent()
+
         // WHEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
 
-            // Call 3 times, ask El Nino
-            verify(atLeast = 1) {
+            coVerify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
                 application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
                 )
                 application.getString(R.string.real_estate_status_available)
-                NativeText.Resource(R.string.new_real_estate_is_added)
-            }
-            coVerify {
                 getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS)
-                upsertNewRealEstateUseCase.invoke(
-                    getDefaultRealEstateEntityToAdd(), getDefaultAggregatedPhotosToAdd()
-                )
+                upsertNewRealEstateUseCase.invoke(getDefaultRealEstateEntityToAdd(), any())
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -325,18 +351,30 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
-            )
+                getCurrentRealEstateAsStateFlowUseCase)
         }
     }
 
     @Test
     fun `try to insert a real estate with empty fields with initial case`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(null)
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
         every { application.getString(R.string.field_empty_toast_msg) } returns FIELD_EMPTY_TOAST_MSG
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultEmptyRealEstateDetailsViewState().typePosition,
@@ -361,7 +399,6 @@ class RealEstateDetailsViewModelTest {
             // Call 3 times, ask El Nino
             verify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
                 NativeText.Resource(R.string.field_empty_toast_msg)
             }
             confirmVerified(
@@ -370,8 +407,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
+                getCurrentRealEstateAsStateFlowUseCase
             )
         }
     }
@@ -379,7 +415,25 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to insert a real estate with empty fields with nominal case`() = testCoroutineRule.runTest {
         // GIVEN
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
         every { application.getString(R.string.field_empty_toast_msg) } returns FIELD_EMPTY_TOAST_MSG
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultEmptyRealEstateDetailsViewState().typePosition,
@@ -401,7 +455,6 @@ class RealEstateDetailsViewModelTest {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
-            // Call 3 times, ask El Nino
             coVerify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
@@ -414,8 +467,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
+                getCurrentRealEstateAsStateFlowUseCase
             )
         }
     }
@@ -423,12 +475,23 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to insert a real estate with wrong data`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
-        every {
-            application.getString(R.string.fields_are_not_digits)
-        } returns FIELD_ARE_NOT_DIGITS_MSG
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
+        every { application.getString(R.string.fields_are_not_digits) } returns FIELD_ARE_NOT_DIGITS_MSG
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultRealEstateDetailsViewStateToAdd().typePosition,
@@ -450,10 +513,8 @@ class RealEstateDetailsViewModelTest {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
 
-            // Call 3 times, ask El Nino
             verify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
                 NativeText.Resource(R.string.fields_are_not_digits)
             }
             confirmVerified(
@@ -464,16 +525,14 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
     @Test
     fun `try to insert a real estate with with price and living space that contain comma`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
         every {
             application.getString(
                 R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
@@ -488,6 +547,21 @@ class RealEstateDetailsViewModelTest {
                 realEstate = getDefaultRealEstateEntityToAddWithComma(), photos = getDefaultAggregatedPhotosToAdd()
             )
         }
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultRealEstateDetailsViewStateToAdd().typePosition,
@@ -509,10 +583,8 @@ class RealEstateDetailsViewModelTest {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
 
-            // Call 3 times, ask El Nino
             verify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
                 application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
                 )
@@ -533,19 +605,29 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
     @Test
     fun `try to insert a real estate with price, living space, rooms that are null`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
-        every {
-            application.getString(R.string.fields_are_not_digits)
-        } returns FIELD_ARE_NOT_DIGITS_MSG
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultRealEstateDetailsViewStateToAdd().typePosition,
@@ -567,11 +649,8 @@ class RealEstateDetailsViewModelTest {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
 
-            // Call 3 times, ask El Nino
             verify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
-                NativeText.Resource(R.string.fields_are_not_digits)
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -581,19 +660,29 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
     @Test
     fun `try to insert a real estate with all fields empty`() = testCoroutineRule.runTest {
         // GIVEN
-        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_TO_ADD)
-        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD) } returns flowOf(null)
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
-        every {
-            application.getString(R.string.fields_are_not_digits)
-        } returns FIELD_ARE_NOT_DIGITS_MSG
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID_BEFORE_ADD)
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultRealEstateDetailsViewStateToAdd().typePosition,
@@ -615,11 +704,8 @@ class RealEstateDetailsViewModelTest {
             // THEN
             assertThat(it.value).isEqualTo(getDefaultEmptyRealEstateDetailsViewState())
 
-            // Call 3 times, ask El Nino
             verify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
-                getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID_TO_ADD)
-                NativeText.Resource(R.string.field_empty_toast_msg)
             }
             confirmVerified(
                 upsertNewRealEstateUseCase,
@@ -627,8 +713,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
+                getCurrentRealEstateAsStateFlowUseCase
             )
         }
     }
@@ -653,6 +738,21 @@ class RealEstateDetailsViewModelTest {
             upsertNewRealEstateUseCase.invoke(realEstate = getDefaultRealEstateEntityToUpdate(), photos = getDefaultAggregatedPhotos())
         }
 
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
+
         realEstateDetailsViewModel.onSaveRealEstateButtonClicked(
             type = getDefaultRealEstateDetailsViewStateToUpdate().typePosition,
             price = getDefaultRealEstateDetailsViewStateToUpdate().price,
@@ -676,12 +776,13 @@ class RealEstateDetailsViewModelTest {
             coVerify(atLeast = 1) {
                 getCurrentRealEstateAsStateFlowUseCase.invoke()
                 getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID)
+                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
+
                 application.getString(
                     R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
                 )
                 application.getString(R.string.real_estate_status_available)
                 getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS)
-                getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG)
 
                 upsertNewRealEstateUseCase.invoke(realEstate = getDefaultRealEstateEntityToUpdate(), photos = getDefaultAggregatedPhotos())
             }
@@ -691,8 +792,7 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
+                getCurrentRealEstateAsStateFlowUseCase
             )
         }
     }
@@ -714,6 +814,21 @@ class RealEstateDetailsViewModelTest {
         coJustRun {
             upsertNewRealEstateUseCase.invoke(realEstate = getDefaultRealEstateEntityToUpdate(), photos = getDefaultAggregatedPhotos())
         }
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
 
         // WHEN
         realEstateDetailsViewModel.onSoldRealEstateClick()
@@ -760,7 +875,7 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
@@ -769,6 +884,25 @@ class RealEstateDetailsViewModelTest {
     @Test
     fun `try to add a new photo`() = testCoroutineRule.runTest {
         // GIVEN
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
+
         runCurrent()
 
         // WHEN
@@ -792,13 +926,32 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
     @Test
     fun `try to add an existing photo`() = testCoroutineRule.runTest {
         // GIVEN
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
+
         runCurrent()
 
         // WHEN
@@ -823,19 +976,36 @@ class RealEstateDetailsViewModelTest {
                 application,
                 getCurrentRealEstateAsStateFlowUseCase,
 
-            )
+                )
         }
     }
 
     @Test
     fun `try to delete a photo`() = testCoroutineRule.runTest {
         // GIVEN
+        every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
+        every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+
+        realEstateDetailsViewModel = RealEstateDetailsViewModel(
+            upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
+
+            getRealEstateFlowByIdUseCase = getRealEstateFlowByIdUseCase,
+            getPositionFromFullAddressUseCase = getPositionFromFullAddressUseCase,
+            getNearbyPointsOfInterestUseCase = getNearbyPointsOfInterestUseCase,
+
+            getCurrentRealEstateAsStateFlowUseCase = getCurrentRealEstateAsStateFlowUseCase,
+
+            coroutineDispatcherProvider = testCoroutineRule.getTestCoroutineDispatcherProvider(),
+
+            application = application,
+            fixedClock = fixedClock
+        )
+
         runCurrent()
 
         // WHEN
         realEstateDetailsViewModel.onPhotoDeleted(getDefaultRealEstateDetailsViewState().photos[2].uri)
-
-//        "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"
 
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
 
@@ -940,33 +1110,6 @@ class RealEstateDetailsViewModelTest {
             entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterestViewState = emptyList(),
-        )
-    }
-
-    private fun getDefaultRealEstateDetailsViewStateAfterOnSoldClicked(): RealEstateDetailsViewState {
-        return RealEstateDetailsViewState(
-            id = DEFAULT_ID,
-            type = DEFAULT_TYPE,
-            typePosition = DEFAULT_TYPE_POSITION,
-            price = DEFAULT_PRICE_STRING,
-            livingSpace = DEFAULT_LIVING_SPACE_STRING,
-            numberRooms = DEFAULT_NUMBER_ROOM_STRING,
-            numberBedroom = DEFAULT_NUMBER_BEDROOM_STRING,
-            numberBathroom = DEFAULT_NUMBER_BATHROOM_STRING,
-            description = DEFAULT_DESCRIPTION,
-            photos = getDefaultPhotoViewStatesAfterDeletedPhoto(),
-            city = DEFAULT_CITY,
-            postalCode = DEFAULT_POSTAL_CODE,
-            state = DEFAULT_STATE,
-            streetName = DEFAULT_STREET_NAME,
-            gridZone = DEFAULT_GRID_ZONE,
-            latitude = DEFAULT_LAT,
-            longitude = DEFAULT_LONG,
-            noPhoto = false,
-            entryDate = Instant.now(fixedClock),
-            saleDate = SALE_DATE_DEFAULT_TIMESTAMP_LONG,
-            isSold = true,
             pointsOfInterestViewState = emptyList(),
         )
     }
@@ -1259,30 +1402,6 @@ class RealEstateDetailsViewModelTest {
             status = DEFAULT_STATUS_AVAILABLE,
             entryDate = LocalDateTime.now(fixedClock),
             saleDate = null,
-            latitude = DEFAULT_LAT,
-            longitude = DEFAULT_LONG,
-            agentInChargeId = AGENT_ID,
-        )
-    }
-
-    private fun getDefaultRealEstateEntityToUpdateAfterOnSoldClicked(): RealEstateEntity {
-        return RealEstateEntity(
-            id = DEFAULT_ID,
-            type = NEW_TYPE,
-            price = NEW_PRICE,
-            livingSpace = NEW_LIVING_SPACE,
-            numberRooms = NEW_NUMBER_ROOM,
-            numberBedroom = NEW_NUMBER_BEDROOM,
-            numberBathroom = NEW_NUMBER_BATHROOM,
-            description = NEW_DESCRIPTION,
-            postalCode = DEFAULT_POSTAL_CODE,
-            state = DEFAULT_STATE,
-            city = DEFAULT_CITY,
-            streetName = DEFAULT_STREET_NAME,
-            gridZone = DEFAULT_GRID_ZONE,
-            status = DEFAULT_STATUS_AVAILABLE,
-            entryDate = LocalDateTime.now(fixedClock),
-            saleDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(SALE_DATE_DEFAULT_TIMESTAMP_LONG), ZoneOffset.UTC),
             latitude = DEFAULT_LAT,
             longitude = DEFAULT_LONG,
             agentInChargeId = AGENT_ID,

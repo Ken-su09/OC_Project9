@@ -1,6 +1,7 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -94,7 +95,6 @@ class RealEstateDetailsViewModel @Inject constructor(
     init {
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             getCurrentRealEstateAsStateFlowUseCase.invoke().collect { id ->
-
                 val realEstateEntityWithPhotos = id?.let { getRealEstateFlowByIdUseCase.invoke(it).firstOrNull() }
                 if (realEstateEntityWithPhotos == null) {
                     // Create mode
@@ -227,6 +227,15 @@ class RealEstateDetailsViewModel @Inject constructor(
                         null
                     }
 
+                    println("photos : $photos")
+                    println("entryDate : $entryDate")
+                    println("saleDate : $saleDate")
+                    println("gridZone : $gridZone")
+                    println("streetName : $streetName")
+                    println("city : $city")
+                    println("state : $state")
+                    println("postalCode : $postalCode")
+
                     val fullAddress = application.getString(
                         R.string.full_address,
                         gridZone,
@@ -235,6 +244,8 @@ class RealEstateDetailsViewModel @Inject constructor(
                         state,
                         postalCode,
                     )
+
+                    println("fullAddress : $fullAddress")
 
                     val position = getPositionFromFullAddressUseCase.invoke(fullAddress)
 
