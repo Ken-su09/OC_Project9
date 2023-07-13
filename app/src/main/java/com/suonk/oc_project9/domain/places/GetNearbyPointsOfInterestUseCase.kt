@@ -8,5 +8,7 @@ import javax.inject.Singleton
 @Singleton
 class GetNearbyPointsOfInterestUseCase @Inject constructor(private val repository: PlacesRepository) {
 
-    suspend fun invoke(lat: Double, long: Double): List<PointOfInterest> = repository.getNearbyPlaceResponse("$lat,$long") ?: emptyList()
+    suspend fun invoke(lat: Double, long: Double): List<PointOfInterest> {
+        return repository.getNearbyPlaceResponse("$lat,$long") ?: emptyList()
+    }
 }
