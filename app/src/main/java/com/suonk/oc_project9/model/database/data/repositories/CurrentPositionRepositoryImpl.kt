@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.model.database.data
+package com.suonk.oc_project9.model.database.data.repositories
 
 import android.os.Looper
 import androidx.annotation.RequiresPermission
@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class CurrentPositionRepositoryImpl @Inject constructor(
-    private val locationProviderClient: FusedLocationProviderClient
+    private val locationProviderClient: FusedLocationProviderClient, private val looper: Looper
 ) : CurrentPositionRepository {
 
     private val positionFlow = MutableStateFlow(Position(0.0, 0.0))
@@ -44,7 +44,7 @@ class CurrentPositionRepositoryImpl @Inject constructor(
             }
         }
         locationCallback?.let {
-            locationProviderClient.requestLocationUpdates(locationRequest, it, Looper.myLooper())
+            locationProviderClient.requestLocationUpdates(locationRequest, it, looper)
         }
     }
 

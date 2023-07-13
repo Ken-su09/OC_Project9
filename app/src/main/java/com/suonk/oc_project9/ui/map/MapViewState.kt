@@ -9,4 +9,4 @@ data class MapViewState(
     val longitude: Double,
     val markerIcon: Int,
     val list: List<Position>,
-) {}
+)

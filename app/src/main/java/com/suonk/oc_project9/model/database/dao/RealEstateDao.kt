@@ -1,6 +1,12 @@
 package com.suonk.oc_project9.model.database.dao
 
-import androidx.room.*
+import androidx.room.Query
+import androidx.room.Dao
+import androidx.room.Transaction
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Update
+import androidx.room.OnConflictStrategy
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import kotlinx.coroutines.flow.Flow
@@ -19,10 +25,6 @@ interface RealEstateDao {
     @Transaction
     @Query("SELECT * FROM real_estate ORDER BY price DESC")
     fun getAllRealEstatesWithPhotosSortByPrice(): Flow<List<RealEstateEntityWithPhotos>>
-
-//    @Transaction
-//    @Query("SELECT * FROM real_estate WHERE ")
-//    fun getAllRealEstatesWithPhotosWithInput(input: String): Flow<List<RealEstateEntityWithPhotos>>
 
     @Transaction
     @Query("SELECT * FROM real_estate WHERE id = :id LIMIT 1")
@@ -50,7 +52,7 @@ interface RealEstateDao {
     suspend fun deleteRealEstate(realEstate: RealEstateEntity)
 
     @Query("DELETE from real_estate WHERE id = :id")
-    suspend fun deleteRealEstateById(id: Int)
+    suspend fun deleteRealEstateById(id: Long)
 
     //endregion
 }

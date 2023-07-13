@@ -23,22 +23,29 @@ import org.junit.Test
 class GetCurrentRealEstateIdAsEventUseCaseTest {
 
     @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
-    @get:Rule
     val testCoroutineRule = TestCoroutineRule()
 
     private val currentRealEstateIdRepository: CurrentRealEstateIdRepository = mockk()
 
     private val getCurrentRealEstateIdAsEventUseCase = GetCurrentRealEstateIdAsEventUseCase(currentRealEstateIdRepository)
 
-    @Before
-    fun setup() {
+    @Test
+    fun `initial case`() = testCoroutineRule.runTest {
+        // GIVEN
+        val channel = Channel<Long?>(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        every { currentRealEstateIdRepository.getCurrentRealEstateIdChannel() } returns channel
 
+        // WHEN
+        getCurrentRealEstateIdAsEventUseCase.invoke().test {
+            // THEN
+            expectNoEvents()
+            verify { currentRealEstateIdRepository.getCurrentRealEstateIdChannel() }
+            confirmVerified(currentRealEstateIdRepository)
+        }
     }
 
     @Test
-    fun `initial case`() = testCoroutineRule.runTest {
+    fun `nominal case`() = testCoroutineRule.runTest {
         // GIVEN
         val realEstateId = 6L
         val channel = Channel<Long?>(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -51,7 +58,6 @@ class GetCurrentRealEstateIdAsEventUseCaseTest {
 
             // THEN
             assertThat(awaitItem()).isEqualTo(realEstateId)
-            assertThat(awaitComplete()).isEqualTo(realEstateId)
 
             verify { currentRealEstateIdRepository.getCurrentRealEstateIdChannel() }
             confirmVerified(currentRealEstateIdRepository)

@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.model.database.data
+package com.suonk.oc_project9.model.database.data.repositories
 
 import com.suonk.oc_project9.R
 import com.suonk.oc_project9.domain.SearchRepository

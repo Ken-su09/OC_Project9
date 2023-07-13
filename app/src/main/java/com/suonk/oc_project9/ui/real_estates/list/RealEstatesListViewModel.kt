@@ -1,7 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -15,7 +14,6 @@ import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_p
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.GetSortingParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.filter_sort_search.sort_filter_parameters.SetCurrentSortFilterParametersUseCase
 import com.suonk.oc_project9.domain.real_estate.id.SetCurrentRealEstateIdUseCase
-import com.suonk.oc_project9.model.database.data.CurrentRealEstateIdRepositoryImpl
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
 import com.suonk.oc_project9.utils.CoroutineDispatcherProvider
 import com.suonk.oc_project9.utils.EquatableCallback

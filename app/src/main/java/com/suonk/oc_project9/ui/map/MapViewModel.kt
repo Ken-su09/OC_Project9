@@ -17,9 +17,8 @@ import javax.inject.Inject
 class MapViewModel @Inject constructor(
     private val getAllRealEstatesUseCase: GetAllRealEstatesUseCase,
     private val currentPositionRepository: CurrentPositionRepository,
-    private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
-
-    ) : ViewModel() {
+    coroutineDispatcherProvider: CoroutineDispatcherProvider
+) : ViewModel() {
 
     val mapViewStateLiveData: LiveData<MapViewState> = liveData(coroutineDispatcherProvider.io) {
         combine(getAllRealEstatesUseCase.invoke(), currentPositionRepository.getCurrentPositionFlow()) { realEstate, position ->

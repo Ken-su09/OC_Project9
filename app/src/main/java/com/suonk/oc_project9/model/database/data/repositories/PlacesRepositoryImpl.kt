@@ -1,6 +1,5 @@
-package com.suonk.oc_project9.model.database.data
+package com.suonk.oc_project9.model.database.data.repositories
 
-import android.util.Log
 import com.suonk.oc_project9.api.PlacesApiService
 import com.suonk.oc_project9.domain.PlacesRepository
 import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest

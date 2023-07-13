@@ -18,5 +18,5 @@ interface RealEstateRepository {
     //endregion
 
     suspend fun deleteRealEstate(estate: RealEstateEntity)
-    suspend fun deleteRealEstateById(id: Int)
+    suspend fun deleteRealEstateById(id: Long)
 }

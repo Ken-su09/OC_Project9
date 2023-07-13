@@ -1,4 +1,4 @@
-package com.suonk.oc_project9.model.database.data
+package com.suonk.oc_project9.model.database.data.repositories
 
 import com.suonk.oc_project9.domain.RealEstateRepository
 import com.suonk.oc_project9.model.database.dao.RealEstateDao
@@ -9,8 +9,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RealEstateRepositoryImpl @Inject constructor(private val dao: RealEstateDao) :
-    RealEstateRepository {
+class RealEstateRepositoryImpl @Inject constructor(private val dao: RealEstateDao) : RealEstateRepository {
 
     override fun getAllRealEstatesWithPhotos(): Flow<List<RealEstateEntityWithPhotos>> =
         dao.getAllRealEstatesWithPhotos()
@@ -28,5 +27,5 @@ class RealEstateRepositoryImpl @Inject constructor(private val dao: RealEstateDa
 
     override suspend fun deleteRealEstate(estate: RealEstateEntity) = dao.deleteRealEstate(estate)
 
-    override suspend fun deleteRealEstateById(id: Int) = dao.deleteRealEstateById(id)
+    override suspend fun deleteRealEstateById(id: Long) = dao.deleteRealEstateById(id)
 }

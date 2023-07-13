@@ -2,6 +2,12 @@ package com.suonk.oc_project9.di
 
 import com.suonk.oc_project9.domain.*
 import com.suonk.oc_project9.model.database.data.*
+import com.suonk.oc_project9.model.database.data.repositories.CurrentPositionRepositoryImpl
+import com.suonk.oc_project9.model.database.data.repositories.CurrentRealEstateIdRepositoryImpl
+import com.suonk.oc_project9.model.database.data.repositories.PhotoRepositoryImpl
+import com.suonk.oc_project9.model.database.data.repositories.PlacesRepositoryImpl
+import com.suonk.oc_project9.model.database.data.repositories.RealEstateRepositoryImpl
+import com.suonk.oc_project9.model.database.data.repositories.SearchRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
