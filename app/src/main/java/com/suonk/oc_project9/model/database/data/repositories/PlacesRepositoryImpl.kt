@@ -25,7 +25,11 @@ class PlacesRepositoryImpl @Inject constructor(private val apiService: PlacesApi
                 id = nearbyPlaceResult.placeId ?: nearbyPlaceResult.name,
                 name = nearbyPlaceResult.name,
                 address = nearbyPlaceResult.vicinity,
-                icon = nearbyPlaceResult.photos?.get(0)?.photoReference ?: "",
+                icon = if (nearbyPlaceResult.photos?.isEmpty() == true) {
+                    ""
+                } else {
+                    nearbyPlaceResult.photos?.get(0)?.photoReference ?: ""
+                },
                 types = nearbyPlaceResult.types
             )
         }?.takeIf {

@@ -10,9 +10,6 @@ enum class Sorting(val comparator: Comparator<RealEstateEntityWithPhotos>) {
         it.realEstateEntity.entryDate
     }.reversed()),
 
-    CHRONOLOGICAL_ASC(Comparator.comparing { it.realEstateEntity.id }), CHRONOLOGICAL_DESC(
-        Comparator.comparing { it.realEstateEntity.id }),
-
     PRICE_ASC(Comparator.comparing { it.realEstateEntity.price }), PRICE_DESC(Comparator.comparing<RealEstateEntityWithPhotos?, BigDecimal?> { it.realEstateEntity.price }
         .reversed()),
 
