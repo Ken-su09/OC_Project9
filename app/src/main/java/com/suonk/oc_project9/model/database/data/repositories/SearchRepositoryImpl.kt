@@ -61,57 +61,6 @@ class SearchRepositoryImpl @Inject constructor() : SearchRepository {
         }
     }
 
-    override fun updateFilter(filter: Filter) {
-//        when (filter) {
-//            is Filter.LivingSpaceFilter -> {
-//                currentSearchParameterFlow.update {
-//                    it[FilterType.LivingSpace] = filter
-//
-//                    Log.i("UpdateFilter", "it : $it")
-//                    it
-//                }
-//            }
-//            is Filter.PriceFilter -> {
-//                currentSearchParameterFlow.update {
-//                    it[FilterType.Price] = filter
-//                    it
-//                }
-//            }
-//            is Filter.NbRoomsFilter -> {
-//                currentSearchParameterFlow.update {
-//                    it[FilterType.NbRooms] = filter
-//
-//                    Log.i("UpdateFilter", "it : $it")
-//                    it
-//                }
-//            }
-//            is Filter.NbBedroomsFilter -> {
-//                currentSearchParameterFlow.update {
-//                    it[FilterType.NbBedrooms] = filter
-//
-//                    Log.i("UpdateFilter", "it : $it")
-//                    it
-//                }
-//            }
-//            is Filter.EntryDateFilter -> {
-//                currentSearchParameterFlow.update {
-//                    it[FilterType.EntryDate] = filter
-//
-//                    Log.i("UpdateFilter", "it : $it")
-//                    it
-//                }
-//            }
-//            is Filter.SaleDateFilter -> {
-//                currentSearchParameterFlow.update {
-//                    it[FilterType.SaleDate] = filter
-//
-//                    Log.i("UpdateFilter", "it : $it")
-//                    it
-//                }
-//            }
-//        }
-    }
-
     override fun addFilter(filter: Filter) {
         currentMoreCriteriaFilterParameterFlow.update { filters ->
             filters + filter

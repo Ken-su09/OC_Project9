@@ -15,8 +15,6 @@ interface SearchRepository {
     fun getCurrentSortParameterFlow(): StateFlow<Sorting>
     fun setCurrentSortFilterParametersFlow(itemId: Int)
 
-    fun updateFilter(filter: Filter)
-
     fun addFilter(filter: Filter)
 
     fun removeFilter(filter: Filter)
