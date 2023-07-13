@@ -190,9 +190,5 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun provideLooper(): Looper = Looper.myLooper() ?: Looper.getMainLooper()
-
-    @Provides
-    @Singleton
     fun provideGeocoder(application: Application) = Geocoder(application)
 }

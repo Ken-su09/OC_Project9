@@ -1,23 +1,27 @@
 package com.suonk.oc_project9.model.database.data.repositories
 
-import android.os.Looper
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import app.cash.turbine.test
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.tasks.Task
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.suonk.oc_project9.model.database.data.entities.places.Position
 import com.suonk.oc_project9.utils.TestCoroutineRule
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
+import io.mockk.*
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runCurrent
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.minutes
 
 class CurrentPositionRepositoryImplTest {
+
+    companion object {
+        private const val DEFAULT_LATITUDE = 26.443
+        private const val DEFAULT_LONGITUDE = 4.976
+    }
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -26,98 +30,116 @@ class CurrentPositionRepositoryImplTest {
     val testCoroutineRule = TestCoroutineRule()
 
     private val locationProviderClient: FusedLocationProviderClient = mockk()
-    private val looper: Looper = mockk()
-    private val taskVoid: Task<Void> = mockk()
 
-    private val currentPositionRepositoryImpl = CurrentPositionRepositoryImpl(locationProviderClient, looper)
+    private val locationRequestSlot = slot<LocationRequest>()
+    private val locationCallbackSlot = slot<LocationCallback>()
+
+    private val currentPositionRepositoryImpl = CurrentPositionRepositoryImpl(
+        locationProviderClient,
+        testCoroutineRule.getTestCoroutineDispatcherProvider(),
+    )
+
+    @Before
+    fun setUp() {
+        every {
+            locationProviderClient.requestLocationUpdates(
+                capture(locationRequestSlot),
+                any(),
+                capture(locationCallbackSlot),
+            )
+        } returns mockk()
+    }
 
     @Test
-    fun `get position flow without start location update`() = testCoroutineRule.runTest {
+    fun `nominal case`() = testCoroutineRule.runTest {
         // GIVEN
-//        val locationCallbackSlot = slot<LocationCallback>()
-//        every { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), looper) } returns taskVoid
+        val locationResult = mockk<LocationResult>()
+        every { locationResult.lastLocation?.latitude } returns DEFAULT_LATITUDE
+        every { locationResult.lastLocation?.longitude } returns DEFAULT_LONGITUDE
+        currentPositionRepositoryImpl.startLocationUpdates()
 
         // WHEN
-//        currentPositionRepositoryImpl.startLocationUpdates()
         currentPositionRepositoryImpl.getCurrentPositionFlow().test {
+            locationCallbackSlot.captured.onLocationResult(locationResult)
+            runCurrent()
+
             // THEN
             assertEquals(getDefaultPosition(), awaitItem())
-//            awaitComplete()
+            assertEquals(2.minutes.inWholeMilliseconds, locationRequestSlot.captured.intervalMillis)
 
-//            verify { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), any()) }
+            verify(exactly = 1) {
+                locationProviderClient.requestLocationUpdates(any(), any(), any<LocationCallback>())
+            }
             confirmVerified(locationProviderClient)
         }
     }
 
     @Test
-    fun `get position flow with start location update`() = testCoroutineRule.runTest {
+    fun `edge case - startLocationUpdates is idempotent`() = testCoroutineRule.runTest {
         // GIVEN
-        val locationCallbackSlot = slot<LocationCallback>()
-        every { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), looper) } returns taskVoid
+        val locationResult = mockk<LocationResult>()
+        every { locationResult.lastLocation?.latitude } returns DEFAULT_LATITUDE
+        every { locationResult.lastLocation?.longitude } returns DEFAULT_LONGITUDE
+        currentPositionRepositoryImpl.startLocationUpdates()
 
         // WHEN
-        currentPositionRepositoryImpl.startLocationUpdates()
         currentPositionRepositoryImpl.getCurrentPositionFlow().test {
+            locationCallbackSlot.captured.onLocationResult(locationResult)
+            runCurrent()
+
+            currentPositionRepositoryImpl.startLocationUpdates()
+
             // THEN
             assertEquals(getDefaultPosition(), awaitItem())
-//            awaitComplete()
 
-            verify { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), any()) }
+            verify(exactly = 1) {
+                locationProviderClient.requestLocationUpdates(any(), any(), any<LocationCallback>())
+            }
             confirmVerified(locationProviderClient)
         }
     }
 
     @Test
-    fun `start location updates test with location call back null`() = testCoroutineRule.runTest {
-        // GIVEN
-        val locationCallbackSlot = slot<LocationCallback>()
-        every { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), looper) } returns taskVoid
-
+    fun `initial case - no value published`() = testCoroutineRule.runTest {
         // WHEN
-        currentPositionRepositoryImpl.startLocationUpdates()
+        currentPositionRepositoryImpl.getCurrentPositionFlow().test {
+            // THEN
+            expectNoEvents()
+
+            confirmVerified(locationProviderClient)
+        }
+    }
+
+    @Test
+    fun `nominal case - stop location updates without starting before`() = testCoroutineRule.runTest {
+        // WHEN
+        currentPositionRepositoryImpl.stopLocationUpdates()
 
         // THEN
-        verify { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), any()) }
         confirmVerified(locationProviderClient)
     }
 
     @Test
-    fun `start then stop location updates test with location call back null`() = testCoroutineRule.runTest {
+    fun `nominal case - stop location updates with starting before`() = testCoroutineRule.runTest {
         // GIVEN
         val locationCallbackSlot = slot<LocationCallback>()
-        every { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), looper) } returns taskVoid
-        every { locationProviderClient.removeLocationUpdates(capture(locationCallbackSlot)) } returns taskVoid
-
-        // WHEN
+        every { locationProviderClient.requestLocationUpdates(any(), any(), capture(locationCallbackSlot)) } returns mockk()
+        every { locationProviderClient.removeLocationUpdates(any<LocationCallback>()) } returns mockk()
         currentPositionRepositoryImpl.startLocationUpdates()
-
-        // THEN
-        verify { locationProviderClient.requestLocationUpdates(any(), capture(locationCallbackSlot), any()) }
 
         // WHEN
         currentPositionRepositoryImpl.stopLocationUpdates()
 
         // THEN
-        verify {
-            locationProviderClient.removeLocationUpdates(capture(locationCallbackSlot))
+        verify(exactly = 1) {
+            locationProviderClient.requestLocationUpdates(any(), any(), locationCallbackSlot.captured)
+            locationProviderClient.removeLocationUpdates(locationCallbackSlot.captured)
         }
         confirmVerified(locationProviderClient)
     }
 
-    @Test
-    fun `stop location updates test with location call back null`() = testCoroutineRule.runTest {
-        // GIVEN
-        val locationCallbackSlot = slot<LocationCallback>()
-        every { locationProviderClient.removeLocationUpdates(capture(locationCallbackSlot)) } returns taskVoid
-
-        // WHEN
-        currentPositionRepositoryImpl.stopLocationUpdates()
-
-        // THEN
-        confirmVerified(locationProviderClient)
-    }
-
-    private fun getDefaultPosition(): Position {
-        return Position(0.0, 0.0)
-    }
+    private fun getDefaultPosition() = Position(
+        lat = DEFAULT_LATITUDE,
+        long = DEFAULT_LONGITUDE,
+    )
 }
