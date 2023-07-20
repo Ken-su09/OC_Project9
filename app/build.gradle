@@ -130,3 +130,47 @@ dependencies {
     debugImplementation "androidx.fragment:fragment-testing:1.6.0"
 }
 
+koverAndroid {
+    common {
+        // filters for all report types of all build variants
+        filters {
+            excludes {
+                annotatedBy(
+                    "dagger.Module",
+                    "dagger.internal.DaggerGenerated",
+                    "androidx.room.Database",
+                )
+                packages(
+                    "hilt_aggregated_deps", // Hilt: GeneratedInjectors (NOT annotated by DaggerGenerated)
+                    "dagger.hilt.internal.aggregatedroot.codegen",
+                    "com.suonk.oc_project9.databinding", // ViewBinding
+                )
+                classes(
+                    // Hilt
+                    // TODO Nino Delete when this is fixed: https://github.com/Kotlin/kotlinx-kover/issues/331
+                    "*_*Factory\$*",
+
+                    // Room
+                    "*_Impl",
+                    "*_Impl\$*",
+
+                    // TODO Nino Delete when this is fixed: https://github.com/Kotlin/kotlinx-kover/issues/331
+                    "*AppDatabase\$*",
+
+                    // Gradle Generated
+                    "com.suonk.oc_project9.BuildConfig", // TODO Nino: Why Kover doesn't understand tests on BuildConfig ?!
+
+                    // TODO Nino: Remove below when Kover can handle Android integration tests!
+                    // Android UI
+                    "*di.App",
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*Adapter",
+                    "*Adapter\$*",
+                )
+            }
+        }
+    }
+}

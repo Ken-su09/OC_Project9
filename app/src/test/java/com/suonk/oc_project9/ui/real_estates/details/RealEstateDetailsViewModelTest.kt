@@ -55,8 +55,8 @@ class RealEstateDetailsViewModelTest {
 
         val DEFAULT_PRICE = BigDecimal(29872000)
         val DEFAULT_PRICE_WITH_COMMA = BigDecimal(20321135)
-        const val DEFAULT_PRICE_STRING = "29 872 000"
-//        const val DEFAULT_PRICE_STRING = "29 872 000"
+//        const val DEFAULT_PRICE_STRING = "29 872 000"
+        const val DEFAULT_PRICE_STRING = "29 872 000"
         const val DEFAULT_PRICE_STRING_TO_ADDED = "29872000"
         const val DEFAULT_PRICE_STRING_TO_ADDED_WITH_COMMA = "20321,135"
         const val DEFAULT_LIVING_SPACE = 8072.9

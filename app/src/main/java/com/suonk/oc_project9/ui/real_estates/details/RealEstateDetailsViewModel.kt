@@ -1,7 +1,6 @@
 package com.suonk.oc_project9.ui.real_estates.details
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -24,7 +23,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.time.*
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -135,7 +136,7 @@ class RealEstateDetailsViewModel @Inject constructor(
                         )
                     }
 
-                    val price = DecimalFormat("#,###").format(realEstateEntityWithPhotos.realEstateEntity.price)
+                    val price = DecimalFormat("#,###", DecimalFormatSymbols(Locale.FRANCE)).format(realEstateEntityWithPhotos.realEstateEntity.price)
 
                     // Update mode
                     realEstateDetailsViewStateMutableSharedFlow.tryEmit(
