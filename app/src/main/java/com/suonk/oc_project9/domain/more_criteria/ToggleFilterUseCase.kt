@@ -133,6 +133,33 @@ class ToggleFilterUseCase @Inject constructor(private val searchRepository: Sear
                     }
                 }
             }
+            is FilterQuery.NbBathroomsFilter -> {
+                val previousFilter = filters.filterIsInstance<Filter.NbBathroomsFilter>().firstOrNull()
+
+                if (previousFilter == null) {
+                    val newFilter = Filter.NbBathroomsFilter(
+                        (filterQuery.min as? FilterQuery.SearchParam.Update)?.value,
+                        (filterQuery.max as? FilterQuery.SearchParam.Update)?.value,
+                    )
+
+                    if (newFilter.min != null || newFilter.max != null) {
+                        searchRepository.addFilter(newFilter)
+                    }
+                } else {
+                    val newMin = when (filterQuery.min) {
+                        is FilterQuery.SearchParam.Update -> filterQuery.min.value
+                        is FilterQuery.SearchParam.Delete -> null
+                    }
+                    val newMax = when (filterQuery.max) {
+                        is FilterQuery.SearchParam.Update -> filterQuery.max.value
+                        is FilterQuery.SearchParam.Delete -> null
+                    }
+
+                    if (newMin != null || newMax != null) {
+                        searchRepository.addFilter(Filter.NbBathroomsFilter(min = newMin, max = newMax))
+                    }
+                }
+            }
             is FilterQuery.EntryDateFilter -> {
                 val previousFilter = filters.filterIsInstance<Filter.EntryDateFilter>().firstOrNull()
 

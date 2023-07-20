@@ -1,6 +1,5 @@
 package com.suonk.oc_project9.ui.real_estates.list
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible

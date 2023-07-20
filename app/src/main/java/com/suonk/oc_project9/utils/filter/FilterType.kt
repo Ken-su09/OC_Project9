@@ -5,6 +5,7 @@ enum class FilterType {
     Price,
     NbRooms,
     NbBedrooms,
+    NbBathrooms,
     EntryDate,
     SaleDate
 }

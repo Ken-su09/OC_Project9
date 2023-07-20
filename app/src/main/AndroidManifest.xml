@@ -21,6 +21,7 @@
         android:roundIcon="@drawable/ic_real_estate_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.OC_Project9">
+
         <activity
             android:name=".ui.real_estates.details.DetailsActivity"
             android:configChanges="uiMode"
@@ -46,6 +47,12 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <provider
+            android:name=".content_provider.RealEstateContentProvider"
+            android:authorities="com.suonk.oc_project9.content_provider.RealEstateContentProvider"
+            android:enabled="true"
+            android:exported="true"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

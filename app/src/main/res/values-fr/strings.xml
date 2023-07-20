@@ -93,6 +93,7 @@
     <string name="living_space_title">Surface (m²) : </string>
     <string name="nb_rooms_title">Nombre de pièces : </string>
     <string name="nb_bedrooms_title">Nombre de chambres : </string>
+    <string name="nb_bathrooms_title">Nombre de salles de bain : </string>
     <string name="price_title">Price : </string>
 
     <string name="max_value">Max</string>
@@ -110,6 +111,8 @@
     <string name="nb_rooms_max">Nb rooms max</string>
     <string name="nb_bedrooms_min">Nb bedrooms min</string>
     <string name="nb_bedrooms_max">Nb bedrooms max</string>
+    <string name="nb_bathrooms_min">Nb bathrooms min</string>
+    <string name="nb_bathrooms_max">Nb bathrooms max</string>
     <string name="price_min">Price min</string>
     <string name="price_max">Price Max</string>
 

@@ -74,7 +74,6 @@ class DataModule {
                 photoDao.insertPhoto(PhotoEntity(0, 1L, "content://media/external/images/media/68288"))
                 photoDao.insertPhoto(PhotoEntity(0, 1L, "content://media/external/images/media/68289"))
 
-
                 estateDao.upsertRealEstate(
                     RealEstateEntity(
                         id = 2L,
@@ -152,29 +151,6 @@ class DataModule {
     fun provideClock(): Clock {
         return Clock.systemDefaultZone()
     }
-
-//    RealEstateEntity(
-//    id = ,
-//    type = "",
-//    price = ,
-//    livingSpace = ,
-//    numberRooms = ,
-//    numberBedroom = ,
-//    numberBathroom = ,
-//    description = ,
-//    postalCode = ,
-//    state = ,
-//    city = ,
-//    streetName = ,
-//    gridZone = ,
-//    pointOfInterest = ,
-//    status = ,
-//    entryDate = ,
-//    saleDate = ,
-//    latitude = ,
-//    longitude = ,
-//    agentInChargeId = ,
-//    )
 
     @Provides
     @Singleton
