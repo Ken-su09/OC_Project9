@@ -4,8 +4,8 @@ import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
 import com.suonk.oc_project9.model.database.data.repositories.PlacesRepositoryImpl
 import com.suonk.oc_project9.utils.TestCoroutineRule
 import io.mockk.*
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertNotNull
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -15,9 +15,6 @@ class GetNearbyPointsOfInterestUseCaseTest {
         private const val defaultPlaceId = "defaultPlaceId"
         private const val defaultName = "defaultName"
         private const val defaultAddress = "defaultAddress"
-        private const val defaultIconUrl1 = "defaultIconUrl1"
-        private const val defaultIconUrl2 = "defaultIconUrl2"
-        private const val defaultIconUrl3 = "defaultIconUrl3"
 
         private const val DEFAULT_LAT = 40.744081
         private const val DEFAULT_LONG = -73.991302
@@ -76,7 +73,6 @@ class GetNearbyPointsOfInterestUseCaseTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconUrl1,
             listOf(),
         )
     }
@@ -86,7 +82,6 @@ class GetNearbyPointsOfInterestUseCaseTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconUrl2,
             listOf(),
         )
     }
@@ -96,7 +91,6 @@ class GetNearbyPointsOfInterestUseCaseTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconUrl3,
             listOf(),
         )
     }

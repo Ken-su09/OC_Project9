@@ -228,15 +228,6 @@ class RealEstateDetailsViewModel @Inject constructor(
                         null
                     }
 
-                    println("photos : $photos")
-                    println("entryDate : $entryDate")
-                    println("saleDate : $saleDate")
-                    println("gridZone : $gridZone")
-                    println("streetName : $streetName")
-                    println("city : $city")
-                    println("state : $state")
-                    println("postalCode : $postalCode")
-
                     val fullAddress = application.getString(
                         R.string.full_address,
                         gridZone,
@@ -245,8 +236,6 @@ class RealEstateDetailsViewModel @Inject constructor(
                         state,
                         postalCode,
                     )
-
-                    println("fullAddress : $fullAddress")
 
                     val position = getPositionFromFullAddressUseCase.invoke(fullAddress)
 

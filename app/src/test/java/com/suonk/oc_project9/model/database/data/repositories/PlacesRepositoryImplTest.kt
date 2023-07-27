@@ -84,7 +84,6 @@ class PlacesRepositoryImplTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconUrl1,
             listOf(),
         )
     }
@@ -94,7 +93,6 @@ class PlacesRepositoryImplTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconUrl2,
             listOf(),
         )
     }
@@ -104,7 +102,6 @@ class PlacesRepositoryImplTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconUrl3,
             listOf(),
         )
     }
@@ -197,7 +194,6 @@ class PlacesRepositoryImplTest {
             defaultPlaceId,
             defaultName,
             defaultAddress,
-            defaultIconEmpty,
             listOf(),
         )
     }
@@ -248,7 +244,6 @@ class PlacesRepositoryImplTest {
             defaultName,
             defaultName,
             defaultAddress,
-            defaultIconEmpty,
             listOf(),
         )
     }

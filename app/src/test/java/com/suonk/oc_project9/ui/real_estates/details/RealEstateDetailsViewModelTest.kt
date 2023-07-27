@@ -10,15 +10,19 @@ import com.suonk.oc_project9.domain.real_estate.get.GetPositionFromFullAddressUs
 import com.suonk.oc_project9.domain.real_estate.get.GetRealEstateFlowByIdUseCase
 import com.suonk.oc_project9.domain.real_estate.id.GetCurrentRealEstateAsStateFlowUseCase
 import com.suonk.oc_project9.domain.real_estate.upsert.UpsertNewRealEstateUseCase
+import com.suonk.oc_project9.model.database.data.entities.places.PointOfInterest
 import com.suonk.oc_project9.model.database.data.entities.places.Position
 import com.suonk.oc_project9.model.database.data.entities.real_estate.PhotoEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntityWithPhotos
-import com.suonk.oc_project9.utils.*
+import com.suonk.oc_project9.ui.real_estates.details.point_of_interest.PointOfInterestViewState
+import com.suonk.oc_project9.utils.EquatableCallback
+import com.suonk.oc_project9.utils.NativeText
+import com.suonk.oc_project9.utils.TestCoroutineRule
+import com.suonk.oc_project9.utils.observeForTesting
 import io.mockk.*
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
@@ -55,8 +59,9 @@ class RealEstateDetailsViewModelTest {
 
         val DEFAULT_PRICE = BigDecimal(29872000)
         val DEFAULT_PRICE_WITH_COMMA = BigDecimal(20321135)
-//        const val DEFAULT_PRICE_STRING = "29 872 000"
-        const val DEFAULT_PRICE_STRING = "29 872 000"
+        const val DEFAULT_PRICE_STRING = "29 872 000"
+
+        //        const val DEFAULT_PRICE_STRING = "29 872 000"
         const val DEFAULT_PRICE_STRING_TO_ADDED = "29872000"
         const val DEFAULT_PRICE_STRING_TO_ADDED_WITH_COMMA = "20321,135"
         const val DEFAULT_LIVING_SPACE = 8072.9
@@ -131,6 +136,18 @@ class RealEstateDetailsViewModelTest {
             val types = arrayListOf("House", "Penthouse", "Duplex", "Flat", "Loft")
             return types[position]
         }
+
+        private const val pointOfInterestFirstId = "pointOfInterestFirstId"
+        private const val pointOfInterestFirstName = "pointOfInterestFirstName"
+        private const val pointOfInterestFirstAddress = "pointOfInterestFirstAddress"
+        private val pointOfInterestFirstTypes = listOf("Restaurant")
+        private val pointOfInterestFirstTypesString = "[Restaurant]"
+
+        private val pointOfInterestSecondId = null
+        private const val pointOfInterestSecondName = "pointOfInterestSecondName"
+        private const val pointOfInterestSecondAddress = "pointOfInterestSecondAddress"
+        private val pointOfInterestSecondTypes = listOf("Restaurant")
+        private val pointOfInterestSecondTypesString = "[Restaurant]"
     }
 
     @get:Rule
@@ -158,7 +175,7 @@ class RealEstateDetailsViewModelTest {
         // GIVEN
         every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns getPointOfInterestList()
 
         realEstateDetailsViewModel = RealEstateDetailsViewModel(
             upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
@@ -230,9 +247,8 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
-                )
+                getCurrentRealEstateAsStateFlowUseCase
+            )
         }
     }
 
@@ -241,7 +257,7 @@ class RealEstateDetailsViewModelTest {
         // GIVEN
         every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns getPointOfInterestList()
 
         realEstateDetailsViewModel = RealEstateDetailsViewModel(
             upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
@@ -260,7 +276,7 @@ class RealEstateDetailsViewModelTest {
 
         // WHEN
         realEstateDetailsViewModel.realEstateDetailsViewStateLiveData.observeForTesting(this) {
-
+            runCurrent()
             // THEN
             assertThat(it.value).isEqualTo(getDefaultRealEstateDetailsViewState())
 
@@ -275,9 +291,8 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase,
-
-                )
+                getCurrentRealEstateAsStateFlowUseCase
+            )
         }
     }
 
@@ -294,6 +309,7 @@ class RealEstateDetailsViewModelTest {
         } returns DEFAULT_FULL_ADDRESS
         every { application.getString(R.string.real_estate_status_available) } returns DEFAULT_STATUS_AVAILABLE
         coEvery { getPositionFromFullAddressUseCase.invoke(DEFAULT_FULL_ADDRESS) } returns DEFAULT_POSITION
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns listOf()
         coJustRun {
             upsertNewRealEstateUseCase.invoke(
                 realEstate = getDefaultRealEstateEntityToAdd(), photos = any()
@@ -352,7 +368,8 @@ class RealEstateDetailsViewModelTest {
                 getPositionFromFullAddressUseCase,
                 getNearbyPointsOfInterestUseCase,
                 application,
-                getCurrentRealEstateAsStateFlowUseCase)
+                getCurrentRealEstateAsStateFlowUseCase
+            )
         }
     }
 
@@ -418,7 +435,7 @@ class RealEstateDetailsViewModelTest {
         // GIVEN
         every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns getPointOfInterestList()
         every { application.getString(R.string.field_empty_toast_msg) } returns FIELD_EMPTY_TOAST_MSG
 
         realEstateDetailsViewModel = RealEstateDetailsViewModel(
@@ -726,7 +743,7 @@ class RealEstateDetailsViewModelTest {
         // GIVEN
         every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns getPointOfInterestList()
         every {
             application.getString(
                 R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
@@ -803,7 +820,7 @@ class RealEstateDetailsViewModelTest {
         // GIVEN
         every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns getPointOfInterestList()
         every {
             application.getString(
                 R.string.full_address, DEFAULT_GRID_ZONE, DEFAULT_STREET_NAME, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_POSTAL_CODE
@@ -936,7 +953,7 @@ class RealEstateDetailsViewModelTest {
         // GIVEN
         every { getCurrentRealEstateAsStateFlowUseCase.invoke() } returns flowOf(DEFAULT_ID)
         every { getRealEstateFlowByIdUseCase.invoke(DEFAULT_ID) } returns flowOf(getDefaultRealEstateEntityWithPhotos())
-        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns arrayListOf()
+        coEvery { getNearbyPointsOfInterestUseCase.invoke(lat = DEFAULT_LAT, long = DEFAULT_LONG) } returns getPointOfInterestList()
 
         realEstateDetailsViewModel = RealEstateDetailsViewModel(
             upsertNewRealEstateUseCase = upsertNewRealEstateUseCase,
@@ -1057,7 +1074,7 @@ class RealEstateDetailsViewModelTest {
             entryDate = Instant.now(fixedClock),
             saleDate = null,
             isSold = false,
-            pointsOfInterestViewState = emptyList(),
+            pointsOfInterestViewState = getPointOfInterestViewStateList(),
         )
     }
 
@@ -1383,7 +1400,7 @@ class RealEstateDetailsViewModelTest {
 
     //endregion
 
-    //region ================================================================= TO UPDATE =================================================================
+    //region =============================================================== TO UPDATE ==============================================================
 
     private fun getDefaultRealEstateEntityToUpdate(): RealEstateEntity {
         return RealEstateEntity(
@@ -1448,6 +1465,44 @@ class RealEstateDetailsViewModelTest {
             AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp"),
             AggregatedPhoto(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp"),
             AggregatedPhoto(uri = PHOTO_TO_ADD)
+        )
+    }
+
+    //endregion
+
+    //region ========================================================== POINT OF INTEREST ===========================================================
+
+    private fun getPointOfInterestList(): List<PointOfInterest> {
+        return listOf(
+            PointOfInterest(
+                pointOfInterestFirstId,
+                pointOfInterestFirstName,
+                pointOfInterestFirstAddress,
+                pointOfInterestFirstTypes,
+            ),
+            PointOfInterest(
+                pointOfInterestSecondId,
+                pointOfInterestSecondName,
+                pointOfInterestSecondAddress,
+                pointOfInterestSecondTypes,
+            )
+        )
+    }
+
+    private fun getPointOfInterestViewStateList(): List<PointOfInterestViewState> {
+        return listOf(
+            PointOfInterestViewState(
+                pointOfInterestFirstId,
+                pointOfInterestFirstName,
+                pointOfInterestFirstAddress,
+                pointOfInterestFirstTypesString,
+            ),
+            PointOfInterestViewState(
+                pointOfInterestSecondName,
+                pointOfInterestSecondName,
+                pointOfInterestSecondAddress,
+                pointOfInterestSecondTypesString,
+            )
         )
     }
 
