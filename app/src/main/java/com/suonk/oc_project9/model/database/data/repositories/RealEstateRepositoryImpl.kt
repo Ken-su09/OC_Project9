@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.model.database.data.repositories
 
+import android.database.Cursor
 import com.suonk.oc_project9.domain.RealEstateRepository
 import com.suonk.oc_project9.model.database.dao.RealEstateDao
 import com.suonk.oc_project9.model.database.data.entities.real_estate.RealEstateEntity
@@ -10,6 +11,9 @@ import javax.inject.Singleton
 
 @Singleton
 class RealEstateRepositoryImpl @Inject constructor(private val dao: RealEstateDao) : RealEstateRepository {
+
+    override fun getAllRealEstatesWithPhotosCursor(): Cursor =
+        dao.getAllRealEstatesWithPhotosCursor()
 
     override fun getAllRealEstatesWithPhotos(): Flow<List<RealEstateEntityWithPhotos>> =
         dao.getAllRealEstatesWithPhotos()

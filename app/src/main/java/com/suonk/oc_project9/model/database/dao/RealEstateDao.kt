@@ -1,5 +1,6 @@
 package com.suonk.oc_project9.model.database.dao
 
+import android.database.Cursor
 import androidx.room.Query
 import androidx.room.Dao
 import androidx.room.Transaction
@@ -18,9 +19,11 @@ interface RealEstateDao {
 
     @Transaction
     @Query("SELECT * FROM real_estate ORDER BY id ASC")
-    fun getAllRealEstatesWithPhotos(): Flow<List<RealEstateEntityWithPhotos>>
+    fun getAllRealEstatesWithPhotosCursor(): Cursor
 
-//    @Query("SELECT * FROM real_estate WHERE BLABLA from ORDER BY id ASC OFFSET 0 LIMIT 30")
+    @Transaction
+    @Query("SELECT * FROM real_estate ORDER BY id ASC")
+    fun getAllRealEstatesWithPhotos(): Flow<List<RealEstateEntityWithPhotos>>
 
     @Transaction
     @Query("SELECT * FROM real_estate ORDER BY price DESC")
