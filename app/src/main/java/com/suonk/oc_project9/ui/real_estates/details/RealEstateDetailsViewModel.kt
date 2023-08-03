@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.text.NumberFormat
 import java.time.*
 import java.util.Locale
 import javax.inject.Inject
@@ -59,7 +60,6 @@ class RealEstateDetailsViewModel @Inject constructor(
         combine(
             realEstateDetailsViewStateMutableSharedFlow, photosMutableStateFlow, isSoldMutableStateFlow
         ) { detailsViewState, aggregatedPhotos, isSold ->
-
             emit(
                 RealEstateDetailsViewState(
                     id = detailsViewState.id,
@@ -128,17 +128,16 @@ class RealEstateDetailsViewModel @Inject constructor(
                     isSoldMutableStateFlow.emit(false)
                 } else {
                     val pointsOfInterestViewState = getNearbyPointsOfInterestUseCase.invoke(
-                        lat = realEstateEntityWithPhotos.realEstateEntity.latitude,
-                        long = realEstateEntityWithPhotos.realEstateEntity.longitude
+                        lat = realEstateEntityWithPhotos.realEstateEntity.latitude, long = realEstateEntityWithPhotos.realEstateEntity.longitude
                     ).map {
                         PointOfInterestViewState(
                             id = it.id ?: it.name, name = it.name, address = it.address, types = it.types.toString()
                         )
                     }
 
-                    val price = DecimalFormat("#,###", DecimalFormatSymbols(Locale.FRANCE)).format(realEstateEntityWithPhotos.realEstateEntity.price)
+                    val numberFormat = NumberFormat.getNumberInstance(Locale.US)
+                    val price = numberFormat.format(realEstateEntityWithPhotos.realEstateEntity.price)
 
-                    // Update mode
                     realEstateDetailsViewStateMutableSharedFlow.tryEmit(
                         RealEstateDetailsViewState(
                             id = realEstateEntityWithPhotos.realEstateEntity.id,
@@ -218,12 +217,10 @@ class RealEstateDetailsViewModel @Inject constructor(
                 } else {
                     val photos = photosMutableStateFlow.value
 
-                    val entryDate =
-                        realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(fixedClock).toInstant()
+                    val entryDate = realEstateDetailsViewStateMutableSharedFlow.first().entryDate ?: ZonedDateTime.now(fixedClock).toInstant()
 
                     val saleDate = if (isSoldMutableStateFlow.value) {
-                        realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(fixedClock).toInstant()
-                            .toEpochMilli()
+                        realEstateDetailsViewStateMutableSharedFlow.first().saleDate ?: ZonedDateTime.now(fixedClock).toInstant().toEpochMilli()
                     } else {
                         null
                     }

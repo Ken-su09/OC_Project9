@@ -51,21 +51,20 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
-    implementation "androidx.core:core-ktx:1.8.0"
-
+    implementation "androidx.core:core-ktx:1.10.1"
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     // MVVM
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
-    implementation 'androidx.fragment:fragment-ktx:1.5.2'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
+    implementation 'androidx.fragment:fragment-ktx:1.6.1'
 
     // Room
-    def room_version = "2.5.1"
+    def room_version = "2.5.2"
     implementation "androidx.room:room-ktx:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
 
@@ -87,8 +86,8 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:30.1.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.android.gms:play-services-auth:20.5.0'
-    implementation 'com.google.firebase:firebase-firestore:24.6.1'
+    implementation 'com.google.android.gms:play-services-auth:20.6.0'
+    implementation 'com.google.firebase:firebase-firestore:24.7.0'
 
     // Google Maps
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
@@ -134,41 +133,53 @@ koverReport {
     // filters for all report types of all build variants
     filters {
         excludes {
-            annotatedBy(
-                "dagger.Module",
-                "dagger.internal.DaggerGenerated",
-                "androidx.room.Database",
-            )
-            packages(
-                "hilt_aggregated_deps", // Hilt: GeneratedInjectors (NOT annotated by DaggerGenerated)
-                "dagger.hilt.internal.aggregatedroot.codegen",
-                "com.suonk.oc_project9.databinding", // ViewBinding
+            annotatedBy("dagger.Module",
+                    "dagger.internal.DaggerGenerated",
+                    "androidx.room.Database",)
+            packages("hilt_aggregated_deps", // Hilt: GeneratedInjectors (NOT annotated by DaggerGenerated)
+                    "dagger.hilt.internal.aggregatedroot.codegen",
+                    "com.suonk.oc_project9.databinding", // ViewBinding
             )
             classes(
-                // Hilt
-                // TODO Nino Delete when this is fixed: https://github.com/Kotlin/kotlinx-kover/issues/331
-                "*_*Factory\$*",
+                    // Hilt
+                    // TODO Nino Delete when this is fixed: https://github.com/Kotlin/kotlinx-kover/issues/331
+                    "*_*Factory\$*",
 
-                // Room
-                "*_Impl",
-                "*_Impl\$*",
+                    // Room
+                    "*_Impl",
+                    "*_Impl\$*",
 
-                // TODO Nino Delete when this is fixed: https://github.com/Kotlin/kotlinx-kover/issues/331
-                "*AppDatabase\$*",
+                    // Content Provider
+                    "*Contract",
+                    "*Helper",
 
-                // Gradle Generated
-                "com.suonk.oc_project9.BuildConfig", // TODO Nino: Why Kover doesn't understand tests on BuildConfig ?!
+                    // TODO Nino Delete when this is fixed: https://github.com/Kotlin/kotlinx-kover/issues/331
+                    "*AppDatabase\$*",
+                    "*PermissionChecker",
 
-                // TODO Nino: Remove below when Kover can handle Android integration tests!
-                // Android UI
-                "*di.App",
-                "*Fragment",
-                "*Fragment\$*",
-                "*Activity",
-                "*Activity\$*",
-                "*Adapter",
-                "*Adapter\$*",
-            )
+                    // Gradle Generated
+                    "com.suonk.oc_project9.BuildConfig", // TODO Nino: Why Kover doesn't understand tests on BuildConfig ?!
+
+                    // TODO Nino: Remove below when Kover can handle Android integration tests!
+                    // Android UI
+                    "*di.App",
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*Adapter",
+                    "*Adapter\$*",
+
+                    // Utils
+                    "*Constants",
+                    "*Constants\$*",
+                    "*Converters",
+                    "*Converters\$*",
+                    "*Sorting\$*",
+                    "*ViewBindingDelegatesKt",
+                    "*ViewBindingDelegatesKt\$*",
+                    "*Utils",
+                    "*Utils\$*",)
         }
     }
 }

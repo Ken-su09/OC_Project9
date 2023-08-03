@@ -59,9 +59,10 @@ class RealEstateDetailsViewModelTest {
 
         val DEFAULT_PRICE = BigDecimal(29872000)
         val DEFAULT_PRICE_WITH_COMMA = BigDecimal(20321135)
-        const val DEFAULT_PRICE_STRING = "29 872 000"
 
+        const val DEFAULT_PRICE_STRING = "29,872,000"
         //        const val DEFAULT_PRICE_STRING = "29 872 000"
+
         const val DEFAULT_PRICE_STRING_TO_ADDED = "29872000"
         const val DEFAULT_PRICE_STRING_TO_ADDED_WITH_COMMA = "20321,135"
         const val DEFAULT_LIVING_SPACE = 8072.9
@@ -1173,21 +1174,24 @@ class RealEstateDetailsViewModelTest {
     }
 
     private fun getDefaultPhotoViewStates(): List<DetailsPhotoViewState> {
-        return listOf(
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+        return listOf(DetailsPhotoViewState(
+            uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+            EquatableCallback {}),
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
-                EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/9d28f752e5f90e54d151a41114db6040-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }
 
     private fun getDefaultPhotoViewStatesAfterDeletedPhoto(): List<DetailsPhotoViewState> {
-        return listOf(
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
-                EquatableCallback {}),
-            DetailsPhotoViewState(uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
+        return listOf(DetailsPhotoViewState(
+            uri = "https://photos.zillowstatic.com/fp/390793abc077faf2df87690ad3f9940c-se_extra_large_1500_800.webp",
+            EquatableCallback {}),
+            DetailsPhotoViewState(
+                uri = "https://photos.zillowstatic.com/fp/344beadccb742f876c027673bfccccf2-se_extra_large_1500_800.webp",
                 EquatableCallback {})
         )
     }
@@ -1479,8 +1483,7 @@ class RealEstateDetailsViewModelTest {
                 pointOfInterestFirstName,
                 pointOfInterestFirstAddress,
                 pointOfInterestFirstTypes,
-            ),
-            PointOfInterest(
+            ), PointOfInterest(
                 pointOfInterestSecondId,
                 pointOfInterestSecondName,
                 pointOfInterestSecondAddress,
@@ -1496,8 +1499,7 @@ class RealEstateDetailsViewModelTest {
                 pointOfInterestFirstName,
                 pointOfInterestFirstAddress,
                 pointOfInterestFirstTypesString,
-            ),
-            PointOfInterestViewState(
+            ), PointOfInterestViewState(
                 pointOfInterestSecondName,
                 pointOfInterestSecondName,
                 pointOfInterestSecondAddress,
